@@ -1,0 +1,170 @@
+#
+# $ ansible-playbook longitude.playbook.yml --ask-become-pass
+#
+- hosts: [127.0.0.1]
+  connection: local
+
+    #
+    # Things you may want to do first
+    # -------------------------------
+    #
+    # 1. Install Ubuntu Additional Drivers manually and reboot.
+    # 2. Install "ubuntu-gnome-desktop" (with gdm3) and reboot, switch the default session before logging in.
+    # 3. Remove unity*
+    # 4. You should REALLY run apt update && apt upgrade (and perhaps apt dist-upgrade) and reboot.
+    # 5. Mess about with ~/.fonts, Gnome Shell extensions, Gnome Tweak Tool, settings, personalisations, etc.
+    #
+    # NOTE: Install ubuntu-restricted-extras if you want to watch Netflix/YouTube/H.264 videos.
+    #
+    # Customisations
+    # --------------
+    #
+    # - parcellite: to hide the annoying bottom-left corner icon, change the startup script to include '--no-icon'
+    # - Keybase: complete the installation by running `run_keybase` and import your keys:
+    #
+    #     $ keybase pgp export | gpg --import
+    #     $ keybase pgp export -s | gpg --allow-secret-key-import --import
+    #
+
+  vars:
+
+    docker_gpg_key_id: "0EBFCD88"
+    docker_compose_version: 1.22.0
+    docker_compose_checksum: "sha256:f679a24b93f291c3bffaff340467494f388c0c251649d640e661d509db9d57e9"
+
+    dropbox_version: 2019.01.31
+
+    ripgrep_version: 0.10.0
+    ripgrep_platform: amd64
+
+    fzf_version: 0.17.5
+    fzf_platform: linux_amd64
+    fzf_checksum: "sha256:3020c7d4d43d524ff394df306337b6de873b9db0bd9cd9dc73cd80cbd6e0c2f8"
+
+    zsh_version: 5.7.1
+    zsh_checksum: "md5:374f9fdd121b5b90e07abfcad7df0627"
+
+  tasks:
+
+  - { name: "Prerequisites: Paths writeable by the user", become: yes, file: { path: "{{ item }}", owner: "{{ ansible_user_id }}" }, with_items: ["/usr/local/bin", "/opt"] }
+
+  # 10. tmpfs at /tmp
+  - { name: "System: Make /tmp a tmpfs", become: yes, lineinfile: { path: "/etc/fstab", regexp: "\\/tmp\\s", line: "tmpfs /tmp tmpfs rw,nosuid,nodev,size=4G 0 0" } }
+
+  # 20. build-essential is essential
+  - { name: "System: Install build-essential", become: yes, apt: { pkg: [build-essential], state: present } }
+
+  # 100. Git
+  - { name: "Git: Add PPA", become: yes, apt_repository: { repo: "ppa:git-core/ppa", update_cache: yes } }
+  - { name: "Git: Install packages", become: yes, apt: { pkg: [git, git-gui, gitk], state: latest } }
+
+  # 200. Python
+  - { name: "Python: Install pip packages & Python development headers", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present } }
+
+  # 300. etkkeeper
+  - { name: "etckeeper: Install packages", become: yes, apt: { pkg: [etckeeper], state: present } }
+
+  # 400. Neovim
+  - { name: "Neovim: Add stable PPA", become: yes, apt_repository: { repo: "ppa:neovim-ppa/stable", update_cache: yes } }
+  - { name: "Neovim: Install packages", become: yes, apt: { pkg: [neovim], state: latest } }
+  # 410. Neovim Python support
+  - { name: "Neovim: Add Python support", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: latest }, with_items: [pip2, pip3] }
+  # 420. Neovim alternatives
+  - { name: "Neovim: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/nvim" }, with_items: [vi, vim, editor] }
+
+  # 500. Docker
+  - { name: "Docker: Install prerequisites", become: yes, apt: { pkg: [apt-transport-https, ca-certificates, curl, gnupg-agent, software-properties-common], state: present } }
+  - { name: "Docker: Import GPG key", become: yes, apt_key: { id: "{{ docker_gpg_key_id }}", url: "https://download.docker.com/linux/ubuntu/gpg" } }
+  - { name: "Docker: Add repository", become: yes, apt_repository: { repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable", update_cache: yes } }
+  - { name: "Docker: Install packages", become: yes, apt: { pkg: [docker-ce], state: latest } }
+  # 510. Docker Post-installation steps for Linux
+  - { name: "Docker: Adding group", become: yes, group: { name: docker, state: present } }
+  - { name: "Docker: Modifying user", become: yes, register: docker_user_groups, user: { name: "{{ ansible_user_id }}", append: yes, groups: [docker] } }
+  - { debug: { msg: "NOTE: You MUST log out and in again for changes to take effect." }, when: docker_user_groups.changed }
+  # 520. Docker Compose
+  - { name: "Docker: Install Docker Compose", get_url: { url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_machine }}", dest: "/usr/local/bin/docker-compose-{{ docker_compose_version }}", mode: "+x", checksum: "{{ docker_compose_checksum }}" } }
+  # 530. Docker alternatives
+  - { name: "Docker: Set up alternatives", become: yes, alternatives: { name: "docker-compose", link: "/usr/bin/docker-compose", path: "/usr/local/bin/docker-compose-{{ docker_compose_version }}" } }
+
+  # 600. Firefox
+  - { name: "Firefox: Install packages", become: yes, apt: { pkg: [firefox], state: latest } }
+  # 610. Firefox alternatives
+  - { name: "Firefox: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/firefox" }, with_items: [gnome-www-browser, x-www-browser] }
+
+  # 700. Dropbox
+  - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
+  - { name: "Dropbox: Check installation", become: yes, command: "dpkg -l dropbox", register: dropbox_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "Dropbox: Install packages", become: yes, when: "dropbox_dpkg_query.rc > 0", apt: { deb: "https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_{{ dropbox_version }}_amd64.deb", state: present } }
+
+  # 750. Keybase
+  - { name: "Keybase: Install prerequisites", become: yes, apt: { pkg: [pinentry-curses, pinentry-gnome3], state: present } }
+  - { name: "Keybase: Check installation", become: yes, command: "dpkg -l keybase", register: keybase_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "Keybase: Install packages", become: yes, when: "keybase_dpkg_query.rc > 0", apt: { deb: "https://prerelease.keybase.io/keybase_amd64.deb", state: present } }
+  - { name: "Keybase: Set up GPG", copy: "{{ item }}", with_items: [
+    { content: "use-agent\ncharset UTF-8\ndefault-key 595EA753", dest: "{{ ansible_env.HOME }}/.gnupg/gpg.conf", force: no },
+    { content: "pinentry-program /usr/local/bin/pinentry-mac\ndefault-cache-ttl 3600\nenable-ssh-support", dest: "{{ ansible_env.HOME }}/.gnupg/gpg-agent.conf", force: no }
+  ] }
+
+  # 800. KeePassXC
+  - { name: "KeePassXC: Add official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", update_cache: yes } }
+  - { name: "KeePassXC: Install packages", become: yes, apt: { pkg: [keepassxc], state: latest } }
+
+  # 900. Tools and miscellaneous
+  - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [parcellite, gconf-editor, dconf-editor], state: latest } }
+  - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
+  - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", with_items: [
+      { key: "/org/gnome/mutter/overlay-key", value: "''" },
+      { key: "/org/gnome/desktop/input-sources/xkb-options", value: "['compose:ralt']" }
+    ] }
+
+  # 950. rigrep
+  - { name: "ripgrep: Check installation", become: yes, command: "dpkg -l ripgrep", register: ripgrep_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "ripgrep: Install packages", become: yes, when: "ripgrep_dpkg_query.rc > 0", apt: { deb: "https://github.com/BurntSushi/ripgrep/releases/download/{{ ripgrep_version }}/ripgrep_{{ ripgrep_version }}_{{ ripgrep_platform }}.deb", state: present } }
+  # 955. fzf
+  - { name: "fzf: Check installation", command: "ls /usr/local/bin/fzf-{{ fzf_version }}", register: fzf_install_query, changed_when: no, failed_when: no }
+  - { name: "fzf: Download fzf", get_url: { url: "https://github.com/junegunn/fzf-bin/releases/download/{{ fzf_version }}/fzf-{{ fzf_version }}-{{ fzf_platform }}.tgz", dest: "/tmp/fzf-{{ fzf_version }}.tgz", checksum: "{{ fzf_checksum }}" }, when: "fzf_install_query.rc > 0" }
+  - { name: "fzf: Install fzf", shell: "cd /tmp && tar --overwrite -zxf 'fzf-{{ fzf_version }}.tgz' && mv ./fzf '/usr/local/bin/fzf-{{ fzf_version }}'", when: "fzf_install_query.rc > 0" }
+  - { name: "fzf: Set up alternatives", become: yes, alternatives: { name: "fzf", link: "/usr/bin/fzf", path: "/usr/local/bin/fzf-{{ fzf_version }}" } }
+  - { name: "fzf: Create empty Zsh configuration", copy: { content: "", dest: "{{ ansible_env.HOME }}/.fzf.zsh", force: no } }
+
+  # 1000. Dotfiles
+  - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no } }
+  # 1010. Dotfiles vim-plug
+  - { name: "Dotfiles: Install vim-plug directory", file: "{{ item }}", with_items: [
+      { path: "{{ ansible_env.HOME }}/.vim", state: directory },
+      { path: "{{ ansible_env.HOME }}/.vim/autoload", state: directory },
+      { path: "{{ ansible_env.HOME }}/.vim/backup", state: directory },
+      { path: "{{ ansible_env.HOME }}/.vim/spell", state: directory },
+      { path: "{{ ansible_env.HOME }}/.vim/templates", state: directory },
+      { path: "{{ ansible_env.HOME }}/.vim/undo", state: directory },
+      { path: "{{ ansible_env.HOME }}/.vim/view", state: directory }
+  ] }
+  - { name: "Dotfiles: Install vim-plug", get_url: { url: "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim", dest: "{{ ansible_env.HOME }}/.vim/autoload/plug.vim" }, register: vim_plug_installed }
+  # 1010. Dotfiles linking files
+  - { name: "Dotfiles: Linking files", file: "{{ item }}", with_items: [
+      { path: "{{ ansible_env.HOME }}/.config/nvim", src: "{{ ansible_env.HOME }}/.vim", state: link, force: yes },
+      { path: "{{ ansible_env.HOME }}/.config/nvim/init.vim", src: "{{ ansible_env.HOME }}/dotfiles/.vimrc", state: hard, force: yes },
+      { path: "{{ ansible_env.HOME }}/.gitconfig", src: "{{ ansible_env.HOME }}/dotfiles/.gitconfig", state: hard, force: yes },
+      { path: "{{ ansible_env.HOME }}/.rgrc", src: "{{ ansible_env.HOME }}/dotfiles/.rgrc", state: hard, force: yes },
+      { path: "{{ ansible_env.HOME }}/.zsh", src: "{{ ansible_env.HOME }}/dotfiles/.zsh", state: link, force: yes },
+      { path: "{{ ansible_env.HOME }}/.zshrc", src: "{{ ansible_env.HOME }}/dotfiles/.zshrc", state: hard, force: yes }
+  ] }
+  # 1020. Dotfiles install Vim plug-ins
+  - { name: "Dotfiles: Install Vim plug-ins", command: "nvim -Es -u {{ ansible_env.HOME }}/.config/nvim/init.vim +PlugInstall +qa", when: vim_plug_installed.changed }
+
+  # 1100. Zsh
+  - { name: "Zsh: Install prerequisites", become: yes, apt: { pkg: [libncurses-dev], state: present } }
+  - { name: "Zsh: Check installation", become: yes, command: "ls /opt/zsh-{{ zsh_version }}", register: zsh_install_query, changed_when: no, failed_when: no }
+  - { name: "Zsh: Download Zsh", get_url: { url: "https://sourceforge.net/projects/zsh/files/zsh/{{ zsh_version }}/zsh-{{ zsh_version }}.tar.xz/download", dest: "/tmp/zsh-{{ zsh_version }}.tar.xz", checksum: "{{ zsh_checksum }}" }, when: "zsh_install_query.rc > 0" }
+  - { name: "Zsh: Compile & install packages", when: "zsh_install_query.rc > 0",
+      shell: "cd /tmp && tar --overwrite -Jxf 'zsh-{{ zsh_version }}.tar.xz' && cd 'zsh-{{ zsh_version }}' && ./configure --enable-pcre --prefix='/opt/zsh-{{ zsh_version }}' && make -j8 && make install" }
+  - { name: "Zsh: Set up alternatives", become: yes, alternatives: { name: "zsh", link: "/bin/zsh", path: "/opt/zsh-{{ zsh_version }}/bin/zsh" } }
+  - { name: "Zsh: Check shell", become: yes, shell: "cat /etc/passwd | grep '^{{ ansible_user_id }}:' | cut -d: -f7", register: zsh_shell_query, changed_when: no }
+  - { name: "Zsh: Change shell", become: yes, shell: "chsh -s /bin/zsh '{{ ansible_user_id }}'", when: "zsh_shell_query.stdout != '/bin/zsh'" }
+
+  - { name: "Reset connection to allow shell changes", meta: reset_connection }
+
+  # 9000. Post-install clean up of packages
+  - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common, evolution, evolution-plugins], state: absent, autoremove: yes } }
+
+# vim: sw=2 ts=2 et :
