@@ -100,6 +100,9 @@
   # 200. Python
   - { name: "Python: Install pip packages & Python development headers", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present } }
 
+  # 250. Git
+  - { name: "Git: Add supporting tools", become: yes, pip: { executable: pip2, name: diff-highlight, state: present } }
+
   # 300. etkkeeper
   - { name: "etckeeper: Install packages", become: yes, apt: { pkg: [etckeeper], state: present } }
   - { name: "etckeeper: Turn off Git signing", become: yes, lineinfile: { path: "/etc/etckeeper/etckeeper.conf", regexp: "^GIT_COMMIT_OPTIONS=", line: "GIT_COMMIT_OPTIONS=\"--no-gpg-sign\"" } }
@@ -156,6 +159,27 @@
       { key: "/org/gnome/mutter/overlay-key", value: "''" },
       { key: "/org/gnome/desktop/input-sources/xkb-options", value: "['compose:ralt']" }
     ] }
+  - { name: "Miscellaneous: Create directories", file: "{{ item }}", with_items: [
+      { path: "{{ ansible_env.HOME }}/.config/fontconfig", state: directory },
+      { path: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d", state: directory }
+    ] }
+  - name: "Miscellaneous: Configure fonts"
+    copy:
+      dest: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf"
+      force: no
+      content: |
+        <?xml version="1.0"?>
+        <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+        <fontconfig>
+            <match target="font">
+                <test name="family" compare="contains">
+                    <string>Calibri</string>
+                </test>
+                <edit name="embeddedbitmap">
+                    <bool>false</bool>
+                </edit>
+            </match>
+        </fontconfig>
 
   # 950. rigrep
   - { name: "ripgrep: Check installation", become: yes, command: "dpkg -l ripgrep", register: ripgrep_dpkg_query, changed_when: no, failed_when: no }
