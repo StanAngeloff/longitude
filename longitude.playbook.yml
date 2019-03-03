@@ -88,6 +88,9 @@
 
     composer_setup_checksum: "48e3236262b34d30969dca3c37281b3b4bbe3221bda826ac6a9a62d6444cdb0dcd0615698a5cbe587c3f0fe57a54d8f5"
 
+    nodesource_gpg_key_id: "68576280"
+    nodejs_version: 8
+
   tasks:
 
   - { name: "Prerequisites: Paths writeable by the user", become: yes, file: { path: "{{ item }}", owner: "{{ ansible_user_id }}" }, with_items: ["/usr/local/bin", "/opt"] }
@@ -276,6 +279,13 @@
       "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer",
       "php -r \"unlink('/tmp/composer-setup.php');\"",
   ]}
+
+  # 1600. NodeJS
+  - { name: "NodeJS: Import GPG key", become: yes, apt_key: { id: "{{ nodesource_gpg_key_id }}", url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" } }
+  - { name: "NodeJS: Add repository", become: yes, apt_repository: { repo: "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x {{ ansible_distribution_release }} main", update_cache: yes } }
+  - { name: "NodeJS: Install packages", become: yes, apt: { pkg: [nodejs], state: latest } }
+  - { name: "NodeJS: Create directories", become: yes, file: { path: "/usr/local/lib/node_modules", state: directory, owner: "{{ ansible_user_id }}" } }
+  - { name: "NodeJS: Install global packages in /usr/local", lineinfile: { create: yes, path: "{{ ansible_env.HOME }}/.npmrc", regexp: "^prefix=", line: "prefix=/usr/local" } }
 
   # 9000. Post-install clean up of packages
   - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common, evolution, evolution-plugins], state: absent, autoremove: yes } }
