@@ -83,6 +83,11 @@
     tig_version: 2.4.1
     tig_checksum: "sha256:b6b6aa183e571224d0e1fab3ec482542c1a97fa7a85b26352dc31dbafe8558b8"
 
+    php_version: 7.2
+    php_extensions: [bcmath, curl, gmp, intl, json, mbstring, mysql, pgsql, sqlite3, xml, zip]
+
+    composer_setup_checksum: "48e3236262b34d30969dca3c37281b3b4bbe3221bda826ac6a9a62d6444cdb0dcd0615698a5cbe587c3f0fe57a54d8f5"
+
   tasks:
 
   - { name: "Prerequisites: Paths writeable by the user", become: yes, file: { path: "{{ item }}", owner: "{{ ansible_user_id }}" }, with_items: ["/usr/local/bin", "/opt"] }
@@ -260,6 +265,17 @@
   - { name: "tig: Compile & install packages", when: "tig_install_query.rc > 0",
       shell: "cd /tmp && tar --overwrite -zxf 'tig-{{ tig_version }}.tar.gz' && cd 'tig-{{ tig_version }}' && ./configure --prefix='/opt/tig-{{ tig_version }}' && make -j8 && make install" }
   - { name: "tig: Set up alternatives", become: yes, alternatives: { name: "tig", link: "/usr/local/bin/tig", path: "/opt/tig-{{ tig_version }}/bin/tig" } }
+
+  # 1500. PHP & extensions
+  - { name: "PHP: Add PPA", become: yes, apt_repository: { repo: "ppa:ondrej/php", update_cache: yes } }
+  - { name: "PHP: Install packages", become: yes, apt: { pkg: "{{ ('php-pear php' + php_version|string + '-cli php' + php_version|string + '-dev php' + php_version|string + '-' + php_extensions|join(' php' + php_version|string + '-')).split(' ') }}", state: latest } }
+  - { name: "PHP: Check Composer installation", become: yes, command: "ls /usr/local/bin/composer", register: composer_install_query, changed_when: no, failed_when: no }
+  - { name: "PHP: Install Composer", shell: "{{ item }}", when: "composer_install_query.rc > 0", with_items: [
+      "php -r \"copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');\"",
+      "php -r \"if (hash_file('sha384', '/tmp/composer-setup.php') === '{{ composer_setup_checksum }}') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('/tmp/composer-setup.php'); } echo PHP_EOL;\"",
+      "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer",
+      "php -r \"unlink('/tmp/composer-setup.php');\"",
+  ]}
 
   # 9000. Post-install clean up of packages
   - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common, evolution, evolution-plugins], state: absent, autoremove: yes } }
