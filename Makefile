@@ -10,4 +10,4 @@ ansible:
 	@sudo apt-get install -y ansible
 
 playbook:
-	ansible-playbook baoboot.yml --ask-become-pass
+	ansible-playbook longitude.playbook.yml --ask-become-pass

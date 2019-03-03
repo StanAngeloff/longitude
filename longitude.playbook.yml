@@ -44,6 +44,38 @@
     zsh_version: 5.7.1
     zsh_checksum: "md5:374f9fdd121b5b90e07abfcad7df0627"
 
+    rxvt_unicode_version: 9.22
+    rxvt_unicode_checksum: "sha256:e94628e9bcfa0adb1115d83649f898d6edb4baced44f5d5b769c2eeb8b95addd"
+    rxvt_unicode_patches: [{ url: "https://gist.githubusercontent.com/dan-santana/63271adf12171e0fc0bc/raw/70c6343d1c0b3bca0aba4f587ed501e6cbd98d00/24-bit-color.patch", checksum: "sha256:eee0afe570124d3dc1e2b7a2e1452b981b38c8fda96e30cffc554428c2027619" }]
+    rxvt_unicode_configure_args: [
+      --enable-256-color,
+      --enable-combining,
+      --enable-fading,
+      --enable-font-styles,
+      --enable-iso14755,
+      --enable-keepscrolling,
+      --enable-lastlog,
+      --enable-mousewheel,
+      --enable-next-scroll,
+      --enable-perl,
+      --enable-pointer-blank,
+      --enable-rxvt-scroll,
+      --enable-selectionscrolling,
+      --enable-slipwheeling,
+      --disable-smart-resize,
+      --enable-startup-notification,
+      --enable-transparency,
+      --enable-unicode3,
+      --enable-utmp,
+      --enable-wtmp,
+      --enable-xft,
+      --enable-xim,
+      --enable-xterm-scroll,
+      --disable-pixbuf,
+      --disable-frills,
+      --enable-24-bit-color
+    ]
+
   tasks:
 
   - { name: "Prerequisites: Paths writeable by the user", become: yes, file: { path: "{{ item }}", owner: "{{ ansible_user_id }}" }, with_items: ["/usr/local/bin", "/opt"] }
@@ -110,7 +142,7 @@
   - { name: "KeePassXC: Install packages", become: yes, apt: { pkg: [keepassxc], state: latest } }
 
   # 900. Tools and miscellaneous
-  - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [parcellite, gconf-editor, dconf-editor], state: latest } }
+  - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [parcellite, gconf-editor, dconf-editor, trash-cli], state: latest } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
   - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", with_items: [
       { key: "/org/gnome/mutter/overlay-key", value: "''" },
@@ -129,33 +161,30 @@
 
   # 1000. Dotfiles
   - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no } }
-  # 1010. Dotfiles vim-plug
-  - { name: "Dotfiles: Install vim-plug directory", file: "{{ item }}", with_items: [
-      { path: "{{ ansible_env.HOME }}/.vim", state: directory },
-      { path: "{{ ansible_env.HOME }}/.vim/autoload", state: directory },
-      { path: "{{ ansible_env.HOME }}/.vim/backup", state: directory },
-      { path: "{{ ansible_env.HOME }}/.vim/spell", state: directory },
-      { path: "{{ ansible_env.HOME }}/.vim/templates", state: directory },
-      { path: "{{ ansible_env.HOME }}/.vim/undo", state: directory },
-      { path: "{{ ansible_env.HOME }}/.vim/view", state: directory }
-  ] }
-  - { name: "Dotfiles: Install vim-plug", get_url: { url: "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim", dest: "{{ ansible_env.HOME }}/.vim/autoload/plug.vim" }, register: vim_plug_installed }
   # 1010. Dotfiles linking files
   - { name: "Dotfiles: Linking files", file: "{{ item }}", with_items: [
-      { path: "{{ ansible_env.HOME }}/.config/nvim", src: "{{ ansible_env.HOME }}/.vim", state: link, force: yes },
-      { path: "{{ ansible_env.HOME }}/.config/nvim/init.vim", src: "{{ ansible_env.HOME }}/dotfiles/.vimrc", state: hard, force: yes },
-      { path: "{{ ansible_env.HOME }}/.gitconfig", src: "{{ ansible_env.HOME }}/dotfiles/.gitconfig", state: hard, force: yes },
+      { path: "{{ ansible_env.HOME }}/.vim", src: "./dotfiles/.vim", state: link, force: yes },
+      { path: "{{ ansible_env.HOME }}/.config/nvim", src: "../.vim", state: link, force: yes },
+      { path: "{{ ansible_env.HOME }}/.zsh", src: "./dotfiles/.zsh", state: link, force: yes },
+
+      { path: "{{ ansible_env.HOME }}/.vim/autoload", state: directory },
+
+      { path: "{{ ansible_env.HOME }}/.vimrc", src: "{{ ansible_env.HOME }}/dotfiles/.vimrc", state: hard, force: yes },
+      { path: "{{ ansible_env.HOME }}/.config/nvim/init.vim", src: "{{ ansible_env.HOME }}/.vimrc", state: hard, force: yes },
+      { path: "{{ ansible_env.HOME }}/.gitconfig", src: "{{ ansible_env.HOME }}/dotfiles/.gitconfig", state: hard, force: yes }, # NOTE: See https://stackoverflow.com/q/11786623
       { path: "{{ ansible_env.HOME }}/.rgrc", src: "{{ ansible_env.HOME }}/dotfiles/.rgrc", state: hard, force: yes },
-      { path: "{{ ansible_env.HOME }}/.zsh", src: "{{ ansible_env.HOME }}/dotfiles/.zsh", state: link, force: yes },
       { path: "{{ ansible_env.HOME }}/.zshrc", src: "{{ ansible_env.HOME }}/dotfiles/.zshrc", state: hard, force: yes }
   ] }
   # 1020. Dotfiles install Vim plug-ins
+  - { name: "Dotfiles: Install vim-plug", get_url: { url: "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim", dest: "{{ ansible_env.HOME }}/.vim/autoload/plug.vim" }, register: vim_plug_installed }
+  - { name: "Dotfiles: Disable Git fsckObjects", command: "git config --global fetch.fsckObjects false", changed_when: no }
   - { name: "Dotfiles: Install Vim plug-ins", command: "nvim -Es -u {{ ansible_env.HOME }}/.config/nvim/init.vim +PlugInstall +qa", when: vim_plug_installed.changed }
+  - { name: "Dotfiles: Re-enable Git fsckObjects", command: "git config --global fetch.fsckObjects true", changed_when: no }
 
   # 1100. Zsh
   - { name: "Zsh: Install prerequisites", become: yes, apt: { pkg: [libncurses-dev], state: present } }
   - { name: "Zsh: Check installation", become: yes, command: "ls /opt/zsh-{{ zsh_version }}", register: zsh_install_query, changed_when: no, failed_when: no }
-  - { name: "Zsh: Download Zsh", get_url: { url: "https://sourceforge.net/projects/zsh/files/zsh/{{ zsh_version }}/zsh-{{ zsh_version }}.tar.xz/download", dest: "/tmp/zsh-{{ zsh_version }}.tar.xz", checksum: "{{ zsh_checksum }}" }, when: "zsh_install_query.rc > 0" }
+  - { name: "Zsh: Download source", get_url: { url: "https://sourceforge.net/projects/zsh/files/zsh/{{ zsh_version }}/zsh-{{ zsh_version }}.tar.xz/download", dest: "/tmp/zsh-{{ zsh_version }}.tar.xz", checksum: "{{ zsh_checksum }}" }, when: "zsh_install_query.rc > 0" }
   - { name: "Zsh: Compile & install packages", when: "zsh_install_query.rc > 0",
       shell: "cd /tmp && tar --overwrite -Jxf 'zsh-{{ zsh_version }}.tar.xz' && cd 'zsh-{{ zsh_version }}' && ./configure --enable-pcre --prefix='/opt/zsh-{{ zsh_version }}' && make -j8 && make install" }
   - { name: "Zsh: Set up alternatives", become: yes, alternatives: { name: "zsh", link: "/bin/zsh", path: "/opt/zsh-{{ zsh_version }}/bin/zsh" } }
@@ -163,6 +192,21 @@
   - { name: "Zsh: Change shell", become: yes, shell: "chsh -s /bin/zsh '{{ ansible_user_id }}'", when: "zsh_shell_query.stdout != '/bin/zsh'" }
 
   - { name: "Reset connection to allow shell changes", meta: reset_connection }
+
+  # 1200. rxvt-unicode
+  - { name: "rxvt-unicode: Install prerequisites", become: yes, apt: { pkg: [libperl-dev, libx11-dev], state: present } }
+  - { name: "rxvt-unicode: Check installation", become: yes, command: "ls /opt/rxvt-unicode-{{ rxvt_unicode_version }}", register: rxvt_unicode_install_query, changed_when: no, failed_when: no }
+  - { name: "rxvt-unicode: Download source", get_url: { url: "http://dist.schmorp.de/rxvt-unicode/rxvt-unicode-{{ rxvt_unicode_version }}.tar.bz2", dest: "/tmp/rxvt-unicode-{{ rxvt_unicode_version }}.tar.bz2", checksum: "{{ rxvt_unicode_checksum }}" }, when: "rxvt_unicode_install_query.rc > 0" }
+  - { name: "rxvt-unicode: Download patches", get_url: { url: "{{ item.1.url }}", dest: "/tmp/rxvt-unicode-{{ item.0 }}.patch", checksum: "{{ item.1.checksum }}" }, with_indexed_items: "{{ rxvt_unicode_patches }}", when: "rxvt_unicode_install_query.rc > 0" }
+  - { name: "rxvt-unicode: Patch, compile & install packages", when: "rxvt_unicode_install_query.rc > 0",
+      shell: "cd /tmp && tar --overwrite -jxf 'rxvt-unicode-{{ rxvt_unicode_version }}.tar.bz2' && cd 'rxvt-unicode-{{ rxvt_unicode_version }}' && for p in ../rxvt-unicode-*.patch; do patch --forward -p0 < \"$p\"; done && ./configure {{ rxvt_unicode_configure_args | join(' ') }} --prefix='/opt/rxvt-unicode-{{ rxvt_unicode_version }}' && make -j8 && make install",
+      args: { executable: "/bin/bash" } }
+  - { name: "rxvt-unicode: Set up alternatives", become: yes, alternatives: { name: "{{ item.name }}", link: "{{ item.link }}", path: "/opt/rxvt-unicode-{{ rxvt_unicode_version }}/{{ item.path }}" }, with_items: [
+			{ name: "urxvt", link: "/usr/bin/urxvt", path: "bin/urxvt" },
+			{ name: "urxvtc", link: "/usr/bin/urxvtc", path: "bin/urxvtc" },
+			{ name: "urxvtd", link: "/usr/bin/urxvtd", path: "bin/urxvtd" }
+	] }
+  - { name: "rxvt-unicode: Create desktop entry", copy: { content: "[Desktop Entry]\nVersion=1.0\nName=urxvt\nComment=An unicode capable rxvt clone\nExec=urxvt\nIcon=utilities-terminal\nTerminal=false\nType=Application\nCategories=System;TerminalEmulator;", dest: "{{ ansible_env.HOME }}/.local/share/applications/urxvt.desktop", force: no } }
 
   # 9000. Post-install clean up of packages
   - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common, evolution, evolution-plugins], state: absent, autoremove: yes } }
