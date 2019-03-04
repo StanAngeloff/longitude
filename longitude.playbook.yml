@@ -94,6 +94,9 @@
     nodesource_gpg_key_id: "68576280"
     nodejs_version: 8
 
+    wine_gpg_key_id: "F987672F"
+    playonlinux_gpg_key_id: "8E3D6C3A"
+
   tasks:
 
   - { name: "Prerequisites: Paths writeable by the user", become: yes, file: { path: "{{ item }}", owner: "{{ ansible_user_id }}" }, with_items: ["/usr/local/bin", "/opt"] }
@@ -103,6 +106,10 @@
 
   # 10. tmpfs at /tmp
   - { name: "System: Make /tmp a tmpfs", become: yes, lineinfile: { path: "/etc/fstab", regexp: "\\/tmp\\s", line: "tmpfs /tmp tmpfs rw,nosuid,nodev,size=4G 0 0" } }
+
+  # 15. i386 is a needed for Wine.
+  - { name: "System: Add dpkg architectures", become: yes, lineinfile: { dest: "/var/lib/dpkg/arch", line: "{{ item }}", create: yes }, with_items: [amd64, i386] }
+  - { name: "System: Update apt cache", become: yes, apt: { update_cache: yes, cache_valid_time: "{{ 24 * 60 * 60 }}" } }
 
   # 20. build-essential is essential
   - { name: "System: Install build-essential", become: yes, apt: { pkg: [build-essential], state: present } }
@@ -301,6 +308,15 @@
   - { name: "NodeJS: Install packages", become: yes, apt: { pkg: [nodejs], state: latest } }
   - { name: "NodeJS: Create directories", become: yes, file: { path: "/usr/local/lib/node_modules", state: directory, owner: "{{ ansible_user_id }}" } }
   - { name: "NodeJS: Install global packages in /usr/local", lineinfile: { create: yes, path: "{{ ansible_env.HOME }}/.npmrc", regexp: "^prefix=", line: "prefix=/usr/local" } }
+
+  # 1700. Wine
+  - { name: "Wine: Import GPG key", become: yes, apt_key: { id: "{{ wine_gpg_key_id }}", url: "https://dl.winehq.org/wine-builds/winehq.key" } }
+  - { name: "Wine: Add repository", become: yes, apt_repository: { repo: "deb https://dl.winehq.org/wine-builds/ubuntu/ {{ ansible_distribution_release }} main", update_cache: yes } }
+  - { name: "Wine: Install packages", become: yes, apt: { pkg: [winehq-stable], state: latest } }
+  # 1750. PlayOnLinux
+  - { name: "PlayOnLinux: Import GPG key", become: yes, apt_key: { id: "{{ playonlinux_gpg_key_id }}", url: "http://deb.playonlinux.com/public.gpg" } }
+  - { name: "PlayOnLinux: Add repository", become: yes, apt_repository: { repo: "deb http://deb.playonlinux.com/ {{ ansible_distribution_release }} main", update_cache: yes } }
+  - { name: "PlayOnLinux: Install packages", become: yes, apt: { pkg: [playonlinux], state: latest } }
 
   # 2000. Garbage collected along the years…
   - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v5.0.0/franz-5.0.0-x86_64.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "sha256:5278c8ed8a9669e9b2596176b57013a7e13548ff6700abdc48506c3e8ce67e09" } }
