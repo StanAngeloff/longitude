@@ -47,7 +47,10 @@
 
     rxvt_unicode_version: 9.22
     rxvt_unicode_checksum: "sha256:e94628e9bcfa0adb1115d83649f898d6edb4baced44f5d5b769c2eeb8b95addd"
-    rxvt_unicode_patches: [{ url: "https://gist.githubusercontent.com/dan-santana/63271adf12171e0fc0bc/raw/70c6343d1c0b3bca0aba4f587ed501e6cbd98d00/24-bit-color.patch", checksum: "sha256:eee0afe570124d3dc1e2b7a2e1452b981b38c8fda96e30cffc554428c2027619" }]
+    rxvt_unicode_patches: [
+      { url: "https://gist.githubusercontent.com/dan-santana/63271adf12171e0fc0bc/raw/70c6343d1c0b3bca0aba4f587ed501e6cbd98d00/24-bit-color.patch", checksum: "sha256:eee0afe570124d3dc1e2b7a2e1452b981b38c8fda96e30cffc554428c2027619" },
+      { url: "https://gist.githubusercontent.com/StanAngeloff/743c1cbb7566b5f0d84aeb41503bb989/raw/60b3755868282052c9842c0bf8c71e5dcf51280a/rxvt-unicode-clipboard.patch", checksum: "sha256:fef02e5498d65703910d1205780681a8b828df09e418e676d26192664c91a4d4" }
+    ]
     rxvt_unicode_configure_args: [
       --enable-256-color,
       --enable-combining,
