@@ -95,6 +95,9 @@
 
   - { name: "Prerequisites: Paths writeable by the user", become: yes, file: { path: "{{ item }}", owner: "{{ ansible_user_id }}" }, with_items: ["/usr/local/bin", "/opt"] }
 
+  # 9. sudo password is required each time
+  - { name: "System: sudo timeout", become: yes, copy: { content: "# Prompt for a password on every escalation.\nDefaults timestamp_timeout=0\n", dest: "/etc/sudoers.d/timeout", force: no, validate: "visudo -cf %s" } }
+
   # 10. tmpfs at /tmp
   - { name: "System: Make /tmp a tmpfs", become: yes, lineinfile: { path: "/etc/fstab", regexp: "\\/tmp\\s", line: "tmpfs /tmp tmpfs rw,nosuid,nodev,size=4G 0 0" } }
 
@@ -161,7 +164,7 @@
   - { name: "KeePassXC: Install packages", become: yes, apt: { pkg: [keepassxc], state: latest } }
 
   # 900. Tools and miscellaneous
-  - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [parcellite, gconf-editor, dconf-editor, trash-cli], state: latest } }
+  - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [gawk, parcellite, gconf-editor, dconf-editor, trash-cli], state: latest } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
   - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", with_items: [
       { key: "/org/gnome/mutter/overlay-key", value: "''" },
@@ -205,6 +208,7 @@
   - { name: "Dotfiles: Linking files", file: "{{ item }}", with_items: [
       { path: "{{ ansible_env.HOME }}/.vim", src: "./dotfiles/.vim", state: link, force: yes },
       { path: "{{ ansible_env.HOME }}/.config/nvim", src: "../.vim", state: link, force: yes },
+      { path: "{{ ansible_env.HOME }}/.urxvt", src: "./dotfiles/.urxvt", state: link, force: yes },
       { path: "{{ ansible_env.HOME }}/.zsh", src: "./dotfiles/.zsh", state: link, force: yes },
 
       { path: "{{ ansible_env.HOME }}/.vim/autoload", state: directory },
@@ -287,7 +291,14 @@
   - { name: "NodeJS: Create directories", become: yes, file: { path: "/usr/local/lib/node_modules", state: directory, owner: "{{ ansible_user_id }}" } }
   - { name: "NodeJS: Install global packages in /usr/local", lineinfile: { create: yes, path: "{{ ansible_env.HOME }}/.npmrc", regexp: "^prefix=", line: "prefix=/usr/local" } }
 
+  # 2000. Garbage collected along the years…
+  - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v5.0.0/franz-5.0.0-x86_64.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "sha256:5278c8ed8a9669e9b2596176b57013a7e13548ff6700abdc48506c3e8ce67e09" } }
+  - { name: "Viber: Check installation", become: yes, command: "dpkg -l viber", register: viber_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "Viber: Install packages", become: yes, when: "viber_dpkg_query.rc > 0", apt: { deb: "https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb", state: present } }
+  - { name: "Skype: Check installation", become: yes, command: "dpkg -l skype", register: skype_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "Skype: Install packages", become: yes, when: "skype_dpkg_query.rc > 0", apt: { deb: "https://repo.skype.com/latest/skypeforlinux-64.deb", state: present } }
+
   # 9000. Post-install clean up of packages
-  - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common, evolution, evolution-plugins], state: absent, autoremove: yes } }
+  - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [aisleriot, chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common, evolution, evolution-plugins], state: absent, autoremove: yes } }
 
 # vim: sw=2 ts=2 et :
