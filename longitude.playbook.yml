@@ -165,6 +165,7 @@
   # 800. KeePassXC
   - { name: "KeePassXC: Add official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", update_cache: yes } }
   - { name: "KeePassXC: Install packages", become: yes, apt: { pkg: [keepassxc], state: latest } }
+  - { name: "KeePassXC: Fix appearance & appindicator icon", become: yes, lineinfile: {  path: "/usr/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^Exec=", line: "Exec=env QT_QPA_PLATFORMTHEME=gtk2 keepassxc %f" } }
 
   # 900. Tools and miscellaneous
   #
