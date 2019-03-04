@@ -188,11 +188,21 @@
   #
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
+  # - 'mysql-client' - for interacting with MySQL servers.
   # - 'parcellite' - a clipboard manager from the dark ages, but does its job well.
+  # - 'pv' - a Pipe Viewer which can be used to dislay a progress for long running operatings.
   # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
   # - 'unp' - a small Perl script which makes extraction of any archive files a bit easier.
   #
-  - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [gawk, parcellite, gconf-editor, dconf-editor, trash-cli, unp], state: latest } }
+  - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
+      gawk,
+      gconf-editor, dconf-editor,
+      mysql-client,
+      parcellite,
+      pv,
+      trash-cli,
+      unp
+    ], state: latest } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
   - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", with_items: [
       { key: "/org/gnome/mutter/overlay-key", value: "''" },
