@@ -38,6 +38,16 @@
     ripgrep_version: 0.10.0
     ripgrep_platform: amd64
 
+    pup_version: 0.4.0
+    pup_platform: linux_amd64
+    pup_checksum: "sha256:ec3d29e9fb375b87ac492c8b546ad6be84b0c0b49dab7ff4c6b582eac71ba01c"
+
+    jq_version: 1.6
+    jq_platform: linux64
+    jq_checksum: "sha256:af986793a515d500ab2d35f8d2aecd656e764504b789b66d7e1a0b727a124c44"
+
+    httpie_version: 1.0.2
+
     fzf_version: 0.17.5
     fzf_platform: linux_amd64
     fzf_checksum: "sha256:3020c7d4d43d524ff394df306337b6de873b9db0bd9cd9dc73cd80cbd6e0c2f8"
@@ -219,6 +229,17 @@
   - { name: "fzf: Install fzf", shell: "cd /tmp && tar --overwrite -zxf 'fzf-{{ fzf_version }}.tgz' && mv ./fzf '/usr/local/bin/fzf-{{ fzf_version }}'", when: "fzf_install_query.rc > 0" }
   - { name: "fzf: Set up alternatives", become: yes, alternatives: { name: "fzf", link: "/usr/local/bin/fzf", path: "/usr/local/bin/fzf-{{ fzf_version }}" } }
   - { name: "fzf: Create empty Zsh configuration", copy: { content: "", dest: "{{ ansible_env.HOME }}/.fzf.zsh", force: no } }
+  # 960. pup
+  - { name: "pup: Check installation", command: "ls /usr/local/bin/pup-{{ pup_version }}", register: pup_install_query, changed_when: no, failed_when: no }
+  - { name: "pup: Download pup", get_url: { url: "https://github.com/EricChiang/pup/releases/download/v{{ pup_version }}/pup_v{{ pup_version }}_{{ pup_platform }}.zip", dest: "/tmp/pup-{{ pup_version }}.zip", checksum: "{{ pup_checksum }}" }, when: "pup_install_query.rc > 0" }
+  - { name: "pup: Install pup", shell: "cd /tmp && unzip -o 'pup-{{ pup_version }}.zip' && mv ./pup '/usr/local/bin/pup-{{ pup_version }}'", when: "pup_install_query.rc > 0" }
+  - { name: "pup: Set up alternatives", become: yes, alternatives: { name: "pup", link: "/usr/local/bin/pup", path: "/usr/local/bin/pup-{{ pup_version }}" } }
+  # 965. jq
+  - { name: "jq: Check installation", command: "ls /usr/local/bin/jq-{{ jq_version }}", register: jq_install_query, changed_when: no, failed_when: no }
+  - { name: "jq: Download jq", get_url: { url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-{{ jq_platform }}", dest: "/usr/local/bin/jq-{{ jq_version }}", mode: "+x", checksum: "{{ jq_checksum }}" }, when: "jq_install_query.rc > 0" }
+  - { name: "jq: Set up alternatives", become: yes, alternatives: { name: "jq", link: "/usr/local/bin/jq", path: "/usr/local/bin/jq-{{ jq_version }}" } }
+  # 970. HTTPie
+  - { name: "HTTPie: Install packages", become: yes, pip: { executable: pip3, name: httpie, version: "{{ httpie_version }}", state: present } }
 
   # 1000. Dotfiles
   - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no } }
