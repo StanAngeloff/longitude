@@ -29,6 +29,23 @@
 
   vars:
 
+    # See https://github.com/mozilla/policy-templates/blob/master/README.md
+    #
+    firefox_policies:
+      policies:
+        DisableTelemetry: true
+        Certificates:
+          ImportEnterpriseRoots: true
+          Install:
+            - InfoNotaryQualifiedLegalPersonSealCA.pem
+            - InfoNotaryQualifiedPersonalSignCA.pem
+            - InfoNotaryQualifiedTimeStampingServiceCA.pem
+            - InfoNotaryQualifiedValidatedDomainCA.pem
+            - InfoNotaryQualifiedValidationServicesCA.pem
+            - InfoNotaryTSPRoot.pem
+        SecurityDevices:
+          Bit4Id: "/usr/lib/libbit4ipki.so"
+
     docker_gpg_key_id: "0EBFCD88"
     docker_compose_version: 1.22.0
     docker_compose_checksum: "sha256:f679a24b93f291c3bffaff340467494f388c0c251649d640e661d509db9d57e9"
@@ -164,6 +181,12 @@
   - { name: "Firefox: Install packages", become: yes, apt: { pkg: [firefox], state: latest } }
   # 610. Firefox alternatives
   - { name: "Firefox: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/firefox" }, with_items: [gnome-www-browser, x-www-browser] }
+  # 690. Firefox policy for enterprise deployments
+  - { name: "Firefox: Create enterprise deployment directories", become: yes, file: { path: "{{ item }}", state: directory, owner: "{{ ansible_user_id }}", mode: 0755 }, with_items: [
+      "/usr/lib/firefox/distribution",
+      "/usr/lib/mozilla/certificates"
+  ] }
+  - { name: "Firefox: Create enterprise deployment policy", become: yes, copy: { dest: "/usr/lib/firefox/distribution/policies.json", content: "{{ firefox_policies | to_json }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes } }
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
@@ -349,11 +372,33 @@
   - { name: "PlayOnLinux: Add repository", become: yes, apt_repository: { repo: "deb http://deb.playonlinux.com/ {{ ansible_distribution_release }} main", update_cache: yes } }
   - { name: "PlayOnLinux: Install packages", become: yes, apt: { pkg: [playonlinux], state: latest } }
 
-  # 2000. Garbage collected along the years…
+  # 2000. Just stuff...
+  #
+  # tesseract: OCR'ing images and parsing text out.
+  - { name: "tesseract: Install OCR packages", become: yes, apt: { pkg: [tesseract-ocr, tesseract-ocr-bul, tesseract-ocr-eng], state: latest } }
+  # InfoNotary: qualified electronic signature used when paying bills, accessing tax statements, etc.
+  #
+  # - 'bit4id-ipki' - driver for Bit4id smart cards.
+  # - 'pcsc-omnikey' - driver for OmniKey readers.
+  # - 'infonotary-client-software' - software for management of smart cards.
+  #
+  - { name: "InfoNotary: Import GPG key", become: yes, apt_key: { id: "3D4B1879", url: "https://repository.infonotary.com/install/linux/INotaryCodeSigningD.key.asc" } }
+  - { name: "InfoNotary: Add repository", become: yes, apt_repository: { repo: "deb http://repository.infonotary.com/install/linux/DEBS/ any non-free", update_cache: yes } }
+  - { name: "InfoNotary: Install packages", become: yes, apt: { pkg: [bit4id-ipki, pcsc-omnikey, infonotary-client-software], state: latest } }
+  - { name: "InfoNotary: Create Firefox certificate", become: yes, copy: { dest: "/usr/lib/mozilla/certificates/{{ item }}", src: "certificates/{{ item }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes }, with_items: [
+      InfoNotaryQualifiedLegalPersonSealCA.pem,
+      InfoNotaryQualifiedPersonalSignCA.pem,
+      InfoNotaryQualifiedTimeStampingServiceCA.pem,
+      InfoNotaryQualifiedValidatedDomainCA.pem,
+      InfoNotaryQualifiedValidationServicesCA.pem,
+      InfoNotaryTSPRoot.pem
+  ] }
+
+  # 3000. Communications
   - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v5.0.0/franz-5.0.0-x86_64.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "sha256:5278c8ed8a9669e9b2596176b57013a7e13548ff6700abdc48506c3e8ce67e09" } }
   - { name: "Viber: Check installation", become: yes, command: "dpkg -l viber", register: viber_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Viber: Install packages", become: yes, when: "viber_dpkg_query.rc > 0", apt: { deb: "https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb", state: present } }
-  - { name: "Skype: Check installation", become: yes, command: "dpkg -l skype", register: skype_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "Skype: Check installation", become: yes, command: "dpkg -l skypeforlinux", register: skype_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Skype: Install packages", become: yes, when: "skype_dpkg_query.rc > 0", apt: { deb: "https://repo.skype.com/latest/skypeforlinux-64.deb", state: present } }
 
   # 9000. Post-install clean up of packages
