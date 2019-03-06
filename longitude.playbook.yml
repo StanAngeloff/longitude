@@ -339,6 +339,7 @@
   - { name: "tmux: Set up alternatives", become: yes, alternatives: { name: "tmux", link: "/usr/local/bin/tmux", path: "/opt/tmux-{{ tmux_version }}/bin/tmux" } }
 
   # 1400. tig
+  - { name: "tig: Install prerequisites", become: yes, apt: { pkg: [libncursesw5-dev], state: present } }
   - { name: "tig: Check installation", become: yes, command: "ls /opt/tig-{{ tig_version }}", register: tig_install_query, changed_when: no, failed_when: no }
   - { name: "tig: Download source", get_url: { url: "https://github.com/jonas/tig/releases/download/tig-{{ tig_version }}/tig-{{ tig_version }}.tar.gz", dest: "/tmp/tig-{{ tig_version }}.tar.gz", checksum: "{{ tig_checksum }}" }, when: "tig_install_query.rc > 0" }
   - { name: "tig: Compile & install packages", when: "tig_install_query.rc > 0",
