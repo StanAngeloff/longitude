@@ -46,6 +46,8 @@
         SecurityDevices:
           Bit4Id: "/usr/lib/libbit4ipki.so"
 
+    git_lfs_gpg_key_id: "DC282033"
+
     docker_gpg_key_id: "0EBFCD88"
     docker_compose_version: 1.22.0
     docker_compose_checksum: "sha256:f679a24b93f291c3bffaff340467494f388c0c251649d640e661d509db9d57e9"
@@ -144,6 +146,13 @@
   # 100. Git
   - { name: "Git: Add PPA", become: yes, apt_repository: { repo: "ppa:git-core/ppa", update_cache: yes } }
   - { name: "Git: Install packages", become: yes, apt: { pkg: [git, git-gui, gitk], state: latest } }
+  # 110. Git LFS
+  - { name: "Git: Install Git LFS prerequisites", become: yes, apt: { pkg: [gnupg, curl, debian-archive-keyring, apt-transport-https], state: present } }
+  - { name: "Git: Import Git LFS GPG key", become: yes, apt_key: { id: "{{ git_lfs_gpg_key_id }}", url: "https://packagecloud.io/github/git-lfs/gpgkey" } }
+  - { name: "Git: Add Git LFS repository", become: yes, apt_repository: { repo: "deb https://packagecloud.io/github/git-lfs/ubuntu/ {{ ansible_distribution_release }} main", update_cache: yes } }
+  - { name: "Git: Install Git LFS packages", become: yes, apt: { pkg: [git-lfs], state: latest } }
+  # 120. git-crypt
+  - { name: "Git: Install git-crypt packages", become: yes, apt: { pkg: [git-crypt], state: latest } }
 
   # 200. Python
   - { name: "Python: Install pip packages & Python development headers", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present } }
