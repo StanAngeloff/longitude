@@ -220,6 +220,7 @@
   #
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
+  # - 'kazam' - capturing screencasts and screenshots.
   # - 'mysql-client' - for interacting with MySQL servers.
   # - 'parcellite' - a clipboard manager from the dark ages, but does its job well.
   # - 'pv' - a Pipe Viewer which can be used to dislay a progress for long running operatings.
@@ -233,6 +234,7 @@
       parcellite,
       pv,
       trash-cli,
+      kazam,
       unp
     ], state: latest } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
