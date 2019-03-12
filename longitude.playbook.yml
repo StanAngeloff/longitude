@@ -1,5 +1,5 @@
 #
-# $ ansible-playbook longitude.playbook.yml --ask-become-pass
+# $ make playbook
 #
 - hosts: [127.0.0.1]
   connection: local
