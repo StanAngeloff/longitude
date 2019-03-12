@@ -126,6 +126,10 @@
     wine_gpg_key_id: "F987672F"
     playonlinux_gpg_key_id: "8E3D6C3A"
 
+    ffmpeg_version: "4.1.1"
+    ffmpeg_checksum: "md5:7bce08bcc241f12d40616d09f810883a"
+    ffmpeg_platform: "amd64"
+
   tasks:
 
   - { name: "Prerequisites: Paths writeable by the user", become: yes, file: { path: "{{ item }}", owner: "{{ ansible_user_id }}" }, with_items: ["/usr/local/bin", "/opt"] }
@@ -332,10 +336,10 @@
   - { name: "rxvt-unicode: Patch, compile & install packages", when: "rxvt_unicode_install_query.rc > 0",
       shell: "cd /tmp && tar --overwrite -jxf 'rxvt-unicode-{{ rxvt_unicode_version }}.tar.bz2' && cd 'rxvt-unicode-{{ rxvt_unicode_version }}' && for p in ../rxvt-unicode-*.patch; do patch --forward -p0 < \"$p\"; done && ./configure {{ rxvt_unicode_configure_args | join(' ') }} --prefix='/opt/rxvt-unicode-{{ rxvt_unicode_version }}' && make -j8 && make install",
       args: { executable: "/bin/bash" } }
-  - { name: "rxvt-unicode: Set up alternatives", become: yes, alternatives: { name: "{{ item.name }}", link: "{{ item.link }}", path: "/opt/rxvt-unicode-{{ rxvt_unicode_version }}/{{ item.path }}" }, with_items: [
-      { name: "urxvt", link: "/usr/local/bin/urxvt", path: "bin/urxvt" },
-      { name: "urxvtc", link: "/usr/local/bin/urxvtc", path: "bin/urxvtc" },
-      { name: "urxvtd", link: "/usr/local/bin/urxvtd", path: "bin/urxvtd" }
+  - { name: "rxvt-unicode: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/rxvt-unicode-{{ rxvt_unicode_version }}/bin/{{ item }}" }, with_items: [
+      urxvt,
+      urxvtc,
+      urxvtd
   ] }
   - { name: "rxvt-unicode: Create desktop entry", copy: { content: "[Desktop Entry]\nVersion=1.0\nName=urxvt\nComment=An unicode capable rxvt clone\nExec=urxvt\nIcon=utilities-terminal\nTerminal=false\nType=Application\nCategories=System;TerminalEmulator;", dest: "{{ ansible_env.HOME }}/.local/share/applications/urxvt.desktop", force: no } }
   - { name: "rxvt-unicode: Create launch script", copy: { content: "#!/bin/sh\n\nxdotool search --class urxvt windowactivate || urxvt -e /bin/zsh -c 'tmux attach-session -t default 2>/dev/null || tmux new-session -s default -n default'", dest: "/usr/local/bin/urxvt-start", force: no, mode: "+x" } }
@@ -383,6 +387,16 @@
   - { name: "PlayOnLinux: Import GPG key", become: yes, apt_key: { id: "{{ playonlinux_gpg_key_id }}", url: "http://deb.playonlinux.com/public.gpg" } }
   - { name: "PlayOnLinux: Add repository", become: yes, apt_repository: { repo: "deb http://deb.playonlinux.com/ {{ ansible_distribution_release }} main", update_cache: yes } }
   - { name: "PlayOnLinux: Install packages", become: yes, apt: { pkg: [playonlinux], state: latest } }
+
+  # 1800. ffmpeg
+  - { name: "ffmpeg: Check installation", become: yes, command: "ls /opt/ffmpeg-{{ ffmpeg_version }}", register: ffmpeg_install_query, changed_when: no, failed_when: no }
+  - { name: "ffmpeg: Download static build", get_url: { url: "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-{{ ffmpeg_platform }}-static.tar.xz", dest: "/tmp/ffmpeg-{{ ffmpeg_version }}.tar.xz", checksum: "{{ ffmpeg_checksum }}" }, when: "ffmpeg_install_query.rc > 0" }
+  - { name: "ffmpeg: Unpack & install packages", when: "ffmpeg_install_query.rc > 0",
+      shell: "cd /tmp && tar --overwrite -Jxf 'ffmpeg-{{ ffmpeg_version }}.tar.xz' && mv 'ffmpeg-{{ ffmpeg_version }}-{{ ffmpeg_platform }}-static' '/opt/ffmpeg-{{ ffmpeg_version }}'" }
+  - { name: "ffmpeg: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/ffmpeg-{{ ffmpeg_version }}/{{ item }}" }, with_items: [
+      ffmpeg,
+      ffprobe
+  ] }
 
   # 2000. Just stuff...
   #
