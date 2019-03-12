@@ -29,6 +29,9 @@
 
   vars:
 
+    firefox_unofficial_extensions:
+      bypass-paywalls: { url: "https://github.com/iamadamdev/bypass-paywalls-firefox/releases/download/v%(version)s/bypass_paywalls-%(version)s-an+fx.xpi", version: "1.5.1", checksum: "md5:8937de9f94d350abf532d585e2f22df5" } # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
+
     # See https://github.com/mozilla/policy-templates/blob/master/README.md
     #
     firefox_policies:
@@ -45,6 +48,16 @@
             - InfoNotaryTSPRoot.pem
         SecurityDevices:
           Bit4Id: "/usr/lib/libbit4ipki.so"
+        Extensions:
+          Install: "{%
+            set extensions = []
+          %}{%
+            for name, extension in firefox_unofficial_extensions | dictsort
+          %}{%
+              set _ = extensions.extend([ \"/usr/local/lib/firefox/extensions/\" + name + \"-\" + extension.version + \"-unofficial.xpi\" ])
+          %}{%
+            endfor
+          %}{{ extensions }}"
 
     git_lfs_gpg_key_id: "DC282033"
 
@@ -197,9 +210,12 @@
   # 690. Firefox policy for enterprise deployments
   - { name: "Firefox: Create enterprise deployment directories", become: yes, file: { path: "{{ item }}", state: directory, owner: "{{ ansible_user_id }}", mode: 0755 }, with_items: [
       "/usr/lib/firefox/distribution",
-      "/usr/lib/mozilla/certificates"
+      "/usr/lib/mozilla/certificates",
+      "/usr/local/lib/firefox",
+      "/usr/local/lib/firefox/extensions"
   ] }
-  - { name: "Firefox: Create enterprise deployment policy", become: yes, copy: { dest: "/usr/lib/firefox/distribution/policies.json", content: "{{ firefox_policies | to_json }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes } }
+  - { name: "Firefox: Download unofficial extensions", get_url: { url: "{{ item.value.url | format(version=item.value.version) }}", dest: "/usr/local/lib/firefox/extensions/{{ item.key }}-{{ item.value.version }}-unofficial.xpi", checksum: "{{ item.value.checksum }}" }, with_dict: "{{ firefox_unofficial_extensions }}" }
+  - { name: "Firefox: Create enterprise deployment policy", become: yes, copy: { dest: "/usr/lib/firefox/distribution/policies.json", content: "{{ firefox_policies | to_nice_json }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes } }
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
