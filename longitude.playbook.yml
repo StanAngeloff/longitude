@@ -30,7 +30,7 @@
   vars:
 
     firefox_unofficial_extensions:
-      bypass-paywalls: { url: "https://github.com/iamadamdev/bypass-paywalls-firefox/releases/download/v%(version)s/bypass_paywalls-%(version)s-an+fx.xpi", version: "1.5.1", checksum: "md5:8937de9f94d350abf532d585e2f22df5" } # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
+      bypass-paywalls: { url: "https://github.com/iamadamdev/bypass-paywalls-firefox/releases/download/v%(version)s/bypass_paywalls-%(version)s-an+fx.xpi", version: 1.5.1, checksum: "md5:8937de9f94d350abf532d585e2f22df5" } # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
 
     # See https://github.com/mozilla/policy-templates/blob/master/README.md
     #
@@ -83,6 +83,10 @@
     fzf_version: 0.17.5
     fzf_platform: linux_amd64
     fzf_checksum: "sha256:3020c7d4d43d524ff394df306337b6de873b9db0bd9cd9dc73cd80cbd6e0c2f8"
+
+    bat_version: 0.10.0
+    bat_platform: amd64
+    bat_checksum: "md5:7b21d6d7d42493440d0c51d3b64947c8"
 
     zsh_version: 5.7.1
     zsh_checksum: "md5:374f9fdd121b5b90e07abfcad7df0627"
@@ -139,9 +143,9 @@
     wine_gpg_key_id: "F987672F"
     playonlinux_gpg_key_id: "8E3D6C3A"
 
-    ffmpeg_version: "4.1.1"
+    ffmpeg_version: 4.1.1
+    ffmpeg_platform: amd64
     ffmpeg_checksum: "md5:7bce08bcc241f12d40616d09f810883a"
-    ffmpeg_platform: "amd64"
 
   tasks:
 
@@ -286,7 +290,7 @@
             </match>
         </fontconfig>
 
-  # 950. rigrep
+  # 950. ripgrep
   - { name: "ripgrep: Check installation", become: yes, command: "dpkg -l ripgrep", register: ripgrep_dpkg_query, changed_when: no, failed_when: no }
   - { name: "ripgrep: Install packages", become: yes, when: "ripgrep_dpkg_query.rc > 0", apt: { deb: "https://github.com/BurntSushi/ripgrep/releases/download/{{ ripgrep_version }}/ripgrep_{{ ripgrep_version }}_{{ ripgrep_platform }}.deb", state: present } }
   # 955. fzf
@@ -306,6 +310,10 @@
   - { name: "jq: Set up alternatives", become: yes, alternatives: { name: "jq", link: "/usr/local/bin/jq", path: "/usr/local/bin/jq-{{ jq_version }}" } }
   # 970. HTTPie
   - { name: "HTTPie: Install packages", become: yes, pip: { executable: pip3, name: httpie, version: "{{ httpie_version }}", state: present } }
+  # 980. bat
+  - { name: "bat: Check installation", become: yes, command: "dpkg -l bat", register: bat_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat-musl_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0" }
+  - { name: "bat: Install packages", become: yes, apt: { deb: "/tmp/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0" }
 
   # 1000. Dotfiles
   - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no } }
