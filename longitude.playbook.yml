@@ -88,6 +88,9 @@
     bat_platform: amd64
     bat_checksum: "md5:7b21d6d7d42493440d0c51d3b64947c8"
 
+    ngrok_url: "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
+    ngrok_checksum: "md5:9d1ec13de706326d47bd0f5019d9149a"
+
     zsh_version: 5.7.1
     zsh_checksum: "md5:374f9fdd121b5b90e07abfcad7df0627"
 
@@ -314,6 +317,10 @@
   - { name: "bat: Check installation", become: yes, command: "dpkg -l bat", register: bat_dpkg_query, changed_when: no, failed_when: no }
   - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat-musl_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0" }
   - { name: "bat: Install packages", become: yes, apt: { deb: "/tmp/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0" }
+  # 990. ngrok
+  - { name: "ngrok: Check installation", become: yes, command: "ls /usr/local/bin/ngrok", register: ngrok_install_query, changed_when: no, failed_when: no }
+  - { name: "ngrok: Download ngrok", get_url: { url: "{{ ngrok_url }}", dest: "/tmp/ngrok.zip", checksum: "{{ ngrok_checksum }}" }, when: "ngrok_install_query.rc > 0" }
+  - { name: "ngrok: Install ngrok", shell: "cd /tmp && unzip -o ngrok.zip && mv ./ngrok /usr/local/bin/ngrok", when: "ngrok_install_query.rc > 0" }
 
   # 1000. Dotfiles
   - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no } }
