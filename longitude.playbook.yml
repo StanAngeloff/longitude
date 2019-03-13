@@ -37,6 +37,7 @@
     firefox_policies:
       policies:
         DisableTelemetry: true
+        DisablePocket: true
         Certificates:
           ImportEnterpriseRoots: true
           Install:
