@@ -246,6 +246,7 @@
   # - 'pv' - a Pipe Viewer which can be used to dislay a progress for long running operatings.
   # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
   # - 'unp' - a small Perl script which makes extraction of any archive files a bit easier.
+  # - 'w3m' - a text-based World Wide Web browser, useful for converting HTML to plain text.
   #
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
       gawk,
@@ -255,7 +256,8 @@
       pv,
       trash-cli,
       kazam,
-      unp
+      unp,
+      w3m
     ], state: latest } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
   - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", with_items: [
