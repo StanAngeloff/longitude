@@ -297,18 +297,18 @@
   - { name: "ripgrep: Check installation", become: yes, command: "dpkg -l ripgrep", register: ripgrep_dpkg_query, changed_when: no, failed_when: no }
   - { name: "ripgrep: Install packages", become: yes, when: "ripgrep_dpkg_query.rc > 0", apt: { deb: "https://github.com/BurntSushi/ripgrep/releases/download/{{ ripgrep_version }}/ripgrep_{{ ripgrep_version }}_{{ ripgrep_platform }}.deb", state: present } }
   # 955. fzf
-  - { name: "fzf: Check installation", command: "ls /usr/local/bin/fzf-{{ fzf_version }}", register: fzf_install_query, changed_when: no, failed_when: no }
+  - { name: "fzf: Check installation", become: yes, command: "ls /usr/local/bin/fzf-{{ fzf_version }}", register: fzf_install_query, changed_when: no, failed_when: no }
   - { name: "fzf: Download fzf", get_url: { url: "https://github.com/junegunn/fzf-bin/releases/download/{{ fzf_version }}/fzf-{{ fzf_version }}-{{ fzf_platform }}.tgz", dest: "/tmp/fzf-{{ fzf_version }}.tgz", checksum: "{{ fzf_checksum }}" }, when: "fzf_install_query.rc > 0" }
   - { name: "fzf: Install fzf", shell: "cd /tmp && tar --overwrite -zxf 'fzf-{{ fzf_version }}.tgz' && mv ./fzf '/usr/local/bin/fzf-{{ fzf_version }}'", when: "fzf_install_query.rc > 0" }
   - { name: "fzf: Set up alternatives", become: yes, alternatives: { name: "fzf", link: "/usr/local/bin/fzf", path: "/usr/local/bin/fzf-{{ fzf_version }}" } }
   - { name: "fzf: Create empty Zsh configuration", copy: { content: "", dest: "{{ ansible_env.HOME }}/.fzf.zsh", force: no } }
   # 960. pup
-  - { name: "pup: Check installation", command: "ls /usr/local/bin/pup-{{ pup_version }}", register: pup_install_query, changed_when: no, failed_when: no }
+  - { name: "pup: Check installation", become: yes, command: "ls /usr/local/bin/pup-{{ pup_version }}", register: pup_install_query, changed_when: no, failed_when: no }
   - { name: "pup: Download pup", get_url: { url: "https://github.com/EricChiang/pup/releases/download/v{{ pup_version }}/pup_v{{ pup_version }}_{{ pup_platform }}.zip", dest: "/tmp/pup-{{ pup_version }}.zip", checksum: "{{ pup_checksum }}" }, when: "pup_install_query.rc > 0" }
   - { name: "pup: Install pup", shell: "cd /tmp && unzip -o 'pup-{{ pup_version }}.zip' && mv ./pup '/usr/local/bin/pup-{{ pup_version }}'", when: "pup_install_query.rc > 0" }
   - { name: "pup: Set up alternatives", become: yes, alternatives: { name: "pup", link: "/usr/local/bin/pup", path: "/usr/local/bin/pup-{{ pup_version }}" } }
   # 965. jq
-  - { name: "jq: Check installation", command: "ls /usr/local/bin/jq-{{ jq_version }}", register: jq_install_query, changed_when: no, failed_when: no }
+  - { name: "jq: Check installation", become: yes, command: "ls /usr/local/bin/jq-{{ jq_version }}", register: jq_install_query, changed_when: no, failed_when: no }
   - { name: "jq: Download jq", get_url: { url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-{{ jq_platform }}", dest: "/usr/local/bin/jq-{{ jq_version }}", mode: "+x", checksum: "{{ jq_checksum }}" }, when: "jq_install_query.rc > 0" }
   - { name: "jq: Set up alternatives", become: yes, alternatives: { name: "jq", link: "/usr/local/bin/jq", path: "/usr/local/bin/jq-{{ jq_version }}" } }
   # 970. HTTPie
