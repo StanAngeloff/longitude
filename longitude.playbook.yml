@@ -154,6 +154,10 @@
     ffmpeg_platform: amd64
     ffmpeg_checksum: "md5:7bce08bcc241f12d40616d09f810883a"
 
+    franz_version: 5.0.0
+    franz_platform: x86_64
+    franz_checksum: "sha256:5278c8ed8a9669e9b2596176b57013a7e13548ff6700abdc48506c3e8ce67e09"
+
   tasks:
 
   - { name: "Prerequisites: Paths writeable by the user", become: yes, file: { path: "{{ item }}", owner: "{{ ansible_user_id }}" }, with_items: ["/usr/local/bin", "/opt"] }
@@ -495,7 +499,7 @@
   ] }
 
   # 3000. Communications
-  - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v5.0.0/franz-5.0.0-x86_64.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "sha256:5278c8ed8a9669e9b2596176b57013a7e13548ff6700abdc48506c3e8ce67e09" } }
+  - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v{{ franz_version }}/franz-{{ franz_version }}-{{ franz_platform }}.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "{{ franz_checksum }}" } }
   - { name: "Viber: Check installation", become: yes, command: "dpkg -l viber", register: viber_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Viber: Install packages", become: yes, when: "viber_dpkg_query.rc > 0", apt: { deb: "https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb", state: present } }
   - { name: "Skype: Check installation", become: yes, command: "dpkg -l skypeforlinux", register: skype_dpkg_query, changed_when: no, failed_when: no }
