@@ -68,6 +68,9 @@
 
     dropbox_version: 2019.01.31
 
+    imagemagick_version: 7.0.8-34
+    imagemagick_checksum: "sha256:0456bb9617144619f56103414e13ae0bbfa63af68a60e5967a41fe69e7fb57bf"
+
     ripgrep_version: 0.10.0
     ripgrep_platform: amd64
 
@@ -249,9 +252,11 @@
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
   # - 'gimp' - poor man's Photoshop.
+  # - 'graphviz' - rich set of graph drawing tools.
   # - 'kazam' - capturing screencasts and screenshots.
   # - 'mysql-client' - for interacting with MySQL servers.
   # - 'parcellite' - a clipboard manager from the dark ages, but does its job well.
+  # - 'pdftk' - tool for manipulating PDF documents.
   # - 'pv' - a Pipe Viewer which can be used to dislay a progress for long running operatings.
   # - 'socat' - TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
   # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
@@ -262,8 +267,10 @@
       gawk,
       gconf-editor, dconf-editor,
       gimp,
+      graphviz,
       mysql-client,
       parcellite,
+      pdftk,
       pv,
       socat,
       trash-cli,
@@ -297,6 +304,35 @@
                 </edit>
             </match>
         </fontconfig>
+
+  # 910. ImageMagick
+  - { name: "ImageMagick: Install prerequisites", become: yes, apt: { pkg: [graphviz-dev, libpng-dev, libjpeg-dev, libgs-dev], state: present } }
+  - { name: "ImageMagick: Check installation", become: yes, command: "ls /opt/ImageMagick-{{ imagemagick_version }}", register: imagemagick_install_query, changed_when: no, failed_when: no }
+  - { name: "ImageMagick: Download source", get_url: { url: "https://imagemagick.org/download/ImageMagick-{{ imagemagick_version }}.tar.xz", dest: "/tmp/ImageMagick-{{ imagemagick_version }}.tar.xz", checksum: "{{ imagemagick_checksum }}" }, when: "imagemagick_install_query.rc > 0" }
+  - { name: "ImageMagick: Compile & install packages", when: "imagemagick_install_query.rc > 0",
+      shell: "cd /tmp && tar --overwrite -Jxf 'ImageMagick-{{ imagemagick_version }}.tar.xz' && cd 'ImageMagick-{{ imagemagick_version }}' && ./configure --prefix='/opt/ImageMagick-{{ imagemagick_version }}' && make -j8 && make install" }
+  - { name: "ImageMagick: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/ImageMagick-{{ imagemagick_version }}/bin/{{ item }}" }, with_items: [
+      animate,
+      compare,
+      composite,
+      conjure,
+      convert,
+      display,
+      identify,
+      import,
+      magick,
+      magick-script,
+      mogrify,
+      montage,
+      stream,
+
+      Magick++-config,
+      MagickCore-config,
+      MagickWand-config
+  ] }
+  - { name: "ImageMagick: Check system installation", become: yes, command: "apt-mark showhold", register: imagemagick_system_install_query, changed_when: no, failed_when: no }
+  - { name: "ImageMagick: Hold system packages", become: yes, when: "'imagemagick' not in imagemagick_system_install_query.stdout", command: "apt-mark hold imagemagick" }
+  - { name: "ImageMagick: Allow manipulation of PDF files", lineinfile: { path: "/opt/ImageMagick-{{ imagemagick_version }}/etc/ImageMagick-{{ imagemagick_version.split('.')[0] }}/policy.xml", regexp: "PDF", line: '  <policy domain="module" rights="read|write" pattern="{PS,PDF,XPS}" />' } }
 
   # 950. ripgrep
   - { name: "ripgrep: Check installation", become: yes, command: "dpkg -l ripgrep", register: ripgrep_dpkg_query, changed_when: no, failed_when: no }
