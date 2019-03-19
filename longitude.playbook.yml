@@ -248,10 +248,12 @@
   #
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
+  # - 'gimp' - poor man's Photoshop.
   # - 'kazam' - capturing screencasts and screenshots.
   # - 'mysql-client' - for interacting with MySQL servers.
   # - 'parcellite' - a clipboard manager from the dark ages, but does its job well.
   # - 'pv' - a Pipe Viewer which can be used to dislay a progress for long running operatings.
+  # - 'socat' - TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
   # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
   # - 'unp' - a small Perl script which makes extraction of any archive files a bit easier.
   # - 'w3m' - a text-based World Wide Web browser, useful for converting HTML to plain text.
@@ -259,9 +261,11 @@
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
       gawk,
       gconf-editor, dconf-editor,
+      gimp,
       mysql-client,
       parcellite,
       pv,
+      socat,
       trash-cli,
       kazam,
       unp,
