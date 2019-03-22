@@ -232,7 +232,7 @@
       "/usr/lib/mozilla/certificates",
       "/usr/local/lib/firefox",
       "/usr/local/lib/firefox/extensions"
-  ] }
+    ] }
   - { name: "Firefox: Download unofficial extensions", get_url: { url: "{{ item.value.url | format(version=item.value.version) }}", dest: "/usr/local/lib/firefox/extensions/{{ item.key }}-{{ item.value.version }}-unofficial.xpi", checksum: "{{ item.value.checksum }}" }, with_dict: "{{ firefox_unofficial_extensions }}" }
   - { name: "Firefox: Create enterprise deployment policy", become: yes, copy: { dest: "/usr/lib/firefox/distribution/policies.json", content: "{{ firefox_policies | to_nice_json }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes } }
 
@@ -246,9 +246,9 @@
   - { name: "Keybase: Check installation", become: yes, command: "dpkg -l keybase", register: keybase_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Keybase: Install packages", become: yes, when: "keybase_dpkg_query.rc > 0", apt: { deb: "https://prerelease.keybase.io/keybase_amd64.deb", state: present } }
   - { name: "Keybase: Set up GPG", copy: "{{ item }}", with_items: [
-    { content: "use-agent\ncharset UTF-8\ndefault-key 595EA753", dest: "{{ ansible_env.HOME }}/.gnupg/gpg.conf", force: no },
-    { content: "pinentry-program /usr/local/bin/pinentry-mac\ndefault-cache-ttl 3600\nenable-ssh-support", dest: "{{ ansible_env.HOME }}/.gnupg/gpg-agent.conf", force: no }
-  ] }
+      { content: "use-agent\ncharset UTF-8\ndefault-key 595EA753", dest: "{{ ansible_env.HOME }}/.gnupg/gpg.conf", force: no },
+      { content: "pinentry-program /usr/local/bin/pinentry-mac\ndefault-cache-ttl 3600\nenable-ssh-support", dest: "{{ ansible_env.HOME }}/.gnupg/gpg-agent.conf", force: no }
+    ] }
 
   # 800. KeePassXC
   - { name: "KeePassXC: Add official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", update_cache: yes } }
@@ -337,7 +337,7 @@
       Magick++-config,
       MagickCore-config,
       MagickWand-config
-  ] }
+    ] }
   - { name: "ImageMagick: Check system installation", become: yes, command: "apt-mark showhold", register: imagemagick_system_install_query, changed_when: no, failed_when: no }
   - { name: "ImageMagick: Hold system packages", become: yes, when: "'imagemagick' not in imagemagick_system_install_query.stdout", command: "apt-mark hold imagemagick" }
   - { name: "ImageMagick: Allow manipulation of PDF files", lineinfile: { path: "/opt/ImageMagick-{{ imagemagick_version }}/etc/ImageMagick-{{ imagemagick_version.split('.')[0] }}/policy.xml", regexp: "PDF", line: '  <policy domain="module" rights="read|write" pattern="{PS,PDF,XPS}" />' } }
@@ -393,7 +393,7 @@
       { path: "{{ ansible_env.HOME }}/.tmux.conf", src: "{{ ansible_env.HOME }}/dotfiles/.tmux.conf", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.zshrc", src: "{{ ansible_env.HOME }}/dotfiles/.zshrc", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.Xresources", src: "{{ ansible_env.HOME }}/dotfiles/.Xresources", state: hard, force: yes }
-  ] }
+    ] }
   # 1020. Dotfiles install Vim plug-ins
   - { name: "Dotfiles: Install vim-plug", get_url: { url: "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim", dest: "{{ ansible_env.HOME }}/.vim/autoload/plug.vim" }, register: vim_plug_installed }
   - { name: "Dotfiles: Disable Git fsckObjects", command: "git config --global fetch.fsckObjects false", changed_when: no }
@@ -424,7 +424,7 @@
       urxvt,
       urxvtc,
       urxvtd
-  ] }
+    ] }
   - { name: "rxvt-unicode: Create desktop entry", copy: { content: "[Desktop Entry]\nVersion=1.0\nName=urxvt\nComment=An unicode capable rxvt clone\nExec=urxvt\nIcon=utilities-terminal\nTerminal=false\nType=Application\nCategories=System;TerminalEmulator;", dest: "{{ ansible_env.HOME }}/.local/share/applications/urxvt.desktop", force: no } }
   - { name: "rxvt-unicode: Create launch script", copy: { content: "#!/bin/sh\n\nxdotool search --class urxvt windowactivate || urxvt -e /bin/zsh -c 'tmux attach-session -t default 2>/dev/null || tmux new-session -s default -n default'", dest: "/usr/local/bin/urxvt-start", force: no, mode: "+x" } }
   - { name: "rxvt-unicode: Set up as default terminal", become: yes, alternatives: { name: "x-terminal-emulator", path: "/usr/local/bin/urxvt-start" } }
@@ -454,7 +454,7 @@
       "php -r \"if (hash_file('sha384', '/tmp/composer-setup.php') === '{{ composer_setup_checksum }}') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('/tmp/composer-setup.php'); } echo PHP_EOL;\"",
       "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer",
       "php -r \"unlink('/tmp/composer-setup.php');\"",
-  ]}
+    ] }
 
   # 1600. NodeJS
   - { name: "NodeJS: Import GPG key", become: yes, apt_key: { id: "{{ nodesource_gpg_key_id }}", url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" } }
@@ -480,7 +480,7 @@
   - { name: "ffmpeg: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/ffmpeg-{{ ffmpeg_version }}/{{ item }}" }, with_items: [
       ffmpeg,
       ffprobe
-  ] }
+    ] }
 
   # 2000. Just stuff...
   #
@@ -502,7 +502,7 @@
       InfoNotaryQualifiedValidatedDomainCA.pem,
       InfoNotaryQualifiedValidationServicesCA.pem,
       InfoNotaryTSPRoot.pem
-  ] }
+    ] }
 
   # 3000. Communications
   - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v{{ franz_version }}/franz-{{ franz_version }}-{{ franz_platform }}.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "{{ franz_checksum }}" } }
