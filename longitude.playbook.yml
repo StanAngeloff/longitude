@@ -262,15 +262,17 @@
   # 800. KeePassXC
   - { name: "KeePassXC: Add official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", update_cache: yes } }
   - { name: "KeePassXC: Install packages", become: yes, apt: { pkg: [keepassxc], state: latest } }
-  - { name: "KeePassXC: Fix appearance & appindicator icon", become: yes, lineinfile: {  path: "/usr/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^Exec=", line: "Exec=env QT_QPA_PLATFORMTHEME=gtk2 keepassxc %f" } }
+  - { name: "KeePassXC: Fix appearance & appindicator icon", become: yes, lineinfile: { path: "/usr/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^Exec=", line: "Exec=env QT_QPA_PLATFORMTHEME=gtk2 keepassxc %f" } }
 
   # 900. Tools and miscellaneous
   #
+  # - 'filezilla' - full-featured FTP/SFTP client.
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
   # - 'gimp' - poor man's Photoshop.
   # - 'graphviz' - rich set of graph drawing tools.
   # - 'kazam' - capturing screencasts and screenshots.
+  # - 'moreutils' - additional Unix utilities, e.g., sponge.
   # - 'mysql-client' - for interacting with MySQL servers.
   # - 'parcellite' - a clipboard manager from the dark ages, but does its job well.
   # - 'pdftk' - tool for manipulating PDF documents.
@@ -281,6 +283,7 @@
   # - 'w3m' - a text-based World Wide Web browser, useful for converting HTML to plain text.
   #
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
+      filezilla,
       gawk,
       gconf-editor, dconf-editor,
       gimp,
@@ -292,6 +295,7 @@
       socat,
       trash-cli,
       kazam,
+      moreutils,
       unp,
       w3m
     ], state: latest } }
