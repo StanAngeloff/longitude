@@ -66,6 +66,10 @@
     docker_compose_version: 1.22.0
     docker_compose_checksum: "sha256:f679a24b93f291c3bffaff340467494f388c0c251649d640e661d509db9d57e9"
 
+    keepassxc_version: 2.4.0
+    keepassxc_platform: x86_64
+    keepassxc_checksum: "sha256:559be14b9f24feb6bded010aef55dd7cb72b3cb081485c49a548bd614dba4324"
+
     dropbox_version: 2019.01.31
 
     imagemagick_version: 7.0.8-34
@@ -260,9 +264,29 @@
     ] }
 
   # 800. KeePassXC
-  - { name: "KeePassXC: Add official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", update_cache: yes } }
-  - { name: "KeePassXC: Install packages", become: yes, apt: { pkg: [keepassxc], state: latest } }
-  - { name: "KeePassXC: Fix appearance & appindicator icon", become: yes, lineinfile: { path: "/usr/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^Exec=", line: "Exec=env QT_QPA_PLATFORMTHEME=gtk2 keepassxc %f" } }
+  - { name: "KeePassXC: Remove official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", state: absent } }
+  - { name: "KeePassXC: Remove packages", become: yes, apt: { pkg: [keepassxc], state: absent } }
+  - { name: "KeePassXC: Install AppImage", get_url: { url: "https://github.com/keepassxreboot/keepassxc/releases/download/{{ keepassxc_version }}/KeePassXC-{{ keepassxc_version }}-{{ keepassxc_platform }}.AppImage", dest: "/usr/local/bin/keepassxc", mode: "+x", checksum: "{{ keepassxc_checksum }}" } }
+  - { name: "KeePassXC: Create icons directory", become: yes, file: { path: "/usr/local/share/icons/", state: directory, owner: "{{ ansible_user_id }}", mode: 0775 } }
+  - { name: "KeePassXC: Download icon", get_url: { url: "https://github.com/keepassxreboot/keepassxc/raw/{{ keepassxc_version }}/share/icons/application/256x256/apps/keepassxc.png", dest: "/usr/local/share/icons/keepassxc.png" } }
+  - name: "KeePassXC: Add desktop icon"
+    become: yes
+    copy:
+      dest: "/usr/share/applications/org.keepassxc.KeePassXC.desktop"
+      content: |
+        [Desktop Entry]
+        Name=KeePassXC
+        GenericName=Password Manager
+        Comment=Community-driven port of the Windows application “KeePass Password Safe”
+        Exec=keepassxc %f
+        TryExec=keepassxc
+        Icon=/usr/local/share/icons/keepassxc.png
+        StartupWMClass=keepassxc
+        Terminal=false
+        Type=Application
+        Version=1.0
+        Categories=Utility;Security;Qt;
+        MimeType=application/x-keepass2;
 
   # 900. Tools and miscellaneous
   #
