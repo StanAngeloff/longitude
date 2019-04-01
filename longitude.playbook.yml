@@ -107,9 +107,8 @@
     zsh_checksum: "md5:374f9fdd121b5b90e07abfcad7df0627"
 
     rxvt_unicode_version: 9.22
-    rxvt_unicode_checksum: "sha256:e94628e9bcfa0adb1115d83649f898d6edb4baced44f5d5b769c2eeb8b95addd"
+    rxvt_unicode_csv_date: "2019-04-01"
     rxvt_unicode_patches: [
-      { url: "https://gist.githubusercontent.com/dan-santana/63271adf12171e0fc0bc/raw/70c6343d1c0b3bca0aba4f587ed501e6cbd98d00/24-bit-color.patch", checksum: "sha256:eee0afe570124d3dc1e2b7a2e1452b981b38c8fda96e30cffc554428c2027619" },
       { url: "https://gist.githubusercontent.com/StanAngeloff/743c1cbb7566b5f0d84aeb41503bb989/raw/60b3755868282052c9842c0bf8c71e5dcf51280a/rxvt-unicode-clipboard.patch", checksum: "sha256:fef02e5498d65703910d1205780681a8b828df09e418e676d26192664c91a4d4" }
     ]
     rxvt_unicode_configure_args: [
@@ -137,8 +136,7 @@
       --enable-xim,
       --enable-xterm-scroll,
       --disable-pixbuf,
-      --disable-frills,
-      --enable-24-bit-color
+      --disable-frills
     ]
 
     tmux_version: 2.8
@@ -450,13 +448,22 @@
   - { name: "Reset connection to allow shell changes", meta: reset_connection }
 
   # 1200. rxvt-unicode
-  - { name: "rxvt-unicode: Install prerequisites", become: yes, apt: { pkg: [libperl-dev, libx11-dev, libxft-dev, xdotool, xsel], state: present } }
+  - { name: "rxvt-unicode: Install prerequisites", become: yes, apt: { pkg: [cvs, libperl-dev, libx11-dev, libxft-dev, xdotool, xsel], state: present } }
   - { name: "rxvt-unicode: Check installation", become: yes, command: "ls /opt/rxvt-unicode-{{ rxvt_unicode_version }}", register: rxvt_unicode_install_query, changed_when: no, failed_when: no }
-  - { name: "rxvt-unicode: Download source", get_url: { url: "http://dist.schmorp.de/rxvt-unicode/rxvt-unicode-{{ rxvt_unicode_version }}.tar.bz2", dest: "/tmp/rxvt-unicode-{{ rxvt_unicode_version }}.tar.bz2", checksum: "{{ rxvt_unicode_checksum }}" }, when: "rxvt_unicode_install_query.rc > 0" }
+  - { name: "rxvt-unicode: Download CSV source", command: "cvs -q -z3 -d :pserver:anonymous@cvs.schmorp.de/schmorpforge checkout -D \"{{ rxvt_unicode_csv_date }}\" rxvt-unicode", args: { chdir: '/tmp' }, when: "rxvt_unicode_install_query.rc > 0" }
   - { name: "rxvt-unicode: Download patches", get_url: { url: "{{ item.1.url }}", dest: "/tmp/rxvt-unicode-{{ item.0 }}.patch", checksum: "{{ item.1.checksum }}" }, with_indexed_items: "{{ rxvt_unicode_patches }}", when: "rxvt_unicode_install_query.rc > 0" }
-  - { name: "rxvt-unicode: Patch, compile & install packages", when: "rxvt_unicode_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -jxf 'rxvt-unicode-{{ rxvt_unicode_version }}.tar.bz2' && cd 'rxvt-unicode-{{ rxvt_unicode_version }}' && for p in ../rxvt-unicode-*.patch; do patch --forward -p0 < \"$p\"; done && ./configure {{ rxvt_unicode_configure_args | join(' ') }} --prefix='/opt/rxvt-unicode-{{ rxvt_unicode_version }}' && make -j8 && make install",
-      args: { executable: "/bin/bash" } }
+  - name: "rxvt-unicode: Patch, compile & install packages"
+    when: "rxvt_unicode_install_query.rc > 0"
+    shell: |
+      cd /tmp/rxvt-unicode &&
+      {% for patch in rxvt_unicode_patches %}
+        echo "Patching {{ patch.url | basename }}…"  &&
+        patch --quiet --forward -p{{ patch.strip | default(0) }} < "/tmp/rxvt-unicode-{{ loop.index0 }}.patch" &&
+      {% endfor %}
+      ./configure {{ rxvt_unicode_configure_args | join(" ") }} --prefix="/opt/rxvt-unicode-{{ rxvt_unicode_version }}" &&
+      make -j8 &&
+      make install
+    args: { executable: "/bin/bash" }
   - { name: "rxvt-unicode: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/rxvt-unicode-{{ rxvt_unicode_version }}/bin/{{ item }}" }, with_items: [
       urxvt,
       urxvtc,
