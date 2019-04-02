@@ -298,6 +298,7 @@
   # - 'mysql-client' - for interacting with MySQL servers.
   # - 'parcellite' - a clipboard manager from the dark ages, but does its job well.
   # - 'pdftk' - tool for manipulating PDF documents.
+  # - 'poedit' - an editor for gettext catalogs (.po files).
   # - 'pv' - a Pipe Viewer which can be used to dislay a progress for long running operatings.
   # - 'socat' - TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
   # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
@@ -313,6 +314,7 @@
       mysql-client,
       parcellite,
       pdftk,
+      poedit,
       pv,
       socat,
       trash-cli,
