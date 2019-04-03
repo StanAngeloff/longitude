@@ -265,7 +265,7 @@
   - { name: "KeePassXC: Remove official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", state: absent } }
   - { name: "KeePassXC: Remove packages", become: yes, apt: { pkg: [keepassxc], state: absent } }
   - { name: "KeePassXC: Install AppImage", get_url: { url: "https://github.com/keepassxreboot/keepassxc/releases/download/{{ keepassxc_version }}/KeePassXC-{{ keepassxc_version }}-{{ keepassxc_platform }}.AppImage", dest: "/usr/local/bin/keepassxc", mode: "+x", checksum: "{{ keepassxc_checksum }}" } }
-  - { name: "KeePassXC: Create icons directory", become: yes, file: { path: "/usr/local/share/icons/", state: directory, owner: "{{ ansible_user_id }}", mode: 0775 } }
+  - { name: "KeePassXC: Create icons directory", become: yes, file: { path: "/usr/local/share/icons", state: directory, owner: "{{ ansible_user_id }}", mode: 0775 } }
   - { name: "KeePassXC: Download icon", get_url: { url: "https://github.com/keepassxreboot/keepassxc/raw/{{ keepassxc_version }}/share/icons/application/256x256/apps/keepassxc.png", dest: "/usr/local/share/icons/keepassxc.png" } }
   - name: "KeePassXC: Add desktop icon"
     become: yes
@@ -482,6 +482,11 @@
   - { name: "tmux: Compile & install packages", when: "tmux_install_query.rc > 0",
       shell: "cd /tmp && tar --overwrite -zxf 'tmux-{{ tmux_version }}.tar.gz' && cd 'tmux-{{ tmux_version }}' && ./configure --prefix='/opt/tmux-{{ tmux_version }}' && make -j8 && make install" }
   - { name: "tmux: Set up alternatives", become: yes, alternatives: { name: "tmux", link: "/usr/local/bin/tmux", path: "/opt/tmux-{{ tmux_version }}/bin/tmux" } }
+  - { name: "tmux: Set up plug-ins directories", file: { path: "{{ item }}", state: directory }, with_items: [
+      "{{ ansible_env.HOME }}/.tmux",
+      "{{ ansible_env.HOME }}/.tmux/plugins",
+    ] }
+  - { name: "tmux: Clone Tmux Plugin Manager", git: { repo: "https://github.com/tmux-plugins/tpm", dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm", remote: "github", update: no } }
 
   # 1400. tig
   - { name: "tig: Install prerequisites", become: yes, apt: { pkg: [libncursesw5-dev], state: present } }
