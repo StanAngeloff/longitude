@@ -301,6 +301,7 @@
   # - 'poedit' - an editor for gettext catalogs (.po files).
   # - 'pv' - a Pipe Viewer which can be used to dislay a progress for long running operatings.
   # - 'socat' - TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
+  # - 'sqlitebrowser' - a visual tool used to create, design and edit database files compatible with SQLite.
   # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
   # - 'unp' - a small Perl script which makes extraction of any archive files a bit easier.
   # - 'w3m' - a text-based World Wide Web browser, useful for converting HTML to plain text.
