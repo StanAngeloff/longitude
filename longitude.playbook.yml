@@ -160,9 +160,9 @@
     ffmpeg_platform: amd64
     ffmpeg_checksum: "md5:7bce08bcc241f12d40616d09f810883a"
 
-    franz_version: 5.0.0
+    franz_version: 5.0.1
     franz_platform: x86_64
-    franz_checksum: "sha256:5278c8ed8a9669e9b2596176b57013a7e13548ff6700abdc48506c3e8ce67e09"
+    franz_checksum: "sha256:7b2a39e1383636d69314613973c7c40d08b17ad90e46c50b29f9e72bf14403df"
 
     ufw_policy:
       - { direction: incoming, policy: deny }
