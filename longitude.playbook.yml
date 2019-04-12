@@ -201,6 +201,7 @@
   - { name: "Git: Import Git LFS GPG key", become: yes, apt_key: { id: "{{ git_lfs_gpg_key_id }}", url: "https://packagecloud.io/github/git-lfs/gpgkey" } }
   - { name: "Git: Add Git LFS repository", become: yes, apt_repository: { repo: "deb https://packagecloud.io/github/git-lfs/ubuntu/ {{ ansible_distribution_release }} main", update_cache: yes } }
   - { name: "Git: Install Git LFS packages", become: yes, apt: { pkg: [git-lfs], state: latest } }
+  - { name: "Git: Install git-extras packages", become: yes, apt: { pkg: [git-extras], state: latest } }
   # 120. git-crypt
   - { name: "Git: Install git-crypt packages", become: yes, apt: { pkg: [git-crypt], state: latest } }
 
