@@ -145,6 +145,9 @@
     tig_version: 2.4.1
     tig_checksum: "sha256:b6b6aa183e571224d0e1fab3ec482542c1a97fa7a85b26352dc31dbafe8558b8"
 
+    envchain_version: 1.0.1
+    envchain_checksum: "sha256:09af1fe1cfba3719418f90d59c29c081e1f22b38249f0110305b657bd306e9ae"
+
     php_version: 7.2
     php_extensions: [bcmath, curl, gd, gmp, intl, json, mbstring, mysql, pgsql, sqlite3, xml, zip]
 
@@ -499,6 +502,13 @@
       shell: "cd /tmp && tar --overwrite -zxf 'tig-{{ tig_version }}.tar.gz' && cd 'tig-{{ tig_version }}' && ./configure --prefix='/opt/tig-{{ tig_version }}' && make -j8 && make install" }
   - { name: "tig: Set up alternatives", become: yes, alternatives: { name: "tig", link: "/usr/local/bin/tig", path: "/opt/tig-{{ tig_version }}/bin/tig" } }
 
+  # 1450. envchain
+  - { name: "envchain: Install prerequisites", become: yes, apt: { pkg: [libsecret-1-dev, libreadline-dev], state: present } }
+  - { name: "envchain: Check installation", become: yes, command: "ls /usr/local/bin/envchain", register: envchain_install_query, changed_when: no, failed_when: no }
+  - { name: "envchain: Download source", get_url: { url: "https://github.com/sorah/envchain/archive/v{{ envchain_version }}.tar.gz", dest: "/tmp/envchain-{{ envchain_version }}.tar.gz", checksum: "{{ envchain_checksum }}" }, when: "envchain_install_query.rc > 0" }
+  - { name: "envchain: Compile & install packages", when: "envchain_install_query.rc > 0",
+      shell: "cd /tmp && tar --overwrite -zxf 'envchain-{{ envchain_version }}.tar.gz' && cd 'envchain-{{ envchain_version }}' && make && make install DESTDIR='/usr/local'" }
+
   # 1500. PHP & extensions
   - { name: "PHP: Add PPA", become: yes, apt_repository: { repo: "ppa:ondrej/php", update_cache: yes } }
   - { name: "PHP: Install packages", become: yes, apt: { pkg: "{{ ('php-pear php' + php_version|string + '-cli php' + php_version|string + '-dev php' + php_version|string + '-' + php_extensions|join(' php' + php_version|string + '-')).split(' ') }}", state: latest } }
@@ -540,6 +550,7 @@
   #
   # tesseract: OCR'ing images and parsing text out.
   - { name: "tesseract: Install OCR packages", become: yes, apt: { pkg: [tesseract-ocr, tesseract-ocr-bul, tesseract-ocr-eng], state: latest } }
+
   # InfoNotary: qualified electronic signature used when paying bills, accessing tax statements, etc.
   #
   # - 'bit4id-ipki' - driver for Bit4id smart cards.
