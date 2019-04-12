@@ -88,6 +88,8 @@
 
     httpie_version: 1.0.2
 
+    awscli_version: '>1.16'
+
     fzf_version: 0.17.5
     fzf_platform: linux_amd64
     fzf_checksum: "sha256:3020c7d4d43d524ff394df306337b6de873b9db0bd9cd9dc73cd80cbd6e0c2f8"
@@ -416,6 +418,8 @@
   - { name: "ngrok: Install ngrok", shell: "cd /tmp && unzip -o ngrok.zip && mv ./ngrok /usr/local/bin/ngrok", when: "ngrok_install_query.rc > 0" }
   # 995. ffsend (Firefox Send CLI)
   - { name: "Install ffsend", get_url: { url: "https://github.com/timvisee/ffsend/releases/download/v{{ ffsend_version }}/ffsend-v{{ ffsend_version }}-{{ ffsend_platform }}-static", dest: "/usr/local/bin/ffsend", mode: "+x", checksum: "{{ ffsend_checksum }}" } }
+  # 999. AWS CLI
+  - { name: "AWS: Install CLI packages", become: yes, pip: { executable: pip3, name: awscli, version: "{{ awscli_version }}", state: present } }
 
   # 1000. Dotfiles
   - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no } }
