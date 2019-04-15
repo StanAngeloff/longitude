@@ -64,6 +64,10 @@
             endfor
           %}{{ extensions }}"
 
+    # See https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig
+    #
+    firefox_about_config:
+
     git_lfs_gpg_key_id: "DC282033"
 
     docker_gpg_key_id: "0EBFCD88"
@@ -256,6 +260,31 @@
     ] }
   - { name: "Firefox: Download unofficial extensions", get_url: { url: "{{ item.value.url | format(version=item.value.version) }}", dest: "/usr/local/lib/firefox/extensions/{{ item.key }}-{{ item.value.version }}-unofficial.xpi", checksum: "{{ item.value.checksum }}" }, with_dict: "{{ firefox_unofficial_extensions }}", tags: [firefox] }
   - { name: "Firefox: Create enterprise deployment policy", become: yes, copy: { dest: "/usr/lib/firefox/distribution/policies.json", content: "{{ firefox_policies | to_nice_json }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes }, tags: [firefox] }
+  - name: "Firefox: Setting up AutoConfig"
+    become: yes
+    tags: [firefox]
+    copy:
+      dest: "/usr/lib/firefox/defaults/pref/autoconfig.js"
+      owner: "{{ ansible_user_id }}"
+      mode: 0444
+      force: yes
+      content: |
+        // This file is managed by Ansible / Longitude.
+        pref("general.config.filename", "firefox.cfg");
+        pref("general.config.obscure_value", 0);
+  - name: "Firefox: Create AutoConfig"
+    become: yes
+    tags: [firefox]
+    copy:
+      dest: "/usr/lib/firefox/firefox.cfg"
+      owner: "{{ ansible_user_id }}"
+      mode: 0444
+      force: yes
+      content: |
+        // This file is managed by Ansible / Longitude. NOTE: preferences MUST start on line 2.
+        {% for name, value in firefox_about_config | dictsort %}
+        lockPref({{ name | to_json }}, {{ value | to_json }});
+        {% endfor %}
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
