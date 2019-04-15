@@ -240,18 +240,18 @@
   - { name: "Docker: Set up alternatives", become: yes, alternatives: { name: "docker-compose", link: "/usr/local/bin/docker-compose", path: "/usr/local/bin/docker-compose-{{ docker_compose_version }}" } }
 
   # 600. Firefox
-  - { name: "Firefox: Install packages", become: yes, apt: { pkg: [firefox], state: latest } }
+  - { name: "Firefox: Install packages", become: yes, apt: { pkg: [firefox], state: latest }, tags: [firefox] }
   # 610. Firefox alternatives
-  - { name: "Firefox: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/firefox" }, with_items: [gnome-www-browser, x-www-browser] }
+  - { name: "Firefox: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/firefox" }, with_items: [gnome-www-browser, x-www-browser], tags: [firefox] }
   # 690. Firefox policy for enterprise deployments
-  - { name: "Firefox: Create enterprise deployment directories", become: yes, file: { path: "{{ item }}", state: directory, owner: "{{ ansible_user_id }}", mode: 0755 }, with_items: [
+  - { name: "Firefox: Create enterprise deployment directories", become: yes, file: { path: "{{ item }}", state: directory, owner: "{{ ansible_user_id }}", mode: 0755 }, tags: [firefox], with_items: [
       "/usr/lib/firefox/distribution",
       "/usr/lib/mozilla/certificates",
       "/usr/local/lib/firefox",
       "/usr/local/lib/firefox/extensions"
     ] }
-  - { name: "Firefox: Download unofficial extensions", get_url: { url: "{{ item.value.url | format(version=item.value.version) }}", dest: "/usr/local/lib/firefox/extensions/{{ item.key }}-{{ item.value.version }}-unofficial.xpi", checksum: "{{ item.value.checksum }}" }, with_dict: "{{ firefox_unofficial_extensions }}" }
-  - { name: "Firefox: Create enterprise deployment policy", become: yes, copy: { dest: "/usr/lib/firefox/distribution/policies.json", content: "{{ firefox_policies | to_nice_json }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes } }
+  - { name: "Firefox: Download unofficial extensions", get_url: { url: "{{ item.value.url | format(version=item.value.version) }}", dest: "/usr/local/lib/firefox/extensions/{{ item.key }}-{{ item.value.version }}-unofficial.xpi", checksum: "{{ item.value.checksum }}" }, with_dict: "{{ firefox_unofficial_extensions }}", tags: [firefox] }
+  - { name: "Firefox: Create enterprise deployment policy", become: yes, copy: { dest: "/usr/lib/firefox/distribution/policies.json", content: "{{ firefox_policies | to_nice_json }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes }, tags: [firefox] }
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
