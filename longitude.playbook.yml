@@ -67,6 +67,9 @@
     # See https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig
     #
     firefox_about_config:
+      # See https://web.archive.org/web/20190410203751/https://www.internetsociety.org/blog/2018/12/dns-privacy-support-in-mozilla-firefox/
+      "network.trr.mode": 3
+      "network.trr.bootstrapAddress": "1.1.1.1"
 
     git_lfs_gpg_key_id: "DC282033"
 
