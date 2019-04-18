@@ -1,6 +1,8 @@
 #
 # $ make playbook
 #
+# This playbook has been tested with Ubuntu 16.04 and Ansible 2.7.
+#
 - hosts: [127.0.0.1]
   connection: local
 
@@ -110,8 +112,11 @@
     bat_platform: amd64
     bat_checksum: "md5:7b21d6d7d42493440d0c51d3b64947c8"
 
-    ngrok_url: "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
-    ngrok_checksum: "md5:9d1ec13de706326d47bd0f5019d9149a"
+    # See https://dl.equinox.io/ngrok/ngrok/stable/archive
+    ngrok_version: 2.3.18
+    ngrok_platform: linux-amd64
+    ngrok_stable_channel_id: 8jFoSpgnjgu
+    ngrok_checksum: "sha256:3e4f39dd3130b80dd0a736182712952100fcc462a0eb4d9ca15e50668c9d3862"
 
     ffsend_version: 0.2.37
     ffsend_platform: linux-x64
@@ -204,8 +209,8 @@
   - { name: "System: Add dpkg architectures", become: yes, lineinfile: { dest: "/var/lib/dpkg/arch", line: "{{ item }}", create: yes }, with_items: [amd64, i386] }
   - { name: "System: Update apt cache", become: yes, apt: { update_cache: yes, cache_valid_time: "{{ 24 * 60 * 60 }}" } }
 
-  # 20. build-essential is essential
-  - { name: "System: Install build-essential", become: yes, apt: { pkg: [build-essential], state: present } }
+  # 20. build-essential & a few more packages are essential
+  - { name: "System: Install essentials", become: yes, apt: { pkg: [build-essential, unzip], state: present } }
 
   # 100. Git
   - { name: "Git: Add PPA", become: yes, apt_repository: { repo: "ppa:git-core/ppa", update_cache: yes } }
@@ -375,7 +380,7 @@
       whois
     ], state: latest } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
-  - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", with_items: [
+  - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", with_items: [
       { key: "/org/gnome/mutter/overlay-key", value: "''" },
       { key: "/org/gnome/desktop/input-sources/xkb-options", value: "['compose:ralt']" }
     ] }
@@ -404,7 +409,7 @@
   # 910. ImageMagick
   - { name: "ImageMagick: Install prerequisites", become: yes, apt: { pkg: [graphviz-dev, libpng-dev, libjpeg-dev, libgs-dev], state: present } }
   - { name: "ImageMagick: Check installation", become: yes, command: "ls /opt/ImageMagick-{{ imagemagick_version }}", register: imagemagick_install_query, changed_when: no, failed_when: no }
-  - { name: "ImageMagick: Download source", get_url: { url: "https://imagemagick.org/download/ImageMagick-{{ imagemagick_version }}.tar.xz", dest: "/tmp/ImageMagick-{{ imagemagick_version }}.tar.xz", checksum: "{{ imagemagick_checksum }}" }, when: "imagemagick_install_query.rc > 0" }
+  - { name: "ImageMagick: Download source", get_url: { url: "http://download.ubk.hu/src/imagemagick/ImageMagick-{{ imagemagick_version }}.tar.xz", dest: "/tmp/ImageMagick-{{ imagemagick_version }}.tar.xz", checksum: "{{ imagemagick_checksum }}" }, when: "imagemagick_install_query.rc > 0" }
   - { name: "ImageMagick: Compile & install packages", when: "imagemagick_install_query.rc > 0",
       shell: "cd /tmp && tar --overwrite -Jxf 'ImageMagick-{{ imagemagick_version }}.tar.xz' && cd 'ImageMagick-{{ imagemagick_version }}' && ./configure --prefix='/opt/ImageMagick-{{ imagemagick_version }}' && make -j8 && make install" }
   - { name: "ImageMagick: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/ImageMagick-{{ imagemagick_version }}/bin/{{ item }}" }, with_items: [
@@ -456,7 +461,7 @@
   - { name: "bat: Install packages", become: yes, apt: { deb: "/tmp/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0" }
   # 990. ngrok
   - { name: "ngrok: Check installation", become: yes, command: "ls /usr/local/bin/ngrok", register: ngrok_install_query, changed_when: no, failed_when: no }
-  - { name: "ngrok: Download ngrok", get_url: { url: "{{ ngrok_url }}", dest: "/tmp/ngrok.zip", checksum: "{{ ngrok_checksum }}" }, when: "ngrok_install_query.rc > 0" }
+  - { name: "ngrok: Download ngrok", get_url: { url: "https://bin.equinox.io/a/{{ ngrok_stable_channel_id }}/ngrok-{{ ngrok_version }}-{{ ngrok_platform }}.zip", dest: "/tmp/ngrok.zip", checksum: "{{ ngrok_checksum }}" }, when: "ngrok_install_query.rc > 0" }
   - { name: "ngrok: Install ngrok", shell: "cd /tmp && unzip -o ngrok.zip && mv ./ngrok /usr/local/bin/ngrok", when: "ngrok_install_query.rc > 0" }
   # 995. ffsend (Firefox Send CLI)
   - { name: "Install ffsend", get_url: { url: "https://github.com/timvisee/ffsend/releases/download/v{{ ffsend_version }}/ffsend-v{{ ffsend_version }}-{{ ffsend_platform }}-static", dest: "/usr/local/bin/ffsend", mode: "+x", checksum: "{{ ffsend_checksum }}" } }

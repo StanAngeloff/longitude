@@ -27,8 +27,8 @@ docker-playbook:
 					&& apt-add-repository -y --update ppa:ansible/ansible \
 					&& apt-get install -y -q ansible sudo \
 					&& sed -e "s@^%sudo.*@%sudo ALL=(ALL:ALL) NOPASSWD: ALL@" -i /etc/sudoers \
-					&& su -l -c " \
+					&& su -lc " \
 						cd longitude \
-						&& ansible-playbook longitude.playbook.yml --diff \
+						&& env IS_DOCKERIZED=1 ansible-playbook longitude.playbook.yml --diff \
 					" stan \
 				'
