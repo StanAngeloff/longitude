@@ -353,6 +353,7 @@
   # - 'unp' - a small Perl script which makes extraction of any archive files a bit easier.
   # - 'v4l2ucp' - a control panel for Video for Linux 2 Universal.
   # - 'w3m' - a text-based World Wide Web browser, useful for converting HTML to plain text.
+  # - 'whois' - a command-line client for the WHOIS (RFC 3912) protocol.
   #
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
       filezilla,
@@ -370,7 +371,8 @@
       kazam,
       moreutils,
       unp,
-      w3m
+      w3m,
+      whois
     ], state: latest } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
   - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", with_items: [
