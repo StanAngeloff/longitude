@@ -74,6 +74,8 @@
       "network.trr.bootstrapAddress": "1.1.1.1"
       "network.security.esni.enabled": true
 
+    neovim_dictionaries: [bg.utf-8]
+
     git_lfs_gpg_key_id: "DC282033"
 
     docker_gpg_key_id: "0EBFCD88"
@@ -178,9 +180,9 @@
     wine_gpg_key_id: "F987672F"
     playonlinux_gpg_key_id: "8E3D6C3A"
 
-    ffmpeg_version: 4.1.1
+    ffmpeg_version: 4.1.3
     ffmpeg_platform: amd64
-    ffmpeg_checksum: "md5:7bce08bcc241f12d40616d09f810883a"
+    ffmpeg_checksum: "md5:9bdb279ec557e281a6800718add63385"
 
     franz_version: 5.0.1
     franz_platform: x86_64
@@ -471,13 +473,17 @@
   # 1000. Dotfiles
   - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no } }
   # 1010. Dotfiles linking files
-  - { name: "Dotfiles: Linking files", file: "{{ item }}", with_items: [
+  - { name: "Dotfiles: Creating directories and linking files", file: "{{ item }}", with_items: [
       { path: "{{ ansible_env.HOME }}/.vim", src: "./dotfiles/.vim", state: link, force: yes },
       { path: "{{ ansible_env.HOME }}/.config/nvim", src: "../.vim", state: link, force: yes },
       { path: "{{ ansible_env.HOME }}/.urxvt", src: "./dotfiles/.urxvt", state: link, force: yes },
       { path: "{{ ansible_env.HOME }}/.zsh", src: "./dotfiles/.zsh", state: link, force: yes },
 
       { path: "{{ ansible_env.HOME }}/.vim/autoload", state: directory },
+
+      { path: "{{ ansible_env.HOME }}/.local", state: directory },
+      { path: "{{ ansible_env.HOME }}/.local/share", state: directory },
+      { path: "{{ ansible_env.HOME }}/.local/share/applications", state: directory },
 
       { path: "{{ ansible_env.HOME }}/.vimrc", src: "{{ ansible_env.HOME }}/dotfiles/.vimrc", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.config/nvim/init.vim", src: "{{ ansible_env.HOME }}/.vimrc", state: hard, force: yes },
@@ -492,7 +498,11 @@
   # 1020. Dotfiles install Vim plug-ins
   - { name: "Dotfiles: Install vim-plug", get_url: { url: "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim", dest: "{{ ansible_env.HOME }}/.vim/autoload/plug.vim" }, register: vim_plug_installed }
   - { name: "Dotfiles: Disable Git fsckObjects", command: "git config --global fetch.fsckObjects false", changed_when: no }
-  - { name: "Dotfiles: Install Vim plug-ins", command: "nvim -Es -u {{ ansible_env.HOME }}/.config/nvim/init.vim +PlugInstall +qa", when: vim_plug_installed.changed }
+  - { name: "Dotfiles: Download Vim dictionaries", get_url: { url: "http://ftp.vim.org/vim/runtime/spell/{{ item[0] }}.{{ item[1] }}", dest: "{{ ansible_env.HOME }}/.config/nvim/spell/{{ item[0] }}.{{ item[1] }}" }, with_nested: [
+      ["{{ neovim_dictionaries }}"],
+      [spl, sug]
+    ] }
+  - { name: "Dotfiles: Install Vim plug-ins", command: "nvim -Es -u {{ ansible_env.HOME }}/.config/nvim/init.vim +PlugInstall +qa", when: vim_plug_installed.changed, failed_when: no }
   - { name: "Dotfiles: Re-enable Git fsckObjects", command: "git config --global fetch.fsckObjects true", changed_when: no }
 
   # 1100. Zsh
@@ -500,7 +510,7 @@
   - { name: "Zsh: Check installation", become: yes, command: "ls /opt/zsh-{{ zsh_version }}", register: zsh_install_query, changed_when: no, failed_when: no }
   - { name: "Zsh: Download source", get_url: { url: "https://sourceforge.net/projects/zsh/files/zsh/{{ zsh_version }}/zsh-{{ zsh_version }}.tar.xz/download", dest: "/tmp/zsh-{{ zsh_version }}.tar.xz", checksum: "{{ zsh_checksum }}" }, when: "zsh_install_query.rc > 0" }
   - { name: "Zsh: Compile & install packages", when: "zsh_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -Jxf 'zsh-{{ zsh_version }}.tar.xz' && cd 'zsh-{{ zsh_version }}' && ./configure --enable-pcre --prefix='/opt/zsh-{{ zsh_version }}' && make -j8 && make install" }
+      shell: "cd /tmp && tar --overwrite -Jxf 'zsh-{{ zsh_version }}.tar.xz' && cd 'zsh-{{ zsh_version }}' && ./configure --enable-pcre --prefix='/opt/zsh-{{ zsh_version }}' {% if ansible_env.IS_DOCKERIZED | default(0) == '1' %} --without-tcsetpgrp {% endif %} && make -j8 && make install" }
   - { name: "Zsh: Set up alternatives", become: yes, alternatives: { name: "zsh", link: "/bin/zsh", path: "/opt/zsh-{{ zsh_version }}/bin/zsh" } }
   - { name: "Zsh: Check shell", become: yes, shell: "cat /etc/passwd | grep '^{{ ansible_user_id }}:' | cut -d: -f7", register: zsh_shell_query, changed_when: no }
   - { name: "Zsh: Change shell", become: yes, shell: "chsh -s /bin/zsh '{{ ansible_user_id }}'", when: "zsh_shell_query.stdout != '/bin/zsh'" }
