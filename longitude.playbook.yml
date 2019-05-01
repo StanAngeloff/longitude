@@ -114,6 +114,10 @@
     bat_platform: amd64
     bat_checksum: "md5:7b21d6d7d42493440d0c51d3b64947c8"
 
+    xidel_version: 0.9.8-1
+    xidel_platform: amd64
+    xidel_checksum: "sha256:f6a6e29b77547d5ae38383440bd653b3eaf9eeb470def14cc48154a4f6925f69"
+
     # See https://dl.equinox.io/ngrok/ngrok/stable/archive
     ngrok_version: 2.3.18
     ngrok_platform: linux-amd64
@@ -461,6 +465,10 @@
   - { name: "bat: Check installation", become: yes, command: "dpkg -l bat", register: bat_dpkg_query, changed_when: no, failed_when: no }
   - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat-musl_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0" }
   - { name: "bat: Install packages", become: yes, apt: { deb: "/tmp/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0" }
+  # 985. xidel
+  - { name: "Xidel: Check installation", become: yes, command: "dpkg -l xidel", register: xidel_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "Xidel: Download packages", get_url: { url: "https://sourceforge.net/projects/videlibri/files/Xidel/Xidel%20{{ xidel_version.split('-')[0] }}/xidel_{{ xidel_version }}_{{ xidel_platform }}.deb/download", dest: "/tmp/xidel-{{ xidel_version }}.deb", checksum: "{{ xidel_checksum }}" }, when: "xidel_dpkg_query.rc > 0" }
+  - { name: "Xidel: Install packages", become: yes, apt: { deb: "/tmp/xidel-{{ xidel_version }}.deb", state: present }, when: "xidel_dpkg_query.rc > 0" }
   # 990. ngrok
   - { name: "ngrok: Check installation", become: yes, command: "ls /usr/local/bin/ngrok", register: ngrok_install_query, changed_when: no, failed_when: no }
   - { name: "ngrok: Download ngrok", get_url: { url: "https://bin.equinox.io/a/{{ ngrok_stable_channel_id }}/ngrok-{{ ngrok_version }}-{{ ngrok_platform }}.zip", dest: "/tmp/ngrok.zip", checksum: "{{ ngrok_checksum }}" }, when: "ngrok_install_query.rc > 0" }
