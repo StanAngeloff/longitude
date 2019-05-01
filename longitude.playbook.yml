@@ -74,6 +74,10 @@
       "network.trr.bootstrapAddress": "1.1.1.1"
       "network.security.esni.enabled": true
 
+    firefox_locales: [en, bg]
+
+    thunderbird_locales: [en, bg]
+
     neovim_dictionaries: [bg.utf-8]
 
     git_lfs_gpg_key_id: "DC282033"
@@ -263,10 +267,10 @@
   - { name: "Docker: Set up alternatives", become: yes, alternatives: { name: "docker-compose", link: "/usr/local/bin/docker-compose", path: "/usr/local/bin/docker-compose-{{ docker_compose_version }}" } }
 
   # 600. Firefox
-  - { name: "Firefox: Install packages", become: yes, apt: { pkg: [firefox], state: latest }, tags: [firefox] }
+  - { name: "Firefox: Install packages", become: yes, apt: { pkg: "{{ ('firefox firefox-locale-' + firefox_locales|join(' firefox-locale-')).split(' ') }}", state: latest }, tags: [firefox] }
   # 610. Firefox alternatives
   - { name: "Firefox: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/firefox" }, with_items: [gnome-www-browser, x-www-browser], tags: [firefox] }
-  # 690. Firefox policy for enterprise deployments
+  # 620. Firefox policy for enterprise deployments
   - { name: "Firefox: Create enterprise deployment directories", become: yes, file: { path: "{{ item }}", state: directory, owner: "{{ ansible_user_id }}", mode: 0755 }, tags: [firefox], with_items: [
       "/usr/lib/firefox/distribution",
       "/usr/lib/mozilla/certificates",
@@ -300,6 +304,9 @@
         {% for name, value in firefox_about_config | dictsort %}
         lockPref({{ name | to_json }}, {{ value | to_json }});
         {% endfor %}
+
+  # 630. Thunderbird
+  - { name: "Thunderbird: Install packages", become: yes, apt: { pkg: "{{ ('thunderbird thunderbird-locale-' + thunderbird_locales|join(' thunderbird-locale-')).split(' ') }}", state: latest }, tags: [thunderbird] }
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
@@ -352,6 +359,7 @@
   # - 'graphviz' - rich set of graph drawing tools.
   # - 'kazam' - capturing screencasts and screenshots.
   # - 'moreutils' - additional Unix utilities, e.g., sponge.
+  # - 'mpack' - utilities for encoding and decoding binary files in MIME.
   # - 'mysql-client' - for interacting with MySQL servers.
   # - 'parcellite' - a clipboard manager from the dark ages, but does its job well.
   # - 'pdftk' - tool for manipulating PDF documents.
@@ -381,6 +389,7 @@
       trash-cli,
       kazam,
       moreutils,
+      mpack,
       unp,
       w3m,
       whois
