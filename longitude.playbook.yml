@@ -86,6 +86,16 @@
     docker_compose_version: 1.22.0
     docker_compose_checksum: "sha256:f679a24b93f291c3bffaff340467494f388c0c251649d640e661d509db9d57e9"
 
+    gnupg_conf:
+      use-agent: ''
+      charset: 'UTF-8'
+      default-key: '595EA753'
+    gnupg_agent_conf:
+      enable-ssh-support: ''
+      pinentry-program: '/usr/bin/pinentry-gnome3'
+      default-cache-ttl: 3600
+      max-cache-ttl: 7200
+
     keepassxc_version: 2.4.0
     keepassxc_platform: x86_64
     keepassxc_checksum: "sha256:559be14b9f24feb6bded010aef55dd7cb72b3cb081485c49a548bd614dba4324"
@@ -269,6 +279,26 @@
   # 530. Docker alternatives
   - { name: "Docker: Set up alternatives", become: yes, alternatives: { name: "docker-compose", link: "/usr/local/bin/docker-compose", path: "/usr/local/bin/docker-compose-{{ docker_compose_version }}" } }
 
+  # 550. GnuPG
+  - { name: "GnuPG: Install packages", become: yes, apt: { pkg: [gnupg, gnupg-agent, pinentry-curses, pinentry-gnome3], state: latest } }
+  - { name: "GnuPG: Create directories", file: "{{ item }}", with_items: [
+      { path: "{{ ansible_env.HOME }}/.gnupg", state: directory }
+    ] }
+  - name: "GnuPG: Configure GPG"
+    lineinfile:
+      path: "{{ ansible_env.HOME }}/.gnupg/gpg.conf"
+      regexp: "^[#\\s]*{{ item.key }}\\b"
+      line: "{{ ( item.key | string + ' ' + item.value | default('') | string ) | trim }}"
+      insertafter: 'EOF'
+    with_dict: "{{ gnupg_conf }}"
+  - name: "GnuPG: Configure GPG agent"
+    lineinfile:
+      path: "{{ ansible_env.HOME }}/.gnupg/gpg-agent.conf"
+      regexp: "^[#\\s]*{{ item.key }}\\b"
+      line: "{{ ( item.key | string + ' ' + item.value | default('') | string ) | trim }}"
+      insertafter: 'EOF'
+    with_dict: "{{ gnupg_agent_conf }}"
+
   # 600. Firefox
   - { name: "Firefox: Install packages", become: yes, apt: { pkg: "{{ ('firefox firefox-locale-' + firefox_locales|join(' firefox-locale-')).split(' ') }}", state: latest }, tags: [firefox] }
   # 610. Firefox alternatives
@@ -317,16 +347,8 @@
   - { name: "Dropbox: Install packages", become: yes, when: "dropbox_dpkg_query.rc > 0", apt: { deb: "https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_{{ dropbox_version }}_amd64.deb", state: present } }
 
   # 750. Keybase
-  - { name: "Keybase: Install prerequisites", become: yes, apt: { pkg: [pinentry-curses, pinentry-gnome3], state: present } }
   - { name: "Keybase: Check installation", become: yes, command: "dpkg -l keybase", register: keybase_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Keybase: Install packages", become: yes, when: "keybase_dpkg_query.rc > 0", apt: { deb: "https://prerelease.keybase.io/keybase_amd64.deb", state: present } }
-  - { name: "Keybase: Create GnuPG directories", file: "{{ item }}", with_items: [
-      { path: "{{ ansible_env.HOME }}/.gnupg", state: directory }
-    ] }
-  - { name: "Keybase: Set up GPG", copy: "{{ item }}", with_items: [
-      { content: "use-agent\ncharset UTF-8\ndefault-key 595EA753", dest: "{{ ansible_env.HOME }}/.gnupg/gpg.conf", force: no },
-      { content: "pinentry-program /usr/local/bin/pinentry-gnome3\ndefault-cache-ttl 3600\nenable-ssh-support", dest: "{{ ansible_env.HOME }}/.gnupg/gpg-agent.conf", force: no }
-    ] }
 
   # 800. KeePassXC
   - { name: "KeePassXC: Remove official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", state: absent } }
