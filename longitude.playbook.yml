@@ -471,7 +471,7 @@
   - { name: "ImageMagick: Allow manipulation of PDF files", lineinfile: { path: "/opt/ImageMagick-{{ imagemagick_version }}/etc/ImageMagick-{{ imagemagick_version.split('.')[0] }}/policy.xml", regexp: "PDF", line: '  <policy domain="module" rights="read|write" pattern="{PS,PDF,XPS}" />' } }
 
   # 920. Claws Mail
-  - { name: "Claws Mail: Install prerequisites", become: yes, apt: { pkg: [libgnutls-dev, libaspell-dev, libgtk2.0-dev, libetpan-dev, libnm-dev, libdbus-1-dev, libdbus-glib-1-dev, libnotify-dev, libenchant-dev, librsvg2-dev, libpoppler-dev, libpoppler-glib-dev], state: present } }
+  - { name: "Claws Mail: Install prerequisites", become: yes, apt: { pkg: [libgnutls-dev, libaspell-dev, libgtk2.0-dev, libetpan-dev, libnm-dev, libdbus-1-dev, libdbus-glib-1-dev, libnotify-dev, libenchant-dev, librsvg2-dev, libpoppler-dev, libpoppler-glib-dev, libwebkit-dev], state: present } }
   - { name: "Claws Mail: Check installation", become: yes, command: "ls /opt/claws-mail-{{ clawsmail_version }}", register: clawsmail_install_query, changed_when: no, failed_when: no }
   - { name: "Claws Mail: Download source", get_url: { url: "https://www.claws-mail.org/download.php?file=releases/claws-mail-{{ clawsmail_version }}.tar.xz", dest: "/tmp/claws-mail-{{ clawsmail_version }}.tar.xz", checksum: "{{ clawsmail_checksum }}" }, when: "clawsmail_install_query.rc > 0" }
   - name: "Claws Mail: Compile & install packages"
@@ -480,7 +480,7 @@
       cd /tmp &&
       tar --overwrite -Jxf 'claws-mail-{{ clawsmail_version }}.tar.xz' &&
       cd 'claws-mail-{{ clawsmail_version }}' &&
-      ./configure --prefix='/opt/claws-mail-{{ clawsmail_version }}' --enable-notification-plugin --enable-pgpcore-plugin --enable-pgpmime-plugin --enable-pgpinline-plugin --enable-gnutls --enable-networkmanager --enable-svg --enable-enchant --enable-dbus --enable-pdf_viewer-plugin &&
+      ./configure --prefix='/opt/claws-mail-{{ clawsmail_version }}' --enable-notification-plugin --enable-pgpcore-plugin --enable-pgpmime-plugin --enable-pgpinline-plugin --enable-gnutls --enable-networkmanager --enable-svg --enable-enchant --enable-dbus --enable-pdf_viewer-plugin --enable-fancy-plugin --disable-dillo-plugin &&
       make -j8 &&
       make install
   - name: "Claws Mail: Add desktop icon"
