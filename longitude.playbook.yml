@@ -325,7 +325,7 @@
     ] }
   - { name: "Keybase: Set up GPG", copy: "{{ item }}", with_items: [
       { content: "use-agent\ncharset UTF-8\ndefault-key 595EA753", dest: "{{ ansible_env.HOME }}/.gnupg/gpg.conf", force: no },
-      { content: "pinentry-program /usr/local/bin/pinentry-mac\ndefault-cache-ttl 3600\nenable-ssh-support", dest: "{{ ansible_env.HOME }}/.gnupg/gpg-agent.conf", force: no }
+      { content: "pinentry-program /usr/local/bin/pinentry-gnome3\ndefault-cache-ttl 3600\nenable-ssh-support", dest: "{{ ansible_env.HOME }}/.gnupg/gpg-agent.conf", force: no }
     ] }
 
   # 800. KeePassXC
