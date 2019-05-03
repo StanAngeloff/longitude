@@ -76,8 +76,6 @@
 
     firefox_locales: [en, bg]
 
-    thunderbird_locales: [en, bg]
-
     neovim_dictionaries: [bg.utf-8]
 
     git_lfs_gpg_key_id: "DC282033"
@@ -337,9 +335,6 @@
         {% for name, value in firefox_about_config | dictsort %}
         lockPref({{ name | to_json }}, {{ value | to_json }});
         {% endfor %}
-
-  # 630. Thunderbird
-  - { name: "Thunderbird: Install packages", become: yes, apt: { pkg: "{{ ('thunderbird thunderbird-locale-' + thunderbird_locales|join(' thunderbird-locale-')).split(' ') }}", state: latest }, tags: [thunderbird] }
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
