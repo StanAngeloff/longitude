@@ -100,9 +100,6 @@
 
     dropbox_version: 2019.01.31
 
-    clawsmail_version: 3.17.3
-    clawsmail_checksum: "sha256:504e1f5a6f0880192662826ac07bcd083c3167b3db7143858617d6c51233d2f2"
-
     imagemagick_version: 7.0.8-34
     imagemagick_checksum: "sha256:0456bb9617144619f56103414e13ae0bbfa63af68a60e5967a41fe69e7fb57bf"
 
@@ -336,6 +333,9 @@
         lockPref({{ name | to_json }}, {{ value | to_json }});
         {% endfor %}
 
+  # 630. Evolution Mail
+  - { name: "Evolution: Install packages", become: yes, apt: { pkg: [evolution, evolution-indicator, evolution-plugins, evolution-plugins-experimental], state: latest }, tags: [evolution] }
+
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
   - { name: "Dropbox: Check installation", become: yes, command: "dpkg -l dropbox", register: dropbox_dpkg_query, changed_when: no, failed_when: no }
@@ -469,53 +469,6 @@
   - { name: "ImageMagick: Check system installation", become: yes, command: "apt-mark showhold", register: imagemagick_system_install_query, changed_when: no, failed_when: no }
   - { name: "ImageMagick: Hold system packages", become: yes, when: "'imagemagick' not in imagemagick_system_install_query.stdout", command: "apt-mark hold imagemagick" }
   - { name: "ImageMagick: Allow manipulation of PDF files", lineinfile: { path: "/opt/ImageMagick-{{ imagemagick_version }}/etc/ImageMagick-{{ imagemagick_version.split('.')[0] }}/policy.xml", regexp: "PDF", line: '  <policy domain="module" rights="read|write" pattern="{PS,PDF,XPS}" />' } }
-
-  # 920. Claws Mail
-  - { name: "Claws Mail: Install prerequisites", become: yes, apt: { pkg: [libgnutls-dev, libaspell-dev, libgtk2.0-dev, libetpan-dev, libnm-dev, libdbus-1-dev, libdbus-glib-1-dev, libnotify-dev, libenchant-dev, librsvg2-dev, libpoppler-dev, libpoppler-glib-dev, libwebkit-dev], state: present } }
-  - { name: "Claws Mail: Check installation", become: yes, command: "ls /opt/claws-mail-{{ clawsmail_version }}", register: clawsmail_install_query, changed_when: no, failed_when: no }
-  - { name: "Claws Mail: Download source", get_url: { url: "https://www.claws-mail.org/download.php?file=releases/claws-mail-{{ clawsmail_version }}.tar.xz", dest: "/tmp/claws-mail-{{ clawsmail_version }}.tar.xz", checksum: "{{ clawsmail_checksum }}" }, when: "clawsmail_install_query.rc > 0" }
-  - name: "Claws Mail: Compile & install packages"
-    when: "clawsmail_install_query.rc > 0"
-    shell: |
-      cd /tmp &&
-      tar --overwrite -Jxf 'claws-mail-{{ clawsmail_version }}.tar.xz' &&
-      cd 'claws-mail-{{ clawsmail_version }}' &&
-      ./configure --prefix='/opt/claws-mail-{{ clawsmail_version }}' --enable-notification-plugin --enable-pgpcore-plugin --enable-pgpmime-plugin --enable-pgpinline-plugin --enable-gnutls --enable-networkmanager --enable-svg --enable-enchant --enable-dbus --enable-pdf_viewer-plugin --enable-fancy-plugin --disable-dillo-plugin &&
-      make -j8 &&
-      make install
-  - name: "Claws Mail: Add desktop icon"
-    become: yes
-    copy:
-      dest: "/usr/share/applications/claws-mail.desktop"
-      content: |
-        [Desktop Entry]
-        Version=1.0
-        Name=Claws Mail
-        GenericName=E-mail client
-        Exec=/opt/claws-mail-{{ clawsmail_version }}/bin/claws-mail %u
-        Icon=/opt/claws-mail-{{ clawsmail_version }}/share/icons/hicolor/128x128/apps/claws-mail.png
-        Categories=Network;Email;
-        Keywords=lightweight;fast;gui;extensible;plugin;pop;pop3;imap;imap4;nntp;news;
-        Comment=Lightweight and Fast GTK+ based Mail Client
-        Terminal=false
-        Type=Application
-        StartupNotify=true
-        MimeType=x-scheme-handler/mailto;
-        X-Info=Claws Mail
-
-        Actions=GetMail;ComposeMail;SendFile;
-
-        [Desktop Action GetMail]
-        Exec=/opt/claws-mail-{{ clawsmail_version }}/bin/claws-mail --receive-all
-        Name=Get Mail
-
-        [Desktop Action ComposeMail]
-        Exec=/opt/claws-mail-{{ clawsmail_version }}/bin/claws-mail --compose
-        Name=Email…
-
-        [Desktop Action SendFile]
-        Exec=/opt/claws-mail-{{ clawsmail_version }}/bin/claws-mail --compose --attach %f
-        Name=Send file…
 
   # 950. ripgrep
   - { name: "ripgrep: Check installation", become: yes, command: "dpkg -l ripgrep", register: ripgrep_dpkg_query, changed_when: no, failed_when: no }
