@@ -694,6 +694,6 @@
   - { name: "Skype: Install packages", become: yes, when: "skype_dpkg_query.rc > 0", apt: { deb: "https://repo.skype.com/latest/skypeforlinux-64.deb", state: present } }
 
   # 9000. Post-install clean up of packages
-  - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [aisleriot, chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common, evolution, evolution-plugins], state: absent, autoremove: yes } }
+  - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [aisleriot, chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common], state: absent, autoremove: yes } }
 
 # vim: sw=2 ts=2 et :
