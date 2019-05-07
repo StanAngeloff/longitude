@@ -696,4 +696,30 @@
   # 9000. Post-install clean up of packages
   - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [aisleriot, chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common], state: absent, autoremove: yes } }
 
+  # 9010. Scheduled jobs to tame caches
+  - name: "Post-install: Clean up caches daily"
+    become: yes
+    tags: [cache]
+    copy:
+      dest: "/etc/cron.daily/99tame-caches"
+      owner: "{{ ansible_user_id }}"
+      group: root
+      mode: 0774
+      force: yes
+      content: |
+        #!/bin/sh
+        set -e
+        {% set indent = "\t" %}
+        {% set su = "su " + (ansible_user_id | quote) + " -c" %}
+        if which composer 1>/dev/null 2>&1; then
+        {{ indent }}{{ su }} "composer clear-cache -n --quiet" 1>/dev/null
+        fi
+        if which npm 1>/dev/null 2>&1; then
+        {{ indent }}{{ su }} "npm cache clean --force --loglevel error" 1>/dev/null
+        fi
+        if which yarn 1>/dev/null 2>&1; then
+        {{ indent }}{{ su }} "yarn cache clean" 1>/dev/null
+        fi
+
+
 # vim: sw=2 ts=2 et :
