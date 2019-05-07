@@ -343,6 +343,8 @@
       '/usr/share/applications/evolution.desktop',
       '/usr/share/applications/evolution-calendar.desktop'
     ] }
+  - { name: "Evolution: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: evolution_mime_query_1, changed_when: no, failed_when: no, tags: [evolution] }
+  - { name: "Evolution: Set as MIME handler", when: "'evolution.desktop' not in evolution_mime_query_1.stdout", command: "xdg-mime default org.gnome.Evolution.desktop x-scheme-handler/mailto", tags: [evolution] }
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
