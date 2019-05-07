@@ -31,6 +31,9 @@
 
   vars:
 
+    # The preferred GTK theme. This will not be enforced, but will be provided to apps as an override.
+    gtk_theme_override: "Adwaita"
+
     firefox_unofficial_extensions:
       bypass-paywalls: { url: "https://github.com/iamadamdev/bypass-paywalls-firefox/releases/download/v%(version)s/bypass_paywalls-%(version)s-an+fx.xpi", version: 1.5.1, checksum: "md5:8937de9f94d350abf532d585e2f22df5" } # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
 
@@ -335,6 +338,10 @@
 
   # 630. Evolution Mail
   - { name: "Evolution: Install packages", become: yes, apt: { pkg: [evolution, evolution-indicator, evolution-plugins, evolution-plugins-experimental], state: latest }, tags: [evolution] }
+  - { name: "Evolution: Override theme", become: yes, replace: { path: "{{ item }}", regexp: "^Exec=(env GTK_THEME=\\w+ )?evolution\\b", replace: "Exec=env GTK_THEME={{ gtk_theme_override | lower }} evolution" }, tags: [evolution], with_items: [
+      '/usr/share/applications/evolution.desktop',
+      '/usr/share/applications/evolution-calendar.desktop'
+    ] }
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
