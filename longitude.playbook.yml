@@ -499,7 +499,10 @@
   - { name: "jq: Download jq", get_url: { url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-{{ jq_platform }}", dest: "/usr/local/bin/jq-{{ jq_version }}", mode: "+x", checksum: "{{ jq_checksum }}" }, when: "jq_install_query.rc > 0" }
   - { name: "jq: Set up alternatives", become: yes, alternatives: { name: "jq", link: "/usr/local/bin/jq", path: "/usr/local/bin/jq-{{ jq_version }}" } }
   # 970. HTTPie
-  - { name: "HTTPie: Install packages", become: yes, pip: { executable: pip3, name: httpie, version: "{{ httpie_version }}", state: present } }
+  - { name: "HTTPie: Install packages", become: yes, pip: { executable: pip3, name: httpie, version: "{{ httpie_version }}", state: present }, tags: [httpie] }
+  - { name: "HTTPie: Install plug-ins", become: yes, pip: { executable: pip3, name: "{{ item.name }}", version: "{{ item.version | default(omit) }}", state: "{% if 'version' in item %}present{% else %}latest{% endif %}" }, tags: [httpie], with_items: [
+      { name: 'httpie-oauth' }
+    ] }
   # 980. bat
   - { name: "bat: Check installation", become: yes, command: "dpkg -l bat", register: bat_dpkg_query, changed_when: no, failed_when: no }
   - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat-musl_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0" }
