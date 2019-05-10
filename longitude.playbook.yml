@@ -107,6 +107,9 @@
     imagemagick_version: 7.0.8-34
     imagemagick_checksum: "sha256:0456bb9617144619f56103414e13ae0bbfa63af68a60e5967a41fe69e7fb57bf"
 
+    youtube_dl_version: 2019.04.30
+    youtube_dl_checksum: "sha256:3c7f9192f93405bca7f68fd944a08f3bad5274ac90007cf423edb2fb779d382b"
+
     ripgrep_version: 0.10.0
     ripgrep_platform: amd64
 
@@ -479,6 +482,9 @@
   - { name: "ImageMagick: Check system installation", become: yes, command: "apt-mark showhold", register: imagemagick_system_install_query, changed_when: no, failed_when: no }
   - { name: "ImageMagick: Hold system packages", become: yes, when: "'imagemagick' not in imagemagick_system_install_query.stdout", command: "apt-mark hold imagemagick" }
   - { name: "ImageMagick: Allow manipulation of PDF files", lineinfile: { path: "/opt/ImageMagick-{{ imagemagick_version }}/etc/ImageMagick-{{ imagemagick_version.split('.')[0] }}/policy.xml", regexp: "PDF", line: '  <policy domain="module" rights="read|write" pattern="{PS,PDF,XPS}" />' } }
+
+  # 920. youtube-dl
+  - { name: "youtube-dl: Install script", get_url: { url: "https://github.com/ytdl-org/youtube-dl/releases/download/{{ youtube_dl_version }}/youtube-dl", dest: "/usr/local/bin/youtube-dl", mode: "+x", checksum: "{{ youtube_dl_checksum }}" } }
 
   # 950. ripgrep
   - { name: "ripgrep: Check installation", become: yes, command: "dpkg -l ripgrep", register: ripgrep_dpkg_query, changed_when: no, failed_when: no }
