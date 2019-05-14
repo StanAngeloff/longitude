@@ -215,7 +215,8 @@
       - { direction: incoming, policy: deny }
       - { direction: outgoing, policy: allow }
 
-    ufw_rules: []
+    ufw_rules:
+      - { rule: allow, comment: 'Allow Docker containers to communicate with host services/1.', direction: in, from_ip: '172.16.0.0/12', proto: tcp, to_port: 3030 }
 
   handlers:
     - { name: "ufw::restart", become: yes, service: { name: ufw, state: restarted } }
@@ -690,12 +691,12 @@
     ] }
 
   # 2010. ufw
-  - { name: "ufw: Install packages", become: yes, apt: { pkg: [ufw], state: present } }
-  - { name: "ufw: Configure defaults", become: yes, ufw: { direction: "{{ item.direction }}", policy: "{{ item.policy }}" }, with_items: "{{ ufw_policy }}", notify: "ufw::restart" }
-  - { name: "ufw: Configure rules", become: yes, ufw: "{{ item }}", with_items: "{{ ufw_rules }}", notify: "ufw::restart" }
-  - { name: "ufw: Enable logging", become: yes, ufw: { logging: on }, notify: "ufw::restart" }
-  - { name: "ufw: Allow VPN PPTP connections", become: yes, lineinfile: { path: "/etc/ufw/before.rules", regexp: "-p\\s+47\\b", line: "-A ufw-before-input -p 47 -j ACCEPT", insertbefore: "drop INVALID packets" } }
-  - { name: "ufw: Turn on", become: yes, ufw: { state: enabled } }
+  - { name: "ufw: Install packages", become: yes, apt: { pkg: [ufw], state: present }, tags: [ufw] }
+  - { name: "ufw: Configure defaults", become: yes, ufw: { direction: "{{ item.direction }}", policy: "{{ item.policy }}" }, with_items: "{{ ufw_policy }}", notify: "ufw::restart", tags: [ufw] }
+  - { name: "ufw: Configure rules", become: yes, ufw: "{{ item }}", with_items: "{{ ufw_rules }}", notify: "ufw::restart", tags: [ufw] }
+  - { name: "ufw: Enable logging", become: yes, ufw: { logging: on }, notify: "ufw::restart", tags: [ufw] }
+  - { name: "ufw: Allow VPN PPTP connections", become: yes, lineinfile: { path: "/etc/ufw/before.rules", regexp: "-p\\s+47\\b", line: "-A ufw-before-input -p 47 -j ACCEPT", insertbefore: "drop INVALID packets" }, tags: [ufw] }
+  - { name: "ufw: Turn on", become: yes, ufw: { state: enabled }, tags: [ufw] }
 
   # 3000. Communications
   - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v{{ franz_version }}/franz-{{ franz_version }}-{{ franz_platform }}.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "{{ franz_checksum }}" } }
