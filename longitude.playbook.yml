@@ -389,43 +389,6 @@
         Categories=Utility;Security;Qt;
         MimeType=application/x-keepass2;
 
-  # 850. Authy Desktop
-  #
-  # See https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=authy
-  #
-  - { name: "Authy: Install prerequisites", become: yes, apt: { pkg: [p7zip], state: present }, tags: [authy] }
-  - { name: "Authy: Check installation", become: yes, command: "ls /opt/authy-{{ authy_desktop_version }}", register: authy_desktop_install_query, changed_when: no, failed_when: no, tags: [authy] }
-  - { name: "Authy: Download Windows installer", get_url: { url: "https://s3.amazonaws.com/authy-electron-repository-production/authy/stable/{{ authy_desktop_version }}/win32/x64/Authy%20Desktop%20Setup%20{{ authy_desktop_version }}.exe", dest: "/tmp/AuthyDesktopSetup{{ authy_desktop_version }}.exe", checksum: "{{ authy_desktop_checksum }}" }, when: "authy_desktop_install_query.rc > 0", tags: [authy] }
-  - name: "Authy: Extract & install Electron app"
-    when: "authy_desktop_install_query.rc > 0"
-    shell: |
-      cd /tmp &&
-      7z x "AuthyDesktopSetup{{ authy_desktop_version }}.exe" -o"authy-{{ authy_desktop_version }}" -y &&
-      cd "authy-{{ authy_desktop_version }}" &&
-      7z x "authy-electron-{{ authy_desktop_version }}-full.nupkg" -y &&
-      mkdir app &&
-      npx -q asar@2 e lib/net45/resources/app.asar app &&
-      cd app &&
-      npm i --save -q electron@4 &&
-      cp -R "/tmp/authy-{{ authy_desktop_version }}/app" /opt/authy-{{ authy_desktop_version }}
-    args: { executable: "/bin/bash" }
-    tags: [authy]
-  - name: "Authy: Add desktop icon"
-    become: yes
-    copy:
-      dest: "/usr/share/applications/authy.desktop"
-      content: |
-        [Desktop Entry]
-        Version={{ authy_desktop_version }}
-        Type=Application
-        Terminal=false
-        Exec=/opt/authy-{{ authy_desktop_version }}/node_modules/electron/dist/electron /opt/authy-{{ authy_desktop_version }}/
-        Name=Authy
-        Comment=Two-Factor Authentication
-        Icon=/opt/authy-{{ authy_desktop_version }}/img/logos/icon128.png
-        StartupWMClass=Authy Desktop
-    tags: [authy]
-
   # 900. Tools and miscellaneous
   #
   # - 'filezilla' - full-featured FTP/SFTP client.
@@ -706,6 +669,43 @@
       ffmpeg,
       ffprobe
     ] }
+
+  # 1900. Authy Desktop
+  #
+  # See https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=authy
+  #
+  - { name: "Authy: Install prerequisites", become: yes, apt: { pkg: [p7zip], state: present }, tags: [authy] }
+  - { name: "Authy: Check installation", become: yes, command: "ls /opt/authy-{{ authy_desktop_version }}", register: authy_desktop_install_query, changed_when: no, failed_when: no, tags: [authy] }
+  - { name: "Authy: Download Windows installer", get_url: { url: "https://s3.amazonaws.com/authy-electron-repository-production/authy/stable/{{ authy_desktop_version }}/win32/x64/Authy%20Desktop%20Setup%20{{ authy_desktop_version }}.exe", dest: "/tmp/AuthyDesktopSetup{{ authy_desktop_version }}.exe", checksum: "{{ authy_desktop_checksum }}" }, when: "authy_desktop_install_query.rc > 0", tags: [authy] }
+  - name: "Authy: Extract & install Electron app"
+    when: "authy_desktop_install_query.rc > 0"
+    shell: |
+      cd /tmp &&
+      7z x "AuthyDesktopSetup{{ authy_desktop_version }}.exe" -o"authy-{{ authy_desktop_version }}" -y &&
+      cd "authy-{{ authy_desktop_version }}" &&
+      7z x "authy-electron-{{ authy_desktop_version }}-full.nupkg" -y &&
+      mkdir app &&
+      npx -q asar@2 e lib/net45/resources/app.asar app &&
+      cd app &&
+      npm i --save -q electron@4 &&
+      cp -R "/tmp/authy-{{ authy_desktop_version }}/app" /opt/authy-{{ authy_desktop_version }}
+    args: { executable: "/bin/bash" }
+    tags: [authy]
+  - name: "Authy: Add desktop icon"
+    become: yes
+    copy:
+      dest: "/usr/share/applications/authy.desktop"
+      content: |
+        [Desktop Entry]
+        Version={{ authy_desktop_version }}
+        Type=Application
+        Terminal=false
+        Exec=/opt/authy-{{ authy_desktop_version }}/node_modules/electron/dist/electron /opt/authy-{{ authy_desktop_version }}/
+        Name=Authy
+        Comment=Two-Factor Authentication
+        Icon=/opt/authy-{{ authy_desktop_version }}/img/logos/icon128.png
+        StartupWMClass=Authy Desktop
+    tags: [authy]
 
   # 2000. Just stuff…
   #
