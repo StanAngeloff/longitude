@@ -753,6 +753,11 @@
   - { name: "Evolution: Install packages", flatpak: { method: user, name: org.gnome.Evolution, remote: flathub, state: present }, tags: [evolution] }
   - { name: "Evolution: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: evolution_mime_query_1, changed_when: no, failed_when: no, tags: [evolution] }
   - { name: "Evolution: Set as MIME handler", when: "(evolution_mime_query_1.rc == 0) and ('org.gnome.Evolution.desktop' not in evolution_mime_query_1.stdout)", command: "xdg-mime default org.gnome.Evolution.desktop x-scheme-handler/mailto", tags: [evolution] }
+  - { name: "Evolution: Create directories", file: "{{ item }}", tags: [evolution], with_items: [
+      { path: "{{ ansible_env.HOME }}/.var/app/org.gnome.Evolution/config/fontconfig", state: directory },
+      { path: "{{ ansible_env.HOME }}/.var/app/org.gnome.Evolution/config/fontconfig/conf.d", state: directory }
+    ] }
+  - { name: "Evolution: Configure fonts", copy: { src: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf", dest: "{{ ansible_env.HOME }}/.var/app/org.gnome.Evolution/config/fontconfig/conf.d/10-calibri.conf", force: yes }, tags: [evolution] }
 
   # 9000. Post-install clean up of packages
   - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [aisleriot, chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common], state: absent, autoremove: yes } }
