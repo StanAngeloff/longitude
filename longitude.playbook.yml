@@ -385,7 +385,6 @@
   # - 'filezilla' - full-featured FTP/SFTP client.
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
-  # - 'gimp' - poor man's Photoshop.
   # - 'graphviz' - rich set of graph drawing tools.
   # - 'kazam' - capturing screencasts and screenshots.
   # - 'moreutils' - additional Unix utilities, e.g., sponge.
@@ -408,7 +407,6 @@
       filezilla,
       gawk,
       gconf-editor, dconf-editor,
-      gimp,
       graphviz,
       mysql-client,
       parcellite,
@@ -761,6 +759,10 @@
 
   # 4020. Inkscape
   - { name: "Inkscape: Install packages", flatpak: { method: user, name: org.inkscape.Inkscape, remote: flathub, state: present }, tags: [inkscape] }
+
+  # 4030. GIMP
+  - { name: "GIMP: Remove system packages", become: yes, apt: { pkg: [gimp], state: absent }, tags: [gimp] }
+  - { name: "GIMP: Install packages", flatpak: { method: user, name: org.gimp.GIMP, remote: flathub, state: present }, tags: [gimp] }
 
   # 9000. Post-install clean up of packages
   - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [aisleriot, chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common], state: absent, autoremove: yes } }
