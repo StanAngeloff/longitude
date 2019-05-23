@@ -747,7 +747,7 @@
   - { name: "Flatpak: Add Flathub repository to the user install", flatpak_remote: { name: flathub, state: present, method: user, flatpakrepo_url: 'https://dl.flathub.org/repo/flathub.flatpakrepo' }, tags: [flatpak] }
   - { debug: { msg: 'Flatpak NOTE: You MUST reboot the system for changes to take effect.' }, when: flatpak_installed.changed, tags: [flatpak] }
 
-  # 4100. Evolution Mail
+  # 4010. Evolution Mail
   - { name: "Evolution: Install prerequisites", become: yes, apt: { pkg: [xdg-utils], state: present }, tags: [evolution] }
   - { name: "Evolution: Remove system packages", become: yes, apt: { pkg: [evolution, evolution-common, evolution-indicator, evolution-plugins, evolution-plugins-experimental], state: absent }, tags: [evolution] }
   - { name: "Evolution: Install packages", flatpak: { method: user, name: org.gnome.Evolution, remote: flathub, state: present }, tags: [evolution] }
@@ -758,6 +758,9 @@
       { path: "{{ ansible_env.HOME }}/.var/app/org.gnome.Evolution/config/fontconfig/conf.d", state: directory }
     ] }
   - { name: "Evolution: Configure fonts", copy: { src: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf", dest: "{{ ansible_env.HOME }}/.var/app/org.gnome.Evolution/config/fontconfig/conf.d/10-calibri.conf", force: yes }, tags: [evolution] }
+
+  # 4020. Inkscape
+  - { name: "Inkscape: Install packages", flatpak: { method: user, name: org.inkscape.Inkscape, remote: flathub, state: present }, tags: [inkscape] }
 
   # 9000. Post-install clean up of packages
   - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [aisleriot, chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common], state: absent, autoremove: yes } }
