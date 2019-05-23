@@ -745,6 +745,17 @@
   - { name: "Skype: Check installation", become: yes, command: "dpkg -l skypeforlinux", register: skype_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Skype: Install packages", become: yes, when: "skype_dpkg_query.rc > 0", apt: { deb: "https://repo.skype.com/latest/skypeforlinux-64.deb", state: present } }
 
+  # 4000. Flatpak
+  #
+  # See https://flatpak.org/setup/Ubuntu/
+  #
+  # NOTE: Package 'gnome-software-plugin-flatpak' is not available on Ubuntu 16.04.
+  #
+  - { name: "Flatpak: Add PPA", become: yes, apt_repository: { repo: "ppa:alexlarsson/flatpak", update_cache: yes }, tags: [flatpak] }
+  - { name: "Flatpak: Install packages", become: yes, apt: { pkg: [flatpak], state: present }, register: flatpak_installed, tags: [flatpak] }
+  - { name: "Flatpak: Add Flathub repository to the user install", flatpak_remote: { name: flathub, state: present, method: user, flatpakrepo_url: 'https://dl.flathub.org/repo/flathub.flatpakrepo' }, tags: [flatpak] }
+  - { name: "Flatpak: System reboot required", debug: { msg: 'You MUST reboot the system for changes to take effect.' }, when: flatpak_installed.changed, tags: [flatpak] }
+
   # 9000. Post-install clean up of packages
   - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [aisleriot, chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common], state: absent, autoremove: yes } }
 
