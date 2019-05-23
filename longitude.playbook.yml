@@ -279,7 +279,7 @@
   # 510. Docker Post-installation steps for Linux
   - { name: "Docker: Adding group", become: yes, group: { name: docker, state: present } }
   - { name: "Docker: Modifying user", become: yes, register: docker_user_groups, user: { name: "{{ ansible_user_id }}", append: yes, groups: [docker] } }
-  - { debug: { msg: "NOTE: You MUST log out and in again for changes to take effect." }, when: docker_user_groups.changed }
+  - { debug: { msg: "Docker NOTE: You MUST log out and in again for changes to take effect." }, when: docker_user_groups.changed }
   # 520. Docker Compose
   - { name: "Docker: Install Docker Compose", get_url: { url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_machine }}", dest: "/usr/local/bin/docker-compose-{{ docker_compose_version }}", mode: "+x", checksum: "{{ docker_compose_checksum }}" } }
   # 530. Docker alternatives
@@ -345,15 +345,6 @@
         {% for name, value in firefox_about_config | dictsort %}
         lockPref({{ name | to_json }}, {{ value | to_json }});
         {% endfor %}
-
-  # 630. Evolution Mail
-  - { name: "Evolution: Install prerequisites", become: yes, apt: { pkg: [xdg-utils], state: present } }
-  - { name: "Evolution: Install packages", become: yes, apt: { pkg: [evolution, evolution-indicator, evolution-plugins, evolution-plugins-experimental], state: latest }, tags: [evolution] }
-  - { name: "Evolution: Override theme", become: yes, replace: { path: "{{ item }}", regexp: "^Exec=(env GTK_THEME=\\w+ )?evolution\\b", replace: "Exec=env GTK_THEME={{ gtk_theme_override | lower }} evolution" }, tags: [evolution], with_items: [
-      '/usr/share/applications/evolution.desktop',
-    ] }
-  - { name: "Evolution: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: evolution_mime_query_1, changed_when: no, failed_when: no, tags: [evolution] }
-  - { name: "Evolution: Set as MIME handler", when: "(evolution_mime_query_1.rc == 0) and ('evolution.desktop' not in evolution_mime_query_1.stdout)", command: "xdg-mime default evolution.desktop x-scheme-handler/mailto", tags: [evolution] }
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
@@ -754,7 +745,14 @@
   - { name: "Flatpak: Add PPA", become: yes, apt_repository: { repo: "ppa:alexlarsson/flatpak", update_cache: yes }, tags: [flatpak] }
   - { name: "Flatpak: Install packages", become: yes, apt: { pkg: [flatpak], state: present }, register: flatpak_installed, tags: [flatpak] }
   - { name: "Flatpak: Add Flathub repository to the user install", flatpak_remote: { name: flathub, state: present, method: user, flatpakrepo_url: 'https://dl.flathub.org/repo/flathub.flatpakrepo' }, tags: [flatpak] }
-  - { name: "Flatpak: System reboot required", debug: { msg: 'You MUST reboot the system for changes to take effect.' }, when: flatpak_installed.changed, tags: [flatpak] }
+  - { debug: { msg: 'Flatpak NOTE: You MUST reboot the system for changes to take effect.' }, when: flatpak_installed.changed, tags: [flatpak] }
+
+  # 4100. Evolution Mail
+  - { name: "Evolution: Install prerequisites", become: yes, apt: { pkg: [xdg-utils], state: present }, tags: [evolution] }
+  - { name: "Evolution: Remove system packages", become: yes, apt: { pkg: [evolution, evolution-common, evolution-indicator, evolution-plugins, evolution-plugins-experimental], state: absent }, tags: [evolution] }
+  - { name: "Evolution: Install packages", flatpak: { method: user, name: org.gnome.Evolution, remote: flathub, state: present }, tags: [evolution] }
+  - { name: "Evolution: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: evolution_mime_query_1, changed_when: no, failed_when: no, tags: [evolution] }
+  - { name: "Evolution: Set as MIME handler", when: "(evolution_mime_query_1.rc == 0) and ('org.gnome.Evolution.desktop' not in evolution_mime_query_1.stdout)", command: "xdg-mime default org.gnome.Evolution.desktop x-scheme-handler/mailto", tags: [evolution] }
 
   # 9000. Post-install clean up of packages
   - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [aisleriot, chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra, gnome-mahjongg, gnome-mines, gnome-sudoku, rhythmbox, rhythmbox-data, shotwell, thunderbird, webbrowser-app, empathy, empathy-common], state: absent, autoremove: yes } }
