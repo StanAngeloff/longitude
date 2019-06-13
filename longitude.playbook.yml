@@ -382,6 +382,7 @@
 
   # 900. Tools and miscellaneous
   #
+  # - 'android-tools-adb' - Android Debug Bridge (adb).
   # - 'filezilla' - full-featured FTP/SFTP client.
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
@@ -392,6 +393,7 @@
   # - 'mysql-client' - for interacting with MySQL servers.
   # - 'parcellite' - a clipboard manager from the dark ages, but does its job well.
   # - 'pdftk' - tool for manipulating PDF documents.
+  # - 'pigz' - Parallel Implementation of GZip.
   # - 'poedit' - an editor for gettext catalogs (.po files).
   # - 'pv' - a Pipe Viewer which can be used to dislay a progress for long running operatings.
   # - 'socat' - TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
@@ -404,6 +406,7 @@
   # - 'whois' - a command-line client for the WHOIS (RFC 3912) protocol.
   #
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
+      android-tools-adb,
       filezilla,
       gawk,
       gconf-editor, dconf-editor,
@@ -411,6 +414,7 @@
       mysql-client,
       parcellite,
       pdftk,
+      pigz,
       poedit,
       pv,
       socat,
