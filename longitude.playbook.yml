@@ -87,6 +87,8 @@
     docker_gpg_key_id: "0EBFCD88"
     docker_compose_version: 1.22.0
     docker_compose_checksum: "sha256:f679a24b93f291c3bffaff340467494f388c0c251649d640e661d509db9d57e9"
+    docker_machine_version: 0.16.1
+    docker_machine_checksum: "sha256:44a008c14549156222b314b1448c22ef255b446419fcf96570f3f288dff318a9"
 
     gnupg_conf:
       use-agent: ''
@@ -272,18 +274,23 @@
   - { name: "Neovim: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/nvim" }, with_items: [vi, vim, editor] }
 
   # 500. Docker
-  - { name: "Docker: Install prerequisites", become: yes, apt: { pkg: [apt-transport-https, ca-certificates, curl, gnupg-agent, software-properties-common], state: present } }
-  - { name: "Docker: Import GPG key", become: yes, apt_key: { id: "{{ docker_gpg_key_id }}", url: "https://download.docker.com/linux/ubuntu/gpg" } }
-  - { name: "Docker: Add repository", become: yes, apt_repository: { repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable", update_cache: yes } }
-  - { name: "Docker: Install packages", become: yes, apt: { pkg: [docker-ce], state: latest } }
+  - { name: "Docker: Install prerequisites", become: yes, apt: { pkg: [apt-transport-https, ca-certificates, curl, gnupg-agent, software-properties-common], state: present }, tags: [docker] }
+  - { name: "Docker: Import GPG key", become: yes, apt_key: { id: "{{ docker_gpg_key_id }}", url: "https://download.docker.com/linux/ubuntu/gpg" }, tags: [docker] }
+  - { name: "Docker: Add repository", become: yes, apt_repository: { repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable", update_cache: yes }, tags: [docker] }
+  - { name: "Docker: Install packages", become: yes, apt: { pkg: [docker-ce], state: latest }, tags: [docker] }
   # 510. Docker Post-installation steps for Linux
-  - { name: "Docker: Adding group", become: yes, group: { name: docker, state: present } }
-  - { name: "Docker: Modifying user", become: yes, register: docker_user_groups, user: { name: "{{ ansible_user_id }}", append: yes, groups: [docker] } }
+  - { name: "Docker: Adding group", become: yes, group: { name: docker, state: present }, tags: [docker] }
+  - { name: "Docker: Modifying user", become: yes, register: docker_user_groups, user: { name: "{{ ansible_user_id }}", append: yes, groups: [docker] }, tags: [docker] }
   - { debug: { msg: "Docker NOTE: You MUST log out and in again for changes to take effect." }, when: docker_user_groups.changed }
   # 520. Docker Compose
-  - { name: "Docker: Install Docker Compose", get_url: { url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_machine }}", dest: "/usr/local/bin/docker-compose-{{ docker_compose_version }}", mode: "+x", checksum: "{{ docker_compose_checksum }}" } }
+  - { name: "Docker: Install Docker Compose", get_url: { url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_machine }}", dest: "/usr/local/bin/docker-compose-{{ docker_compose_version }}", mode: "+x", checksum: "{{ docker_compose_checksum }}" }, tags: [docker] }
+  # 525. Docker Machine
+  - { name: "Docker: Install Docker Machine", get_url: { url: "https://github.com/docker/machine/releases/download/v{{ docker_machine_version }}/docker-machine-{{ ansible_system }}-{{ ansible_machine }}", dest: "/usr/local/bin/docker-machine-{{ docker_machine_version }}", mode: "+x", checksum: "{{ docker_machine_checksum }}" }, tags: [docker] }
   # 530. Docker alternatives
-  - { name: "Docker: Set up alternatives", become: yes, alternatives: { name: "docker-compose", link: "/usr/local/bin/docker-compose", path: "/usr/local/bin/docker-compose-{{ docker_compose_version }}" } }
+  - { name: "Docker: Set up alternatives", become: yes, alternatives: { name: "{{ item.name }}", link: "/usr/local/bin/{{ item.name }}", path: "/usr/local/bin/{{ item.name }}-{{ item.version }}" }, tags: [docker], with_items: [
+      { name: docker-compose, version: "{{ docker_compose_version }}" },
+      { name: docker-machine, version: "{{ docker_machine_version }}" }
+    ] }
 
   # 550. GnuPG
   - { name: "GnuPG: Install packages", become: yes, apt: { pkg: [gnupg, gnupg-agent, pinentry-curses, pinentry-gnome3], state: latest } }
