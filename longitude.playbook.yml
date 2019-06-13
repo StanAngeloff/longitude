@@ -89,6 +89,8 @@
     docker_compose_checksum: "sha256:f679a24b93f291c3bffaff340467494f388c0c251649d640e661d509db9d57e9"
     docker_machine_version: 0.16.1
     docker_machine_checksum: "sha256:44a008c14549156222b314b1448c22ef255b446419fcf96570f3f288dff318a9"
+    docker_machine_drivers:
+      linode: { url: "https://github.com/linode/docker-machine-driver-%(name)s/releases/download/v%(version)s/docker-machine-driver-%(name)s_linux-amd64.zip", version: 0.1.8, checksum: "sha256:b31b6a504c59ee758d2dda83029fe4a85b3f5601e22dfa58700a5e6c8f450dc7" }
 
     gnupg_conf:
       use-agent: ''
@@ -286,11 +288,29 @@
   - { name: "Docker: Install Docker Compose", get_url: { url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_machine }}", dest: "/usr/local/bin/docker-compose-{{ docker_compose_version }}", mode: "+x", checksum: "{{ docker_compose_checksum }}" }, tags: [docker] }
   # 525. Docker Machine
   - { name: "Docker: Install Docker Machine", get_url: { url: "https://github.com/docker/machine/releases/download/v{{ docker_machine_version }}/docker-machine-{{ ansible_system }}-{{ ansible_machine }}", dest: "/usr/local/bin/docker-machine-{{ docker_machine_version }}", mode: "+x", checksum: "{{ docker_machine_checksum }}" }, tags: [docker] }
+  - name: "Docker: Install drivers for Docker Machine"
+    get_url:
+      url: "{{ item.value.url | format(name=item.key, version=item.value.version) }}"
+      dest: "{% if '.zip' == item.value.url[-4:] %}/tmp/docker-machine-driver-{{ item.key }}-{{ item.value.version }}.zip{% else %}/usr/local/bin/docker-machine-driver-{{ item.key }}-{{ item.value.version }}{% endif %}"
+      mode: "{% if '.zip' == item.value.url[-4:] %}{{ omit }}{%                                                             else %}+x{%                                                                           endif %}"
+      checksum: "{{ item.value.checksum }}"
+    with_dict: "{{ docker_machine_drivers }}"
+    when: "not ( '/usr/local/bin/docker-machine-driver-' + item.key + '-' + item.value.version ) is is_file"
+    tags: [docker]
+  - { name: "Docker: Unpack drivers for Docker Machine", shell: "cd /tmp && unzip -o 'docker-machine-driver-{{ item.key }}-{{ item.value.version }}.zip' && mv './docker-machine-driver-{{ item.key }}' '/usr/local/bin/docker-machine-driver-{{ item.key }}-{{ item.value.version }}'", with_dict: "{{ docker_machine_drivers }}", when: "not ( '/usr/local/bin/docker-machine-driver-' + item.key + '-' + item.value.version ) is is_file and '.zip' == item.value.url[-4:]", tags: [docker] }
   # 530. Docker alternatives
-  - { name: "Docker: Set up alternatives", become: yes, alternatives: { name: "{{ item.name }}", link: "/usr/local/bin/{{ item.name }}", path: "/usr/local/bin/{{ item.name }}-{{ item.version }}" }, tags: [docker], with_items: [
-      { name: docker-compose, version: "{{ docker_compose_version }}" },
-      { name: docker-machine, version: "{{ docker_machine_version }}" }
-    ] }
+  - { name: "Docker: Set up alternatives", become: yes, alternatives: { name: "{{ item.name }}", link: "/usr/local/bin/{{ item.name }}", path: "/usr/local/bin/{{ item.name }}-{{ item.version }}" }, tags: [docker], with_items: "{%
+        set alternatives = [
+          { 'name': 'docker-compose', 'version': docker_compose_version },
+          { 'name': 'docker-machine', 'version': docker_machine_version }
+        ]
+      %}{%
+        for key, driver in docker_machine_drivers | dictsort
+      %}{%
+          set _ = alternatives.extend([ { 'name': 'docker-machine-driver-' + key, 'version': driver.version } ])
+      %}{%
+        endfor
+      %}{{ alternatives }}" }
 
   # 550. GnuPG
   - { name: "GnuPG: Install packages", become: yes, apt: { pkg: [gnupg, gnupg-agent, pinentry-curses, pinentry-gnome3], state: latest } }
