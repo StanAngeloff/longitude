@@ -804,7 +804,7 @@
   - { name: "LibreOffice: Install packages", flatpak: { method: user, name: org.libreoffice.LibreOffice, remote: flathub, state: present }, register: libreoffice_installed, tags: [libreoffice] }
   - { name: "LibreOffice: Re-install locale package", command: "flatpak install --user --reinstall --noninteractive flathub org.libreoffice.LibreOffice.Locale", when: libreoffice_installed.changed, tags: [libreoffice] }
 
-  # 9000. Post-install clean up of packages
+  # 9000. Post-install clean up & purging of packages
   #
   # - 'snapd' - This is the package providing the `snap` binary, prefer Flatpak which is decentralized.
   #
@@ -819,6 +819,9 @@
       empathy, empathy-common,
       snapd
     ], state: absent, autoremove: yes } }
+  - { name: "Post-install: Purge packages", become: yes, apt: { pkg: [
+      snapd
+    ], state: absent, purge: true } }
 
   # 9010. Scheduled jobs to tame caches
   - name: "Post-install: Clean up caches daily"
