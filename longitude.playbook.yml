@@ -773,8 +773,12 @@
   #
   - { name: "Flatpak: Add PPA", become: yes, apt_repository: { repo: "ppa:alexlarsson/flatpak", update_cache: yes }, tags: [flatpak] }
   - { name: "Flatpak: Install packages", become: yes, apt: { pkg: [flatpak], state: present }, register: flatpak_installed, tags: [flatpak] }
+  - block:
+      - { debug: { msg: 'Flatpak NOTE: You MUST reboot the system for changes to take effect. Please re-run the playbook to finish the installations.' } }
+      - { meta: end_play }
+    when: flatpak_installed.changed
+    tags: [flatpak]
   - { name: "Flatpak: Add Flathub repository to the user install", flatpak_remote: { name: flathub, state: present, method: user, flatpakrepo_url: 'https://dl.flathub.org/repo/flathub.flatpakrepo' }, tags: [flatpak] }
-  - { debug: { msg: 'Flatpak NOTE: You MUST reboot the system for changes to take effect.' }, when: flatpak_installed.changed, tags: [flatpak] }
 
   # 4010. Evolution Mail
   - { name: "Evolution: Install prerequisites", become: yes, apt: { pkg: [xdg-utils], state: present }, tags: [evolution] }
