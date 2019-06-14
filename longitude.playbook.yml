@@ -382,31 +382,6 @@
   - { name: "Keybase: Check installation", become: yes, command: "dpkg -l keybase", register: keybase_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Keybase: Install packages", become: yes, when: "keybase_dpkg_query.rc > 0", apt: { deb: "https://prerelease.keybase.io/keybase_amd64.deb", state: present } }
 
-  # 800. KeePassXC
-  - { name: "KeePassXC: Remove official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", state: absent } }
-  - { name: "KeePassXC: Remove packages", become: yes, apt: { pkg: [keepassxc], state: absent } }
-  - { name: "KeePassXC: Install AppImage", get_url: { url: "https://github.com/keepassxreboot/keepassxc/releases/download/{{ keepassxc_version }}/KeePassXC-{{ keepassxc_version }}-{{ keepassxc_platform }}.AppImage", dest: "/usr/local/bin/keepassxc", mode: "+x", checksum: "{{ keepassxc_checksum }}" } }
-  - { name: "KeePassXC: Create icons directory", become: yes, file: { path: "/usr/local/share/icons", state: directory, owner: "{{ ansible_user_id }}", mode: 0775 } }
-  - { name: "KeePassXC: Download icon", get_url: { url: "https://github.com/keepassxreboot/keepassxc/raw/{{ keepassxc_version }}/share/icons/application/256x256/apps/keepassxc.png", dest: "/usr/local/share/icons/keepassxc.png" } }
-  - name: "KeePassXC: Add desktop icon"
-    become: yes
-    copy:
-      dest: "/usr/share/applications/org.keepassxc.KeePassXC.desktop"
-      content: |
-        [Desktop Entry]
-        Name=KeePassXC
-        GenericName=Password Manager
-        Comment=Community-driven port of the Windows application “KeePass Password Safe”
-        Exec=keepassxc %f
-        TryExec=keepassxc
-        Icon=/usr/local/share/icons/keepassxc.png
-        StartupWMClass=keepassxc
-        Terminal=false
-        Type=Application
-        Version=1.0
-        Categories=Utility;Security;Qt;
-        MimeType=application/x-keepass2;
-
   # 900. Tools and miscellaneous
   #
   # - 'android-tools-adb' - Android Debug Bridge (adb).
@@ -803,6 +778,17 @@
   - { name: "LibreOffice: Remove system packages", become: yes, apt: { pkg: [libreoffice-calc, libreoffice-draw, libreoffice-gnome, libreoffice-gtk, libreoffice-impress, libreoffice-math, libreoffice-ogltrans, libreoffice-pdfimport, libreoffice-style-breeze, libreoffice-style-galaxy, libreoffice-style-tango, libreoffice-writer], state: absent }, tags: [libreoffice] }
   - { name: "LibreOffice: Install packages", flatpak: { method: user, name: org.libreoffice.LibreOffice, remote: flathub, state: present }, register: libreoffice_installed, tags: [libreoffice] }
   - { name: "LibreOffice: Re-install locale package", command: "flatpak install --user --reinstall --noninteractive flathub org.libreoffice.LibreOffice.Locale", when: libreoffice_installed.changed, tags: [libreoffice] }
+
+  # 4050. KeePassXC
+  - { name: "KeePassXC: Remove official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", state: absent }, tags: [keepassxc] }
+  - { name: "KeePassXC: Remove packages", become: yes, apt: { pkg: [keepassxc], state: absent }, tags: [keepassxc] }
+  - { name: "KeePassXC: Uninstall AppImage & artifacts", become: yes, file: { path: "{{ item }}", state: absent }, tags: [keepassxc], with_items: [
+      "/usr/local/bin/keepassxc",
+      "/usr/local/share/icons/keepassxc.png",
+      "/usr/share/applications/org.keepassxc.KeePassXC.desktop"
+    ] }
+  - { name: "KeePassXC: Install packages", flatpak: { method: user, name: org.keepassxc.KeePassXC, remote: flathub, state: present }, tags: [keepassxc] }
+  - { name: "KeePassXC: Fix system tray icon", replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^(Exec=/usr/bin/flatpak run)( --own-name=\"org.kde.*\")?", replace: '\1 --own-name="org.kde.*"' }, tags: [keepassxc] }
 
   # 9000. Post-install clean up & purging of packages
   #
