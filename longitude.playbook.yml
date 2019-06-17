@@ -663,7 +663,7 @@
   - { name: "QEMU: Download source", get_url: { url: "https://download.qemu.org/qemu-{{ qemu_version }}.tar.xz", dest: "/tmp/qemu-{{ qemu_version }}.tar.xz", checksum: "{{ qemu_checksum }}" }, when: "qemu_install_query.rc > 0", tags: [qemu] }
   - { name: "QEMU: Compile & install packages", when: "qemu_install_query.rc > 0",
       shell: "cd /tmp && tar --overwrite -Jxf 'qemu-{{ qemu_version }}.tar.xz' && cd 'qemu-{{ qemu_version }}' && ./configure --prefix='/opt/qemu-{{ qemu_version }}' && make -j8 && make install", tags: [qemu] }
-  - { name: "QEMU: Capture available systems", command: "find /opt/qemu-4.0.0/bin -type f -perm -u=x -printf '%f\\n'", register: qemu_installed_systems, changed_when: no, tags: [qemu] }
+  - { name: "QEMU: Capture available systems", command: "find /opt/qemu-{{ qemu_version }}/bin -type f -perm -u=x -printf '%f\\n'", register: qemu_installed_systems, changed_when: no, tags: [qemu] }
     # => (for 4.0.0)
     # qemu-system-sh4 qemu-aarch64 qemu-system-riscv64 qemu-system-xtensaeb qemu-system-mips qemu-xtensa qemu-xtensaeb
     # qemu-img qemu-microblaze qemu-system-ppc64 qemu-ppc64 qemu-system-sparc qemu-sparc32plus qemu-system-cris
