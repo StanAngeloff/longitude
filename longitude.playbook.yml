@@ -740,7 +740,7 @@
   - { name: "Skype: Check installation", become: yes, command: "dpkg -l skypeforlinux", register: skype_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Skype: Install packages", become: yes, when: "skype_dpkg_query.rc > 0", apt: { deb: "https://repo.skype.com/latest/skypeforlinux-64.deb", state: present } }
 
-  # 4000. Flatpak
+  # 4000. Flatpak {{{1
   #
   # See https://flatpak.org/setup/Ubuntu/
   #
@@ -761,11 +761,6 @@
   - { name: "Evolution: Install packages", flatpak: { method: user, name: org.gnome.Evolution, remote: flathub, state: present }, tags: [evolution] }
   - { name: "Evolution: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: evolution_mime_query_1, changed_when: no, failed_when: no, tags: [evolution] }
   - { name: "Evolution: Set as MIME handler", when: "(evolution_mime_query_1.rc == 0) and ('org.gnome.Evolution.desktop' not in evolution_mime_query_1.stdout)", command: "xdg-mime default org.gnome.Evolution.desktop x-scheme-handler/mailto", tags: [evolution] }
-  - { name: "Evolution: Create directories", file: "{{ item }}", tags: [evolution], with_items: [
-      { path: "{{ ansible_env.HOME }}/.var/app/org.gnome.Evolution/config/fontconfig", state: directory },
-      { path: "{{ ansible_env.HOME }}/.var/app/org.gnome.Evolution/config/fontconfig/conf.d", state: directory }
-    ] }
-  - { name: "Evolution: Configure fonts", copy: { src: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf", dest: "{{ ansible_env.HOME }}/.var/app/org.gnome.Evolution/config/fontconfig/conf.d/10-calibri.conf", force: yes }, tags: [evolution] }
 
   # 4020. Inkscape
   - { name: "Inkscape: Install packages", flatpak: { method: user, name: org.inkscape.Inkscape, remote: flathub, state: present }, tags: [inkscape] }
@@ -789,6 +784,24 @@
     ] }
   - { name: "KeePassXC: Install packages", flatpak: { method: user, name: org.keepassxc.KeePassXC, remote: flathub, state: present }, tags: [keepassxc] }
   - { name: "KeePassXC: Fix system tray icon", replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^(Exec=/usr/bin/flatpak run)( --own-name=\"org.kde.*\")?", replace: '\1 --own-name="org.kde.*"' }, tags: [keepassxc] }
+
+  # 4999. Flatpak
+  - { name: "Flatpak: Create font directories", file: { path: "{{ item[1] | format(name=item[0], HOME=ansible_env.HOME) }}", state: directory }, tags: [flatpak], with_nested: [
+      [
+        org.gnome.Evolution,
+        org.libreoffice.LibreOffice
+      ],
+      [
+        "%(HOME)s/.var/app/%(name)s/config/fontconfig",
+        "%(HOME)s/.var/app/%(name)s/config/fontconfig/conf.d"
+      ]
+    ] }
+  - { name: "Flatpak: Configure fonts", copy: { src: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf", dest: "{{ ansible_env.HOME }}/.var/app/{{ item }}/config/fontconfig/conf.d/10-calibri.conf", force: yes }, tags: [flatpak], with_items: [
+      org.gnome.Evolution,
+      org.libreoffice.LibreOffice
+    ] }
+
+  # }}}1
 
   # 9000. Post-install clean up & purging of packages
   #
