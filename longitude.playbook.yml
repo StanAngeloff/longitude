@@ -210,6 +210,9 @@
     wine_gpg_key_id: "F987672F"
     playonlinux_gpg_key_id: "8E3D6C3A"
 
+    qemu_version: 4.0.0
+    qemu_checksum: "sha256:13a93dfe75b86734326f8d5b475fde82ec692d5b5a338b4262aeeb6b0fa4e469"
+
     ffmpeg_version: 4.1.3
     ffmpeg_platform: amd64
     ffmpeg_checksum: "md5:9bdb279ec557e281a6800718add63385"
@@ -654,6 +657,28 @@
   - { name: "PlayOnLinux: Import GPG key", become: yes, apt_key: { id: "{{ playonlinux_gpg_key_id }}", url: "http://deb.playonlinux.com/public.gpg" } }
   - { name: "PlayOnLinux: Add repository", become: yes, apt_repository: { repo: "deb http://deb.playonlinux.com/ {{ ansible_distribution_release }} main", update_cache: yes } }
   - { name: "PlayOnLinux: Install packages", become: yes, apt: { pkg: [playonlinux], state: latest } }
+  # 1760. QEMU
+  - { name: "QEMU: Install prerequisites", become: yes, apt: { pkg: [bison, flex, libpixman-1-dev, libudev-dev], state: present, tags: [qemu] } }
+  - { name: "QEMU: Check installation", become: yes, command: "ls /opt/qemu-{{ qemu_version }}", register: qemu_install_query, changed_when: no, failed_when: no, tags: [qemu] }
+  - { name: "QEMU: Download source", get_url: { url: "https://download.qemu.org/qemu-{{ qemu_version }}.tar.xz", dest: "/tmp/qemu-{{ qemu_version }}.tar.xz", checksum: "{{ qemu_checksum }}" }, when: "qemu_install_query.rc > 0", tags: [qemu] }
+  - { name: "QEMU: Compile & install packages", when: "qemu_install_query.rc > 0",
+      shell: "cd /tmp && tar --overwrite -Jxf 'qemu-{{ qemu_version }}.tar.xz' && cd 'qemu-{{ qemu_version }}' && ./configure --prefix='/opt/qemu-{{ qemu_version }}' && make -j8 && make install", tags: [qemu] }
+  - { name: "QEMU: Capture available systems", command: "find /opt/qemu-4.0.0/bin -type f -perm -u=x -printf '%f\\n'", register: qemu_installed_systems, changed_when: no, tags: [qemu] }
+    # => (for 4.0.0)
+    # qemu-system-sh4 qemu-aarch64 qemu-system-riscv64 qemu-system-xtensaeb qemu-system-mips qemu-xtensa qemu-xtensaeb
+    # qemu-img qemu-microblaze qemu-system-ppc64 qemu-ppc64 qemu-system-sparc qemu-sparc32plus qemu-system-cris
+    # qemu-system-unicore32 qemu-system-nios2 elf2dmp qemu-system-ppc qemu-system-arm qemu-riscv32 qemu-nbd
+    # ivshmem-server qemu-nios2 qemu-cris qemu-system-sh4eb qemu-system-tricore qemu-ga qemu-or1k qemu-m68k
+    # qemu-system-riscv32 qemu-hppa qemu-riscv64 qemu-system-i386 qemu-mips64el qemu-system-m68k qemu-system-s390x
+    # qemu-ppc qemu-x86_64 qemu-system-aarch64 qemu-sparc qemu-s390x qemu-system-hppa qemu-sparc64 qemu-arm
+    # qemu-ppc64abi32 qemu-system-microblazeel qemu-sh4 qemu-pr-helper qemu-system-mips64 qemu-system-mips64el
+    # qemu-mipsn32 qemu-system-microblaze qemu-system-alpha qemu-ppc64le qemu-mipsel qemu-system-moxie qemu-aarch64_be
+    # qemu-alpha qemu-io qemu-system-xtensa qemu-tilegx ivshmem-client qemu-mips64 qemu-sh4eb qemu-system-sparc64
+    # qemu-system-mipsel qemu-i386 qemu-mips qemu-microblazeel qemu-system-x86_64 qemu-edid qemu-system-lm32
+    # qemu-system-or1k qemu-armeb qemu-mipsn32el
+  - { name: "QEMU: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/qemu-{{ qemu_version }}/bin/{{ item }}" }, tags: [qemu], with_items: "{{ qemu_installed_systems.stdout_lines }}" }
+  - { name: "QEMU: Set permissions for bridge helper", become: yes, file: { path: "/opt/qemu-{{ qemu_version }}/libexec/qemu-bridge-helper", state: file, owner: "root", group: "{{ ansible_user_gid }}", mode: 'u=srwx,g=rx,o=' }, tags: [qemu] }
+  - { name: "QEMU: Set up bridge helper alternative", become: yes, alternatives: { name: "qemu-bridge-helper", link: "/usr/local/bin/qemu-bridge-helper", path: "/opt/qemu-{{ qemu_version }}/libexec/qemu-bridge-helper" }, tags: [qemu] }
 
   # 1800. ffmpeg
   - { name: "ffmpeg: Check installation", become: yes, command: "ls /opt/ffmpeg-{{ ffmpeg_version }}", register: ffmpeg_install_query, changed_when: no, failed_when: no }
