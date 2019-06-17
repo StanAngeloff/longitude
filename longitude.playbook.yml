@@ -658,7 +658,7 @@
   - { name: "PlayOnLinux: Add repository", become: yes, apt_repository: { repo: "deb http://deb.playonlinux.com/ {{ ansible_distribution_release }} main", update_cache: yes } }
   - { name: "PlayOnLinux: Install packages", become: yes, apt: { pkg: [playonlinux], state: latest } }
   # 1760. QEMU
-  - { name: "QEMU: Install prerequisites", become: yes, apt: { pkg: [bison, flex, libpixman-1-dev, libudev-dev], state: present, tags: [qemu] } }
+  - { name: "QEMU: Install prerequisites", become: yes, apt: { pkg: [bison, flex, libpixman-1-dev, libudev-dev], state: present }, tags: [qemu] }
   - { name: "QEMU: Check installation", become: yes, command: "ls /opt/qemu-{{ qemu_version }}", register: qemu_install_query, changed_when: no, failed_when: no, tags: [qemu] }
   - { name: "QEMU: Download source", get_url: { url: "https://download.qemu.org/qemu-{{ qemu_version }}.tar.xz", dest: "/tmp/qemu-{{ qemu_version }}.tar.xz", checksum: "{{ qemu_checksum }}" }, when: "qemu_install_query.rc > 0", tags: [qemu] }
   - { name: "QEMU: Compile & install packages", when: "qemu_install_query.rc > 0",
