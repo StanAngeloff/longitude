@@ -786,23 +786,39 @@
     tags: [flatpak]
   - { name: "Flatpak: Add Flathub repository to the user install", flatpak_remote: { name: flathub, state: present, method: user, flatpakrepo_url: 'https://dl.flathub.org/repo/flathub.flatpakrepo' }, tags: [flatpak] }
 
-  # 4010. Evolution Mail
+  # 4010. Flathub
+  #
+  # These packages don't require additional configuration and can be used off-the-shelf.
+  #
+  # org.inkscape.Inkscape
+  #     https://inkscape.org/
+  #
+  # org.gnome.Boxes
+  #     https://help.gnome.org/users/gnome-boxes/stable/
+  #
+  # org.remmina.Remmina
+  #     https://remmina.org/
+  #
+  - { name: "Flathub: Install packages", flatpak: { method: user, name: "{{ item }}", remote: flathub, state: present }, tags: [flathub], with_items: [
+      org.inkscape.Inkscape,
+      org.gnome.Boxes,
+      org.remmina.Remmina
+    ] }
+
+  # 4020. Evolution Mail
   - { name: "Evolution: Install prerequisites", become: yes, apt: { pkg: [xdg-utils], state: present }, tags: [evolution] }
   - { name: "Evolution: Remove system packages", become: yes, apt: { pkg: [evolution, evolution-common, evolution-indicator, evolution-plugins, evolution-plugins-experimental], state: absent }, tags: [evolution] }
-  - { name: "Evolution: Install packages", flatpak: { method: user, name: org.gnome.Evolution, remote: flathub, state: present }, tags: [evolution] }
+  - { name: "Evolution: Install Flathub packages", flatpak: { method: user, name: org.gnome.Evolution, remote: flathub, state: present }, tags: [evolution] }
   - { name: "Evolution: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: evolution_mime_query_1, changed_when: no, failed_when: no, tags: [evolution] }
   - { name: "Evolution: Set as MIME handler", when: "(evolution_mime_query_1.rc == 0) and ('org.gnome.Evolution.desktop' not in evolution_mime_query_1.stdout)", command: "xdg-mime default org.gnome.Evolution.desktop x-scheme-handler/mailto", tags: [evolution] }
 
-  # 4020. Inkscape
-  - { name: "Inkscape: Install packages", flatpak: { method: user, name: org.inkscape.Inkscape, remote: flathub, state: present }, tags: [inkscape] }
-
   # 4030. GIMP
   - { name: "GIMP: Remove system packages", become: yes, apt: { pkg: [gimp], state: absent }, tags: [gimp] }
-  - { name: "GIMP: Install packages", flatpak: { method: user, name: org.gimp.GIMP, remote: flathub, state: present }, tags: [gimp] }
+  - { name: "GIMP: Install Flathub packages", flatpak: { method: user, name: org.gimp.GIMP, remote: flathub, state: present }, tags: [gimp] }
 
   # 4040. LibreOffice
   - { name: "LibreOffice: Remove system packages", become: yes, apt: { pkg: [libreoffice-calc, libreoffice-draw, libreoffice-gnome, libreoffice-gtk, libreoffice-impress, libreoffice-math, libreoffice-ogltrans, libreoffice-pdfimport, libreoffice-style-breeze, libreoffice-style-galaxy, libreoffice-style-tango, libreoffice-writer], state: absent }, tags: [libreoffice] }
-  - { name: "LibreOffice: Install packages", flatpak: { method: user, name: org.libreoffice.LibreOffice, remote: flathub, state: present }, register: libreoffice_installed, tags: [libreoffice] }
+  - { name: "LibreOffice: Install Flathub packages", flatpak: { method: user, name: org.libreoffice.LibreOffice, remote: flathub, state: present }, register: libreoffice_installed, tags: [libreoffice] }
   - { name: "LibreOffice: Re-install locale package", command: "flatpak install --user --reinstall --noninteractive flathub org.libreoffice.LibreOffice.Locale", when: libreoffice_installed.changed, tags: [libreoffice] }
 
   # 4050. KeePassXC
@@ -813,7 +829,7 @@
       "/usr/local/share/icons/keepassxc.png",
       "/usr/share/applications/org.keepassxc.KeePassXC.desktop"
     ] }
-  - { name: "KeePassXC: Install packages", flatpak: { method: user, name: org.keepassxc.KeePassXC, remote: flathub, state: present }, tags: [keepassxc] }
+  - { name: "KeePassXC: Install Flathub packages", flatpak: { method: user, name: org.keepassxc.KeePassXC, remote: flathub, state: present }, tags: [keepassxc] }
   - { name: "KeePassXC: Fix system tray icon", replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^(Exec=/usr/bin/flatpak run)( --own-name=\"org.kde.*\")?", replace: '\1 --own-name="org.kde.*"' }, tags: [keepassxc] }
 
   # 4999. Flatpak
