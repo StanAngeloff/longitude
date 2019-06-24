@@ -18,3 +18,7 @@ docker-build:
 
 docker-playbook:
 	@docker run --rm --tty --volume `pwd`:/home/maximus/longitude --cap-add=NET_ADMIN stanangeloff/longitude:latest
+
+dearmor: keys/keybase-20190624.asc.gpg
+keys/%.asc.gpg:
+	gpg2 --yes -o "$@" --dearmor "$(basename $@)"

@@ -382,8 +382,14 @@
   - { name: "Dropbox: Install packages", become: yes, when: "dropbox_dpkg_query.rc > 0", apt: { deb: "https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_{{ dropbox_version }}_amd64.deb", state: present } }
 
   # 750. Keybase
-  - { name: "Keybase: Check installation", become: yes, command: "dpkg -l keybase", register: keybase_dpkg_query, changed_when: no, failed_when: no }
-  - { name: "Keybase: Install packages", become: yes, when: "keybase_dpkg_query.rc > 0", apt: { deb: "https://prerelease.keybase.io/keybase_amd64.deb", state: present } }
+  - { name: "Keybase: Install prerequisites", become: yes, apt: { pkg: [gnupg, curl], state: present }, tags: [keybase] }
+  - { name: "Keybase: Check installation", become: yes, command: "dpkg -l keybase", register: keybase_dpkg_query, changed_when: no, failed_when: no, tags: [keybase] }
+  - { name: "Keybase: Download package and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "keybase_dpkg_query.rc > 0", tags: [keybase], with_items: [
+      "https://prerelease.keybase.io/keybase_amd64.deb",
+      "https://prerelease.keybase.io/keybase_amd64.deb.sig"
+    ] }
+  - { name: "Keybase: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/keybase-20190624.asc.gpg' --verify /tmp/keybase_amd64.deb.sig", when: "keybase_dpkg_query.rc > 0", tags: [keybase] }
+  - { name: "Keybase: Install package", become: yes, apt: { deb: "/tmp/keybase_amd64.deb", state: present }, when: "keybase_dpkg_query.rc > 0", tags: [keybase] }
 
   # 900. Tools and miscellaneous
   #
