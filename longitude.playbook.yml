@@ -380,6 +380,7 @@
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
   - { name: "Dropbox: Check installation", become: yes, command: "dpkg -l dropbox", register: dropbox_dpkg_query, changed_when: no, failed_when: no }
+    # NOTE: I don't know of a way to verify the .deb Dropbox package, is there an alternative way to install, perhaps via an APT repository?
   - { name: "Dropbox: Install packages", become: yes, when: "dropbox_dpkg_query.rc > 0", apt: { deb: "https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_{{ dropbox_version }}_amd64.deb", state: present } }
 
   # 750. Keybase
