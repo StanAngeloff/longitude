@@ -200,6 +200,9 @@
     envchain_version: 1.0.1
     envchain_checksum: "sha256:09af1fe1cfba3719418f90d59c29c081e1f22b38249f0110305b657bd306e9ae"
 
+    mosh_version: 1.3.2
+    mosh_checksum: "sha256:da600573dfa827d88ce114e0fed30210689381bbdcff543c931e4d6a2e851216"
+
     php_version: 7.2
     php_extensions: [bcmath, curl, gd, gmp, intl, json, mbstring, mysql, pgsql, sqlite3, xml, zip]
 
@@ -766,6 +769,28 @@
   - { name: "ufw: Enable logging", become: yes, ufw: { logging: on }, notify: "ufw::restart", tags: [ufw] }
   - { name: "ufw: Allow VPN PPTP connections", become: yes, lineinfile: { path: "/etc/ufw/before.rules", regexp: "-p\\s+47\\b", line: "-A ufw-before-input -p 47 -j ACCEPT", insertbefore: "drop INVALID packets" }, tags: [ufw] }
   - { name: "ufw: Turn on", become: yes, ufw: { state: enabled }, tags: [ufw] }
+
+  # 2020. mosh
+  - { name: "Mosh: Install prerequisites", become: yes, apt: { pkg: [perl, protobuf-compiler, libprotobuf-dev, libncurses5-dev, zlib1g-dev, libutempter-dev, libssl-dev], state: present }, tags: [mosh] }
+  - { name: "Mosh: Check installation", become: yes, command: "ls /opt/mosh-{{ mosh_version }}", register: mosh_install_query, changed_when: no, failed_when: no, tags: [mosh] }
+  - { name: "Mosh: Download source", get_url: { url: "https://mosh.org/mosh-{{ mosh_version }}.tar.gz", dest: "/tmp/mosh-{{ mosh_version }}.tar.gz", checksum: "{{ mosh_checksum }}" }, when: "mosh_install_query.rc > 0", tags: [mosh] }
+  - name: "Mosh: Compile & install packages"
+    when: "mosh_install_query.rc > 0"
+    shell: |
+      cd /tmp &&
+      tar --overwrite -zxf 'mosh-{{ mosh_version }}.tar.gz' &&
+      cd 'mosh-{{ mosh_version }}' &&
+      ./configure --prefix=/opt/mosh-1.3.2 --enable-hardening --enable-client --enable-server --enable-ufw --with-utempter --with-ncurses &&
+      make && make install
+    args: { executable: "/bin/bash" }
+    tags: [mosh]
+  - { name: "Mosh: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/mosh-{{ mosh_version }}/bin/{{ item }}" }, tags: [mosh], with_items: [
+      mosh,
+      mosh-client,
+      mosh-server
+    ] }
+  - { name: "Mosh: Copy ufw application profile", become: yes, copy: { src: "/opt/mosh-{{ mosh_version }}/etc/ufw/applications.d/mosh", dest: "/etc/ufw/applications.d/mosh", force: yes }, tags: [mosh] }
+  - { name: "Mosh: Configure ufw rules", become: yes, ufw: { rule: allow, name: mosh, comment: 'Allow ports used by mosh-server.' }, notify: "ufw::restart", tags: [mosh] }
 
   # 3000. Communications
   - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v{{ franz_version }}/franz-{{ franz_version }}-{{ franz_platform }}.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "{{ franz_checksum }}" } }
