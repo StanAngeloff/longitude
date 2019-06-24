@@ -254,19 +254,19 @@
 
   # 100. Git
   - { name: "Git: Add PPA", become: yes, apt_repository: { repo: "ppa:git-core/ppa", update_cache: yes } }
-  - { name: "Git: Install packages", become: yes, apt: { pkg: [git, git-gui, gitk], state: latest } }
+  - { name: "Git: Install packages", become: yes, apt: { pkg: [git, git-gui, gitk], state: present } }
   # 110. Git LFS
   - { name: "Git: Install Git LFS prerequisites", become: yes, apt: { pkg: [gnupg, curl, debian-archive-keyring, apt-transport-https], state: present } }
   - { name: "Git: Import Git LFS GPG key", become: yes, apt_key: { id: "{{ git_lfs_gpg_key_id }}", url: "https://packagecloud.io/github/git-lfs/gpgkey" } }
   - { name: "Git: Add Git LFS repository", become: yes, apt_repository: { repo: "deb https://packagecloud.io/github/git-lfs/ubuntu/ {{ ansible_distribution_release }} main", update_cache: yes } }
-  - { name: "Git: Install Git LFS packages", become: yes, apt: { pkg: [git-lfs], state: latest } }
-  - { name: "Git: Install git-extras packages", become: yes, apt: { pkg: [git-extras], state: latest } }
+  - { name: "Git: Install Git LFS packages", become: yes, apt: { pkg: [git-lfs], state: present } }
+  - { name: "Git: Install git-extras packages", become: yes, apt: { pkg: [git-extras], state: present } }
   # 120. git-crypt
-  - { name: "Git: Install git-crypt packages", become: yes, apt: { pkg: [git-crypt], state: latest } }
+  - { name: "Git: Install git-crypt packages", become: yes, apt: { pkg: [git-crypt], state: present } }
 
   # 200. Python
   - { name: "Python: Install pip packages & Python development headers", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present }, tags: [python] }
-  - { name: "Python: Install virtualenv", become: yes, pip: { executable: pip3, name: virtualenv, state: latest }, tags: [python] }
+  - { name: "Python: Install virtualenv", become: yes, pip: { executable: pip3, name: virtualenv, state: present }, tags: [python] }
 
   # 250. Git
   - { name: "Git: Add supporting tools", become: yes, pip: { executable: pip2, name: diff-highlight, state: present } }
@@ -277,9 +277,9 @@
 
   # 400. Neovim
   - { name: "Neovim: Add stable PPA", become: yes, apt_repository: { repo: "ppa:neovim-ppa/stable", update_cache: yes } }
-  - { name: "Neovim: Install packages", become: yes, apt: { pkg: [neovim], state: latest } }
+  - { name: "Neovim: Install packages", become: yes, apt: { pkg: [neovim], state: present } }
   # 410. Neovim Python support
-  - { name: "Neovim: Add Python support", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: latest }, with_items: [pip2, pip3] }
+  - { name: "Neovim: Add Python support", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip2, pip3] }
   # 420. Neovim alternatives
   - { name: "Neovim: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/nvim" }, with_items: [vi, vim, editor] }
 
@@ -287,7 +287,7 @@
   - { name: "Docker: Install prerequisites", become: yes, apt: { pkg: [apt-transport-https, ca-certificates, curl, gnupg-agent, software-properties-common], state: present }, tags: [docker] }
   - { name: "Docker: Import GPG key", become: yes, apt_key: { id: "{{ docker_gpg_key_id }}", url: "https://download.docker.com/linux/ubuntu/gpg" }, tags: [docker] }
   - { name: "Docker: Add repository", become: yes, apt_repository: { repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable", update_cache: yes }, tags: [docker] }
-  - { name: "Docker: Install packages", become: yes, apt: { pkg: [docker-ce], state: latest }, tags: [docker] }
+  - { name: "Docker: Install packages", become: yes, apt: { pkg: [docker-ce], state: present }, tags: [docker] }
   # 510. Docker Post-installation steps for Linux
   - { name: "Docker: Adding group", become: yes, group: { name: docker, state: present }, tags: [docker] }
   - { name: "Docker: Modifying user", become: yes, register: docker_user_groups, user: { name: "{{ ansible_user_id }}", append: yes, groups: [docker] }, tags: [docker] }
@@ -321,7 +321,7 @@
       %}{{ alternatives }}" }
 
   # 550. GnuPG
-  - { name: "GnuPG: Install packages", become: yes, apt: { pkg: [gnupg, gnupg-agent, pinentry-curses, pinentry-gnome3], state: latest } }
+  - { name: "GnuPG: Install packages", become: yes, apt: { pkg: [gnupg, gnupg-agent, pinentry-curses, pinentry-gnome3], state: present } }
   - { name: "GnuPG: Create directories", file: "{{ item }}", with_items: [
       { path: "{{ ansible_env.HOME }}/.gnupg", state: directory }
     ] }
@@ -343,7 +343,7 @@
     with_dict: "{{ gnupg_agent_conf }}"
 
   # 600. Firefox
-  - { name: "Firefox: Install packages", become: yes, apt: { pkg: "{{ ('firefox firefox-locale-' + firefox_locales|join(' firefox-locale-')).split(' ') }}", state: latest }, tags: [firefox] }
+  - { name: "Firefox: Install packages", become: yes, apt: { pkg: "{{ ('firefox firefox-locale-' + firefox_locales|join(' firefox-locale-')).split(' ') }}", state: present }, tags: [firefox] }
   # 610. Firefox alternatives
   - { name: "Firefox: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/firefox" }, with_items: [gnome-www-browser, x-www-browser], tags: [firefox] }
   # 620. Firefox policy for enterprise deployments
@@ -442,7 +442,7 @@
       unp,
       w3m,
       whois
-    ], state: latest } }
+    ], state: present } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
   - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", with_items: [
       { key: "/org/gnome/mutter/overlay-key", value: "''" },
@@ -523,8 +523,8 @@
   - { name: "jq: Set up alternatives", become: yes, alternatives: { name: "jq", link: "/usr/local/bin/jq", path: "/usr/local/bin/jq-{{ jq_version }}" } }
   # 970. HTTPie
   - { name: "HTTPie: Install packages", become: yes, pip: { executable: pip3, name: httpie, version: "{{ httpie_version }}", state: present }, tags: [httpie] }
-  - { name: "HTTPie: Install plug-ins", become: yes, pip: { executable: pip3, name: "{{ item.name }}", version: "{{ item.version | default(omit) }}", state: "{% if 'version' in item %}present{% else %}latest{% endif %}" }, tags: [httpie], with_items: [
-      { name: 'httpie-oauth' }
+  - { name: "HTTPie: Install plug-ins", become: yes, pip: { executable: pip3, name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: [
+      { name: 'httpie-oauth', version: 1.0.2 }
     ] }
   # 980. bat
   - { name: "bat: Check installation", become: yes, command: "dpkg -l bat", register: bat_dpkg_query, changed_when: no, failed_when: no }
@@ -586,7 +586,7 @@
       shell: "cd /tmp && tar --overwrite -Jxf 'zsh-{{ zsh_version }}.tar.xz' && cd 'zsh-{{ zsh_version }}' && ./configure --enable-pcre --prefix='/opt/zsh-{{ zsh_version }}' {% if ansible_env.IS_DOCKERIZED | default(0) == '1' %} --without-tcsetpgrp {% endif %} && make -j8 && make install" }
   - { name: "Zsh: Set up alternatives", become: yes, alternatives: { name: "zsh", link: "/bin/zsh", path: "/opt/zsh-{{ zsh_version }}/bin/zsh" } }
   - { name: "Zsh: Check shell", become: yes, shell: "cat /etc/passwd | grep '^{{ ansible_user_id }}:' | cut -d: -f7", register: zsh_shell_query, changed_when: no }
-  - { name: "Zsh: Change shell", become: yes, shell: "chsh -s /bin/zsh '{{ ansible_user_id }}'", when: "zsh_shell_query.stdout != '/bin/zsh'" }
+  - { name: "Zsh: Change shell", become: yes, command: "chsh -s /bin/zsh '{{ ansible_user_id }}'", when: "zsh_shell_query.stdout != '/bin/zsh'" }
 
   - { name: "Reset connection to allow shell changes", meta: reset_connection }
 
@@ -646,9 +646,9 @@
 
   # 1500. PHP & extensions
   - { name: "PHP: Add PPA", become: yes, apt_repository: { repo: "ppa:ondrej/php", update_cache: yes } }
-  - { name: "PHP: Install packages", become: yes, apt: { pkg: "{{ ('php-pear php' + php_version|string + '-cli php' + php_version|string + '-dev php' + php_version|string + '-' + php_extensions|join(' php' + php_version|string + '-')).split(' ') }}", state: latest } }
+  - { name: "PHP: Install packages", become: yes, apt: { pkg: "{{ ('php-pear php' + php_version|string + '-cli php' + php_version|string + '-dev php' + php_version|string + '-' + php_extensions|join(' php' + php_version|string + '-')).split(' ') }}", state: present } }
   - { name: "PHP: Check Composer installation", become: yes, command: "ls /usr/local/bin/composer", register: composer_install_query, changed_when: no, failed_when: no }
-  - { name: "PHP: Install Composer", shell: "{{ item }}", when: "composer_install_query.rc > 0", with_items: [
+  - { name: "PHP: Install Composer", command: "{{ item }}", when: "composer_install_query.rc > 0", with_items: [
       "php -r \"copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');\"",
       "php -r \"if (hash_file('sha384', '/tmp/composer-setup.php') === '{{ composer_setup_checksum }}') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('/tmp/composer-setup.php'); } echo PHP_EOL;\"",
       "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer",
@@ -658,18 +658,18 @@
   # 1600. NodeJS
   - { name: "NodeJS: Import GPG key", become: yes, apt_key: { id: "{{ nodesource_gpg_key_id }}", url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" } }
   - { name: "NodeJS: Add repository", become: yes, apt_repository: { repo: "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x {{ ansible_distribution_release }} main", update_cache: yes } }
-  - { name: "NodeJS: Install packages", become: yes, apt: { pkg: [nodejs], state: latest } }
+  - { name: "NodeJS: Install packages", become: yes, apt: { pkg: [nodejs], state: present } }
   - { name: "NodeJS: Create directories", become: yes, file: { path: "/usr/local/lib/node_modules", state: directory, owner: "{{ ansible_user_id }}" } }
   - { name: "NodeJS: Install global packages in /usr/local", lineinfile: { create: yes, path: "{{ ansible_env.HOME }}/.npmrc", regexp: "^prefix=", line: "prefix=/usr/local" } }
 
   # 1700. Wine
   - { name: "Wine: Import GPG key", become: yes, apt_key: { id: "{{ wine_gpg_key_id }}", url: "https://dl.winehq.org/wine-builds/winehq.key" } }
   - { name: "Wine: Add repository", become: yes, apt_repository: { repo: "deb https://dl.winehq.org/wine-builds/ubuntu/ {{ ansible_distribution_release }} main", update_cache: yes } }
-  - { name: "Wine: Install packages", become: yes, apt: { pkg: [winehq-stable], state: latest } }
+  - { name: "Wine: Install packages", become: yes, apt: { pkg: [winehq-stable], state: present } }
   # 1750. PlayOnLinux
   - { name: "PlayOnLinux: Import GPG key", become: yes, apt_key: { id: "{{ playonlinux_gpg_key_id }}", url: "http://deb.playonlinux.com/public.gpg" } }
   - { name: "PlayOnLinux: Add repository", become: yes, apt_repository: { repo: "deb http://deb.playonlinux.com/ {{ ansible_distribution_release }} main", update_cache: yes } }
-  - { name: "PlayOnLinux: Install packages", become: yes, apt: { pkg: [playonlinux], state: latest } }
+  - { name: "PlayOnLinux: Install packages", become: yes, apt: { pkg: [playonlinux], state: present } }
   # 1760. QEMU
   - { name: "QEMU: Install prerequisites", become: yes, apt: { pkg: [bison, flex, libpixman-1-dev, libudev-dev], state: present }, tags: [qemu] }
   - { name: "QEMU: Check installation", become: yes, command: "ls /opt/qemu-{{ qemu_version }}", register: qemu_install_query, changed_when: no, failed_when: no, tags: [qemu] }
@@ -743,7 +743,7 @@
   # 2000. Just stuff…
   #
   # tesseract: OCR'ing images and parsing text out.
-  - { name: "tesseract: Install OCR packages", become: yes, apt: { pkg: [tesseract-ocr, tesseract-ocr-bul, tesseract-ocr-eng], state: latest } }
+  - { name: "tesseract: Install OCR packages", become: yes, apt: { pkg: [tesseract-ocr, tesseract-ocr-bul, tesseract-ocr-eng], state: present } }
 
   # InfoNotary: qualified electronic signature used when paying bills, accessing tax statements, etc.
   #
@@ -753,7 +753,7 @@
   #
   - { name: "InfoNotary: Import GPG key", become: yes, apt_key: { id: "3D4B1879", url: "https://repository.infonotary.com/install/linux/INotaryCodeSigningD.key.asc" } }
   - { name: "InfoNotary: Add repository", become: yes, apt_repository: { repo: "deb http://repository.infonotary.com/install/linux/DEBS/ any non-free", update_cache: yes } }
-  - { name: "InfoNotary: Install packages", become: yes, apt: { pkg: [bit4id-ipki, pcsc-omnikey, infonotary-client-software], state: latest } }
+  - { name: "InfoNotary: Install packages", become: yes, apt: { pkg: [bit4id-ipki, pcsc-omnikey, infonotary-client-software], state: present } }
   - { name: "InfoNotary: Create Firefox certificate", become: yes, copy: { dest: "/usr/lib/mozilla/certificates/{{ item }}", src: "certificates/{{ item }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes }, with_items: [
       InfoNotaryQualifiedLegalPersonSealCA.pem,
       InfoNotaryQualifiedPersonalSignCA.pem,
