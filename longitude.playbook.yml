@@ -770,6 +770,9 @@
   # 3000. Communications
   - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v{{ franz_version }}/franz-{{ franz_version }}-{{ franz_platform }}.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "{{ franz_checksum }}" } }
   - { name: "Viber: Check installation", become: yes, command: "dpkg -l viber", register: viber_dpkg_query, changed_when: no, failed_when: no, tags: [viber] }
+    # NOTE: Viber developers maintain a single rolling .deb package of the latest version and provide no GPG signatures.
+    #       The Flathub package has a broken tray icon making it unusable.
+    #       We are stuck installing from an untrusted .deb.
   - { name: "Viber: Install packages", become: yes, when: "viber_dpkg_query.rc > 0", apt: { deb: "https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb", state: present }, tags: [viber] }
 
   # 5000. Post-install clean up & purging of packages
