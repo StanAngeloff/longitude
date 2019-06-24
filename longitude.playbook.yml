@@ -766,10 +766,8 @@
 
   # 3000. Communications
   - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v{{ franz_version }}/franz-{{ franz_version }}-{{ franz_platform }}.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "{{ franz_checksum }}" } }
-  - { name: "Viber: Check installation", become: yes, command: "dpkg -l viber", register: viber_dpkg_query, changed_when: no, failed_when: no }
-  - { name: "Viber: Install packages", become: yes, when: "viber_dpkg_query.rc > 0", apt: { deb: "https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb", state: present } }
-  - { name: "Skype: Check installation", become: yes, command: "dpkg -l skypeforlinux", register: skype_dpkg_query, changed_when: no, failed_when: no }
-  - { name: "Skype: Install packages", become: yes, when: "skype_dpkg_query.rc > 0", apt: { deb: "https://repo.skype.com/latest/skypeforlinux-64.deb", state: present } }
+  - { name: "Viber: Check installation", become: yes, command: "dpkg -l viber", register: viber_dpkg_query, changed_when: no, failed_when: no, tags: [viber] }
+  - { name: "Viber: Install packages", become: yes, when: "viber_dpkg_query.rc > 0", apt: { deb: "https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb", state: present }, tags: [viber] }
 
   # 4000. Flatpak {{{1
   #
@@ -823,7 +821,7 @@
 
   # 4050. KeePassXC
   - { name: "KeePassXC: Remove official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", state: absent }, tags: [keepassxc] }
-  - { name: "KeePassXC: Remove packages", become: yes, apt: { pkg: [keepassxc], state: absent }, tags: [keepassxc] }
+  - { name: "KeePassXC: Remove system packages", become: yes, apt: { pkg: [keepassxc], state: absent }, tags: [keepassxc] }
   - { name: "KeePassXC: Uninstall AppImage & artifacts", become: yes, file: { path: "{{ item }}", state: absent }, tags: [keepassxc], with_items: [
       "/usr/local/bin/keepassxc",
       "/usr/local/share/icons/keepassxc.png",
@@ -831,6 +829,10 @@
     ] }
   - { name: "KeePassXC: Install Flathub packages", flatpak: { method: user, name: org.keepassxc.KeePassXC, remote: flathub, state: present }, tags: [keepassxc] }
   - { name: "KeePassXC: Fix system tray icon", replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^(Exec=/usr/bin/flatpak run)( --own-name=\"org.kde.*\")?", replace: '\1 --own-name="org.kde.*"' }, tags: [keepassxc] }
+
+  # 4100. Communications
+  - { name: "Skype: Remove system packages", become: yes, apt: { pkg: [skypeforlinux], state: absent }, tags: [skype] }
+  - { name: "Skype: Install Flathub packages", flatpak: { method: user, name: com.skype.Client, remote: flathub, state: present }, tags: [skype] }
 
   # 4999. Flatpak
   - { name: "Flatpak: Create font directories", file: { path: "{{ item[1] | format(name=item[0], HOME=ansible_env.HOME) }}", state: directory }, tags: [flatpak], with_nested: [
