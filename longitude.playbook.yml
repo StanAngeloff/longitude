@@ -119,6 +119,7 @@
 
     ripgrep_version: 0.10.0
     ripgrep_platform: amd64
+    ripgrep_checksum: "sha256:fae8c9dbe17998ce7d426bd3649fe71fd7c9eef0e9c2ac85e5958e2a70f665b8"
 
     pup_version: 0.4.0
     pup_platform: linux_amd64
@@ -497,8 +498,9 @@
   - { name: "youtube-dl: Install script", get_url: { url: "https://github.com/ytdl-org/youtube-dl/releases/download/{{ youtube_dl_version }}/youtube-dl", dest: "/usr/local/bin/youtube-dl", mode: "+x", checksum: "{{ youtube_dl_checksum }}" } }
 
   # 950. ripgrep
-  - { name: "ripgrep: Check installation", become: yes, command: "dpkg -l ripgrep", register: ripgrep_dpkg_query, changed_when: no, failed_when: no }
-  - { name: "ripgrep: Install packages", become: yes, when: "ripgrep_dpkg_query.rc > 0", apt: { deb: "https://github.com/BurntSushi/ripgrep/releases/download/{{ ripgrep_version }}/ripgrep_{{ ripgrep_version }}_{{ ripgrep_platform }}.deb", state: present } }
+  - { name: "ripgrep: Check installation", become: yes, command: "dpkg -l ripgrep", register: ripgrep_dpkg_query, changed_when: no, failed_when: no, tags: [ripgrep] }
+  - { name: "ripgrep: Download packages", get_url: { url: "https://github.com/BurntSushi/ripgrep/releases/download/{{ ripgrep_version }}/ripgrep_{{ ripgrep_version }}_{{ ripgrep_platform }}.deb", dest: "/tmp/ripgrep-{{ ripgrep_version }}.deb", checksum: "{{ ripgrep_checksum }}" }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
+  - { name: "ripgrep: Install packages", become: yes, apt: { deb: "/tmp/ripgrep-{{ ripgrep_version }}.deb", state: present }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
   # 955. fzf
   - { name: "fzf: Check installation", become: yes, command: "ls /usr/local/bin/fzf-{{ fzf_version }}", register: fzf_install_query, changed_when: no, failed_when: no }
   - { name: "fzf: Download fzf", get_url: { url: "https://github.com/junegunn/fzf-bin/releases/download/{{ fzf_version }}/fzf-{{ fzf_version }}-{{ fzf_platform }}.tgz", dest: "/tmp/fzf-{{ fzf_version }}.tgz", checksum: "{{ fzf_checksum }}" }, when: "fzf_install_query.rc > 0" }
