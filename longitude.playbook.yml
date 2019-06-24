@@ -780,7 +780,7 @@
       cd /tmp &&
       tar --overwrite -zxf 'mosh-{{ mosh_version }}.tar.gz' &&
       cd 'mosh-{{ mosh_version }}' &&
-      ./configure --prefix=/opt/mosh-1.3.2 --enable-hardening --enable-client --enable-server --enable-ufw --with-utempter --with-ncurses &&
+      ./configure --prefix='/opt/mosh-{{ mosh_version }}' --enable-hardening --enable-client --enable-server --enable-ufw --with-utempter --with-ncurses &&
       make && make install
     args: { executable: "/bin/bash" }
     tags: [mosh]
