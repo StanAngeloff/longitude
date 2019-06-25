@@ -72,11 +72,26 @@
     # See https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig
     #
     firefox_about_config:
+      # Development
+      #
       "devtools.chrome.enabled": true # This enables Ctrl+Alt+Shift+J as well as the command entry in Ctrl+Shift+J.
+      # Security
+      #
       # See https://web.archive.org/web/20190410203751/https://www.internetsociety.org/blog/2018/12/dns-privacy-support-in-mozilla-firefox/
+      #
       "network.trr.mode": 3
       "network.trr.bootstrapAddress": "1.1.1.1"
       "network.security.esni.enabled": true
+      # Network
+      #
+      "network.dns.disableIPv6": true # We don't use or need IPv6.
+      # Caching
+      #
+      "browser.cache.disk.enable": false # Don't trash my SSD!
+      "browser.cache.disk.parent_directory": "/tmp/.mozilla/cache/firefox" # If we ever re-enable disk caching, use tmpfs.
+      "browser.cache.memory.enable": true
+      "browser.cache.memory.capacity": 8192000 # 8GB
+      "browser.cache.memory.max_entry_size": 10240 # 10MB
 
     firefox_locales: [en, bg]
 
