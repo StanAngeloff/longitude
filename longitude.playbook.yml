@@ -231,9 +231,9 @@
     ffmpeg_platform: amd64
     ffmpeg_checksum: "md5:9bdb279ec557e281a6800718add63385"
 
-    franz_version: 5.1.0
-    franz_platform: x86_64
-    franz_checksum: "sha256:f04f6b39ebfa5d01a8a4ef349dc72a6f602965ef757c2307ad7cb581cdd54edf"
+    rambox_version: 0.6.9
+    rambox_platform: linux-x86_64
+    rambox_checksum: "sha256:a215afdea9bd84a0e166a902100229033a22282dfdf01c11ab0b6020ef1c9107"
 
     ufw_policy:
       - { direction: incoming, policy: deny }
@@ -799,7 +799,21 @@
   - { name: "Mosh: Configure ufw rules", become: yes, ufw: { rule: allow, name: mosh, comment: 'Allow ports used by mosh-server.' }, notify: "ufw::restart", tags: [mosh] }
 
   # 3000. Communications
-  - { name: "Install Franz", get_url: { url: "https://github.com/meetfranz/franz/releases/download/v{{ franz_version }}/franz-{{ franz_version }}-{{ franz_platform }}.AppImage", dest: "/usr/local/bin/franz", mode: "+x", checksum: "{{ franz_checksum }}" } }
+  - { name: "Rambox: Install AppImage", get_url: { url: "https://github.com/ramboxapp/community-edition/releases/download/{{ rambox_version }}/Rambox-{{ rambox_version }}-{{ rambox_platform }}.AppImage", dest: "/usr/local/bin/rambox", mode: "+x", checksum: "{{ rambox_checksum }}" }, tags: [rambox] }
+  - { name: "Franz: Uninstall AppImage & artifacts", file: { path: "{{ item }}", state: absent }, tags: [franz], with_items: [
+      "/usr/local/bin/franz",
+      "{{ ansible_env.HOME }}/.local/share/applications/appimagekit-franz.desktop",
+      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/16x16/apps/appimagekit-franz.png",
+      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/24x24/apps/appimagekit-franz.png",
+      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/32x32/apps/appimagekit-franz.png",
+      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/48x48/apps/appimagekit-franz.png",
+      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/64x64/apps/appimagekit-franz.png",
+      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/96x96/apps/appimagekit-franz.png",
+      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/128x128/apps/appimagekit-franz.png",
+      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/256x256/apps/appimagekit-franz.png",
+      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/512x512/apps/appimagekit-franz.png",
+      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/1024x1024/apps/appimagekit-franz.png"
+    ] }
   - { name: "Viber: Check installation", become: yes, command: "dpkg -l viber", register: viber_dpkg_query, changed_when: no, failed_when: no, tags: [viber] }
     # NOTE: Viber developers maintain a single rolling .deb package of the latest version and provide no GPG signatures.
     #       The Flathub package has a broken tray icon making it unusable.
