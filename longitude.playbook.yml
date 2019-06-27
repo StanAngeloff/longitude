@@ -31,9 +31,6 @@
 
   vars:
 
-    # The preferred GTK theme. This will not be enforced, but will be provided to apps as an override.
-    gtk_theme_override: "Adwaita"
-
     firefox_unofficial_extensions:
       bypass-paywalls: { url: "https://github.com/iamadamdev/bypass-paywalls-firefox/releases/download/v%(version)s/bypass_paywalls-%(version)s-an+fx.xpi", version: 1.5.1, checksum: "md5:8937de9f94d350abf532d585e2f22df5" } # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
 
@@ -117,10 +114,6 @@
       default-cache-ttl: 3600
       max-cache-ttl: 7200
 
-    keepassxc_version: 2.4.0
-    keepassxc_platform: x86_64
-    keepassxc_checksum: "sha256:559be14b9f24feb6bded010aef55dd7cb72b3cb081485c49a548bd614dba4324"
-
     authy_desktop_version: 1.7.0
     authy_desktop_checksum: "md5:bd2182d0ae4c957efe5f2d244d4dfdb5"
 
@@ -145,6 +138,8 @@
     jq_checksum: "sha256:af986793a515d500ab2d35f8d2aecd656e764504b789b66d7e1a0b727a124c44"
 
     httpie_version: 1.0.2
+    httpie_plugins:
+      - { name: 'httpie-oauth', version: 1.0.2 }
 
     awscli_version: '>1.16'
 
@@ -260,7 +255,7 @@
   # 10. tmpfs at /tmp
   - { name: "System: Make /tmp a tmpfs", become: yes, lineinfile: { path: "/etc/fstab", regexp: "\\/tmp\\s", line: "tmpfs /tmp tmpfs rw,nosuid,nodev,size=4G 0 0" } }
 
-  # 15. i386 is a needed for Wine.
+  # 15. i386 is needed for Wine.
   - { name: "System: Add dpkg architectures", become: yes, lineinfile: { dest: "/var/lib/dpkg/arch", line: "{{ item }}", create: yes }, with_items: [amd64, i386] }
   - { name: "System: Update apt cache", become: yes, apt: { update_cache: yes, cache_valid_time: "{{ 24 * 60 * 60 }}" } }
 
@@ -431,6 +426,7 @@
   # - 'socat' - TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
   # - 'sqlite3' - a command-line interface for SQLite 3.
   # - 'sqlitebrowser' - a visual tool used to create, design and edit database files compatible with SQLite.
+  # - 'tesseract*' - OCR'ing images and parsing text out.
   # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
   # - 'unp' - a small Perl script which makes extraction of any archive files a bit easier.
   # - 'v4l2ucp' - a control panel for Video for Linux 2 Universal.
@@ -453,6 +449,7 @@
       poedit,
       pv,
       socat,
+      tesseract-ocr, tesseract-ocr-bul, tesseract-ocr-eng,
       trash-cli,
       unp,
       w3m,
@@ -538,9 +535,7 @@
   - { name: "jq: Set up alternatives", become: yes, alternatives: { name: "jq", link: "/usr/local/bin/jq", path: "/usr/local/bin/jq-{{ jq_version }}" } }
   # 970. HTTPie
   - { name: "HTTPie: Install packages", become: yes, pip: { executable: pip3, name: httpie, version: "{{ httpie_version }}", state: present }, tags: [httpie] }
-  - { name: "HTTPie: Install plug-ins", become: yes, pip: { executable: pip3, name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: [
-      { name: 'httpie-oauth', version: 1.0.2 }
-    ] }
+  - { name: "HTTPie: Install plug-ins", become: yes, pip: { executable: pip3, name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: "{{ httpie_plugins }}" }
   # 980. bat
   - { name: "bat: Check installation", become: yes, command: "dpkg -l bat", register: bat_dpkg_query, changed_when: no, failed_when: no }
   - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat-musl_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0" }
@@ -755,12 +750,7 @@
         StartupWMClass=Authy Desktop
     tags: [authy]
 
-  # 2000. Just stuff…
-  #
-  # tesseract: OCR'ing images and parsing text out.
-  - { name: "tesseract: Install OCR packages", become: yes, apt: { pkg: [tesseract-ocr, tesseract-ocr-bul, tesseract-ocr-eng], state: present } }
-
-  # InfoNotary: qualified electronic signature used when paying bills, accessing tax statements, etc.
+  # 2000. InfoNotary: qualified electronic signature used when paying bills, accessing tax statements, etc.
   #
   # - 'bit4id-ipki' - driver for Bit4id smart cards.
   # - 'pcsc-omnikey' - driver for OmniKey readers.
