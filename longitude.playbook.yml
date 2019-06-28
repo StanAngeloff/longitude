@@ -8,6 +8,8 @@
 
   vars:
 
+    dpkg_query: "dpkg-query --show --showformat='${db:Status-Status}\n' '%s' | grep '^installed'"
+
     firefox_unofficial_extensions:
       bypass-paywalls: { url: "https://github.com/iamadamdev/bypass-paywalls-firefox/releases/download/v%(version)s/bypass_paywalls-%(version)s-an+fx.xpi", version: 1.5.1, checksum: "md5:8937de9f94d350abf532d585e2f22df5" } # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
 
@@ -370,13 +372,13 @@
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
-  - { name: "Dropbox: Check installation", become: yes, command: "dpkg -l dropbox", register: dropbox_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "Dropbox: Check installation", become: yes, shell: "{{ dpkg_query | format('dropbox') }}", register: dropbox_dpkg_query, changed_when: no, failed_when: no }
     # NOTE: I don't know of a way to verify the .deb Dropbox package, is there an alternative way to install, perhaps via an APT repository?
   - { name: "Dropbox: Install packages", become: yes, when: "dropbox_dpkg_query.rc > 0", apt: { deb: "https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_{{ dropbox_version }}_amd64.deb", state: present } }
 
   # 750. Keybase
   - { name: "Keybase: Install prerequisites", become: yes, apt: { pkg: [gnupg, curl], state: present }, tags: [keybase] }
-  - { name: "Keybase: Check installation", become: yes, command: "dpkg -l keybase", register: keybase_dpkg_query, changed_when: no, failed_when: no, tags: [keybase] }
+  - { name: "Keybase: Check installation", become: yes, shell: "{{ dpkg_query | format('keybase') }}", register: keybase_dpkg_query, changed_when: no, failed_when: no, tags: [keybase] }
   - { name: "Keybase: Download package and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "keybase_dpkg_query.rc > 0", tags: [keybase], with_items: [
       "https://prerelease.keybase.io/keybase_amd64.deb",
       "https://prerelease.keybase.io/keybase_amd64.deb.sig"
@@ -492,7 +494,7 @@
   - { name: "youtube-dl: Install script", get_url: { url: "https://github.com/ytdl-org/youtube-dl/releases/download/{{ youtube_dl_version }}/youtube-dl", dest: "/usr/local/bin/youtube-dl", mode: "+x", checksum: "{{ youtube_dl_checksum }}" } }
 
   # 950. ripgrep
-  - { name: "ripgrep: Check installation", become: yes, command: "dpkg -l ripgrep", register: ripgrep_dpkg_query, changed_when: no, failed_when: no, tags: [ripgrep] }
+  - { name: "ripgrep: Check installation", become: yes, shell: "{{ dpkg_query | format('ripgrep') }}", register: ripgrep_dpkg_query, changed_when: no, failed_when: no, tags: [ripgrep] }
   - { name: "ripgrep: Download packages", get_url: { url: "https://github.com/BurntSushi/ripgrep/releases/download/{{ ripgrep_version }}/ripgrep_{{ ripgrep_version }}_{{ ripgrep_platform }}.deb", dest: "/tmp/ripgrep-{{ ripgrep_version }}.deb", checksum: "{{ ripgrep_checksum }}" }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
   - { name: "ripgrep: Install packages", become: yes, apt: { deb: "/tmp/ripgrep-{{ ripgrep_version }}.deb", state: present }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
   # 955. fzf
@@ -514,11 +516,11 @@
   - { name: "HTTPie: Install packages", become: yes, pip: { executable: pip3, name: httpie, version: "{{ httpie_version }}", state: present }, tags: [httpie] }
   - { name: "HTTPie: Install plug-ins", become: yes, pip: { executable: pip3, name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: "{{ httpie_plugins }}" }
   # 980. bat
-  - { name: "bat: Check installation", become: yes, command: "dpkg -l bat", register: bat_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "bat: Check installation", become: yes, shell: "{{ dpkg_query | format('bat') }}", register: bat_dpkg_query, changed_when: no, failed_when: no }
   - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat-musl_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0" }
   - { name: "bat: Install packages", become: yes, apt: { deb: "/tmp/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0" }
   # 985. xidel
-  - { name: "Xidel: Check installation", become: yes, command: "dpkg -l xidel", register: xidel_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "Xidel: Check installation", become: yes, shell: "{{ dpkg_query | format('xidel') }}", register: xidel_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Xidel: Download packages", get_url: { url: "https://sourceforge.net/projects/videlibri/files/Xidel/Xidel%20{{ xidel_version.split('-')[0] }}/xidel_{{ xidel_version }}_{{ xidel_platform }}.deb/download", dest: "/tmp/xidel-{{ xidel_version }}.deb", checksum: "{{ xidel_checksum }}" }, when: "xidel_dpkg_query.rc > 0" }
   - { name: "Xidel: Install packages", become: yes, apt: { deb: "/tmp/xidel-{{ xidel_version }}.deb", state: present }, when: "xidel_dpkg_query.rc > 0" }
   # 990. ngrok
@@ -777,7 +779,7 @@
 
   # 3000. Communications
   - { name: "Rambox: Install AppImage", get_url: { url: "https://github.com/ramboxapp/community-edition/releases/download/{{ rambox_version }}/Rambox-{{ rambox_version }}-{{ rambox_platform }}.AppImage", dest: "/usr/local/bin/rambox", mode: "+x", checksum: "{{ rambox_checksum }}" }, tags: [rambox] }
-  - { name: "Viber: Check installation", become: yes, command: "dpkg -l viber", register: viber_dpkg_query, changed_when: no, failed_when: no, tags: [viber] }
+  - { name: "Viber: Check installation", become: yes, shell: "{{ dpkg_query | format('viber') }}", register: viber_dpkg_query, changed_when: no, failed_when: no, tags: [viber] }
     # NOTE: Viber developers maintain a single rolling .deb package of the latest version and provide no GPG signatures.
     #       The Flathub package has a broken tray icon making it unusable.
     #       We are stuck installing from an untrusted .deb.
