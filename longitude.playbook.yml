@@ -214,6 +214,9 @@
     rambox_platform: linux-x86_64
     rambox_checksum: "sha256:a215afdea9bd84a0e166a902100229033a22282dfdf01c11ab0b6020ef1c9107"
 
+    steam_launcher_version: 1.0.0.61
+    steam_launcher_checksum: "sha256:5e7d3f1cb1de847f31152998bdc8137855a1a0f7b0dc099db6a7f4d7e33fd911"
+
     ufw_policy:
       - { direction: incoming, policy: deny }
       - { direction: outgoing, policy: allow }
@@ -784,6 +787,11 @@
     #       The Flathub package has a broken tray icon making it unusable.
     #       We are stuck installing from an untrusted .deb.
   - { name: "Viber: Install packages", become: yes, when: "viber_dpkg_query.rc > 0", apt: { deb: "https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb", state: present }, tags: [viber] }
+
+  # 3100. Steam
+  - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
+  - { name: "Steam: Download packages", get_url: { url: "http://repo.steampowered.com/steam/archive/precise/steam-launcher_{{ steam_launcher_version }}_all.deb", dest: "/tmp/steam-launcher-{{ steam_launcher_version }}.deb", checksum: "{{ steam_launcher_checksum }}" }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
+  - { name: "Steam: Install packages", become: yes, apt: { deb: "/tmp/steam-launcher-{{ steam_launcher_version }}.deb", state: present }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
 
   # 5000. Post-install clean up & purging of packages
   #
