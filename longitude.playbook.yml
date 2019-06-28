@@ -6,29 +6,6 @@
 - hosts: [127.0.0.1]
   connection: local
 
-    #
-    # Things you may want to do first
-    # -------------------------------
-    #
-    # 1. Install Ubuntu Additional Drivers manually and reboot.
-    # 2. Install "ubuntu-gnome-desktop" (with gdm3) and reboot, switch the default session before logging in.
-    # 3. Remove unity*
-    # 4. You should REALLY run apt update && apt upgrade (and perhaps apt dist-upgrade) and reboot.
-    # 5. Mess about with ~/.fonts, Gnome Shell extensions, Gnome Tweak Tool, settings, personalisations, etc.
-    #    5.1. For rxvt-unicode to start, you'll need at least the following fonts: Input, Noto Mono, Symbola.
-    #
-    # NOTE: Install ubuntu-restricted-extras if you want to watch Netflix/YouTube/H.264 videos.
-    #
-    # Customisations
-    # --------------
-    #
-    # - parcellite: to hide the annoying bottom-left corner icon, change the startup script to include '--no-icon'
-    # - Keybase: complete the installation by running `run_keybase` and import your keys:
-    #
-    #     $ keybase pgp export | gpg --import
-    #     $ keybase pgp export -s | gpg --allow-secret-key-import --import
-    #
-
   vars:
 
     firefox_unofficial_extensions:
@@ -800,20 +777,6 @@
 
   # 3000. Communications
   - { name: "Rambox: Install AppImage", get_url: { url: "https://github.com/ramboxapp/community-edition/releases/download/{{ rambox_version }}/Rambox-{{ rambox_version }}-{{ rambox_platform }}.AppImage", dest: "/usr/local/bin/rambox", mode: "+x", checksum: "{{ rambox_checksum }}" }, tags: [rambox] }
-  - { name: "Franz: Uninstall AppImage & artifacts", file: { path: "{{ item }}", state: absent }, tags: [franz], with_items: [
-      "/usr/local/bin/franz",
-      "{{ ansible_env.HOME }}/.local/share/applications/appimagekit-franz.desktop",
-      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/16x16/apps/appimagekit-franz.png",
-      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/24x24/apps/appimagekit-franz.png",
-      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/32x32/apps/appimagekit-franz.png",
-      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/48x48/apps/appimagekit-franz.png",
-      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/64x64/apps/appimagekit-franz.png",
-      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/96x96/apps/appimagekit-franz.png",
-      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/128x128/apps/appimagekit-franz.png",
-      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/256x256/apps/appimagekit-franz.png",
-      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/512x512/apps/appimagekit-franz.png",
-      "{{ ansible_env.HOME }}/.local/share/icons/hicolor/1024x1024/apps/appimagekit-franz.png"
-    ] }
   - { name: "Viber: Check installation", become: yes, command: "dpkg -l viber", register: viber_dpkg_query, changed_when: no, failed_when: no, tags: [viber] }
     # NOTE: Viber developers maintain a single rolling .deb package of the latest version and provide no GPG signatures.
     #       The Flathub package has a broken tray icon making it unusable.
@@ -915,18 +878,10 @@
   - { name: "LibreOffice: Re-install locale package", command: "flatpak install --user --reinstall --noninteractive flathub org.libreoffice.LibreOffice.Locale", when: libreoffice_installed.changed, tags: [libreoffice] }
 
   # 6050. KeePassXC
-  - { name: "KeePassXC: Remove official PPA", become: yes, apt_repository: { repo: "ppa:phoerious/keepassxc", state: absent }, tags: [keepassxc] }
-  - { name: "KeePassXC: Remove system packages", become: yes, apt: { pkg: [keepassxc], state: absent }, tags: [keepassxc] }
-  - { name: "KeePassXC: Uninstall AppImage & artifacts", become: yes, file: { path: "{{ item }}", state: absent }, tags: [keepassxc], with_items: [
-      "/usr/local/bin/keepassxc",
-      "/usr/local/share/icons/keepassxc.png",
-      "/usr/share/applications/org.keepassxc.KeePassXC.desktop"
-    ] }
   - { name: "KeePassXC: Install Flathub packages", flatpak: { method: user, name: org.keepassxc.KeePassXC, remote: flathub, state: present }, tags: [keepassxc] }
   - { name: "KeePassXC: Fix system tray icon", replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^(Exec=/usr/bin/flatpak run)( --own-name=\"org.kde.*\")?", replace: '\1 --own-name="org.kde.*"' }, tags: [keepassxc] }
 
   # 6100. Communications
-  - { name: "Skype: Remove system packages", become: yes, apt: { pkg: [skypeforlinux], state: absent }, tags: [skype] }
   - { name: "Skype: Install Flathub packages", flatpak: { method: user, name: com.skype.Client, remote: flathub, state: present }, tags: [skype] }
 
   # 6999. Flatpak

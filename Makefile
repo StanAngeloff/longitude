@@ -1,4 +1,4 @@
-.PHONY: usage ansible playbook docker-playbook
+.PHONY: usage ansible playbook cleanup docker-build docker-playbook dearmor
 
 usage:
 	@echo 'Usage: make [ ansible | playbook ]'
@@ -9,8 +9,8 @@ ansible:
 	@sudo apt-add-repository -y --update ppa:ansible/ansible
 	@sudo apt-get install -y ansible
 
-playbook:
-	ansible-playbook longitude.playbook.yml --ask-become-pass --diff
+playbook cleanup:
+	ansible-playbook longitude.$@.yml --ask-become-pass --diff
 
 docker-build: DOCKER_OPTIONS=
 docker-build:
