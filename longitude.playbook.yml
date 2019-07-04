@@ -819,7 +819,7 @@
         --pkgrelease 1 \
         --pkglicense 'Apache License, Version 2.0' \
         --requires libqrencode3,libpam0g &&
-      dpkg -i 'libpam-google-authenticator_{{ pam_google_authenticator_version }}-'*.deb &&
+      dpkg -i 'libpam-google-authenticator_{{ pam_google_authenticator_version }}-'*.deb
     args: { executable: "/bin/bash" }
     tags: [ssh, pam]
   - { name: "PAM: Google Authenticator: Check system installation", become: yes, command: "apt-mark showhold", register: pam_google_authenticator_system_install_query, changed_when: no, failed_when: no, tags: [pam] }
