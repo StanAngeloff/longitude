@@ -261,7 +261,7 @@
 
   handlers:
     - { name: "ufw::restart", become: yes, service: { name: ufw, state: restarted } }
-    - { name: "sshd::restart", become: yes, service: { name: sshd, state: restarted } }
+    - { name: "sshd::restart", become: yes, service: { name: ssh, state: restarted } }
 
   tasks:
 
