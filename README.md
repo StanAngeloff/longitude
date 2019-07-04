@@ -44,6 +44,8 @@ Non-goals
 
 ### Things to do later…
 
+- **SSH**:
+  * Complete the installation by running `google-authenticator` and following the prompts.
 - **Parcellite**:
   * To hide the annoying bottom-left corner icon, change the startup script to include `--no-icon`
 - **Keybase**:

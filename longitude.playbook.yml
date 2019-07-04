@@ -189,6 +189,41 @@
     envchain_version: 1.0.1
     envchain_checksum: "sha256:09af1fe1cfba3719418f90d59c29c081e1f22b38249f0110305b657bd306e9ae"
 
+    pam_google_authenticator_version: 1.06
+    pam_google_authenticator_checksum: "sha256:52f03ec746e8deb1af37911697d096f0fa87583491b7cc460cdf09a6ef0d6b06"
+
+    sshd_host_keys: [ed25519, rsa, ecdsa]
+    sshd_config:
+      Port: 2022
+      ListenAddress: '0.0.0.0'
+      LoginGraceTime: 30
+      PasswordAuthentication: 'no'
+      ChallengeResponseAuthentication: 'yes'
+      X11Forwarding: 'no'
+      # See https://wiki.mozilla.org/Security/Guidelines/OpenSSH
+      #
+      # The Modern (OpenSSH 6.7+) profile is used.
+      #
+      KexAlgorithms: 'curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256'
+      Ciphers: 'chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr'
+      MACs: 'hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com'
+      # See https://wiki.archlinux.org/index.php/OpenSSH#Two-factor_authentication_and_public_keys
+      AuthenticationMethods: 'publickey keyboard-interactive:pam'
+      # LogLevel VERBOSE logs user's key fingerprint on login. Needed to have a clear audit track of which key was using to log in.
+      LogLevel: VERBOSE
+      # Log sftp level file access (read/write/etc.) that would not be easily logged otherwise.
+      Subsystem: 'sftp /usr/lib/ssh/sftp-server -f AUTHPRIV -l INFO'
+      # Root login is not allowed for auditing reasons. This is because it's difficult to track which process belongs to which root user:
+      #
+      # On Linux, user sessions are tracking using a kernel-side session id, however, this session id is not recorded by OpenSSH.
+      # Additionally, only tools such as systemd and auditd record the process session id.
+      # On other OSes, the user session id is not necessarily recorded at all kernel-side.
+      # Using regular users in combination with /bin/su or /usr/bin/sudo ensure a clear audit track.
+      PermitRootLogin: 'no'
+      # Use kernel sandbox mechanisms where possible in unprivileged processes
+      # Systrace on OpenBSD, Seccomp on Linux, seatbelt on MacOSX/Darwin, rlimit elsewhere.
+      UsePrivilegeSeparation: sandbox
+
     mosh_version: 1.3.2
     mosh_checksum: "sha256:da600573dfa827d88ce114e0fed30210689381bbdcff543c931e4d6a2e851216"
 
@@ -226,6 +261,7 @@
 
   handlers:
     - { name: "ufw::restart", become: yes, service: { name: ufw, state: restarted } }
+    - { name: "sshd::restart", become: yes, service: { name: sshd, state: restarted } }
 
   tasks:
 
@@ -571,14 +607,15 @@
   - { name: "Dotfiles: Re-enable Git fsckObjects", command: "git config --global fetch.fsckObjects true", changed_when: no }
 
   # 1100. Zsh
-  - { name: "Zsh: Install prerequisites", become: yes, apt: { pkg: [libncurses-dev], state: present } }
-  - { name: "Zsh: Check installation", become: yes, command: "ls /opt/zsh-{{ zsh_version }}", register: zsh_install_query, changed_when: no, failed_when: no }
-  - { name: "Zsh: Download source", get_url: { url: "https://sourceforge.net/projects/zsh/files/zsh/{{ zsh_version }}/zsh-{{ zsh_version }}.tar.xz/download", dest: "/tmp/zsh-{{ zsh_version }}.tar.xz", checksum: "{{ zsh_checksum }}" }, when: "zsh_install_query.rc > 0" }
+  - { name: "Zsh: Install prerequisites", become: yes, apt: { pkg: [libncurses-dev], state: present }, tags: [zsh] }
+  - { name: "Zsh: Check installation", become: yes, command: "ls /opt/zsh-{{ zsh_version }}", register: zsh_install_query, changed_when: no, failed_when: no, tags: [zsh] }
+  - { name: "Zsh: Download source", get_url: { url: "https://sourceforge.net/projects/zsh/files/zsh/{{ zsh_version }}/zsh-{{ zsh_version }}.tar.xz/download", dest: "/tmp/zsh-{{ zsh_version }}.tar.xz", checksum: "{{ zsh_checksum }}" }, when: "zsh_install_query.rc > 0", tags: [zsh] }
   - { name: "Zsh: Compile & install packages", when: "zsh_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -Jxf 'zsh-{{ zsh_version }}.tar.xz' && cd 'zsh-{{ zsh_version }}' && ./configure --enable-pcre --prefix='/opt/zsh-{{ zsh_version }}' {% if ansible_env.IS_DOCKERIZED | default(0) == '1' %} --without-tcsetpgrp {% endif %} && make -j8 && make install" }
-  - { name: "Zsh: Set up alternatives", become: yes, alternatives: { name: "zsh", link: "/bin/zsh", path: "/opt/zsh-{{ zsh_version }}/bin/zsh" } }
-  - { name: "Zsh: Check shell", become: yes, shell: "cat /etc/passwd | grep '^{{ ansible_user_id }}:' | cut -d: -f7", register: zsh_shell_query, changed_when: no }
-  - { name: "Zsh: Change shell", become: yes, command: "chsh -s /bin/zsh '{{ ansible_user_id }}'", when: "zsh_shell_query.stdout != '/bin/zsh'" }
+      shell: "cd /tmp && tar --overwrite -Jxf 'zsh-{{ zsh_version }}.tar.xz' && cd 'zsh-{{ zsh_version }}' && ./configure --enable-pcre --prefix='/opt/zsh-{{ zsh_version }}' {% if ansible_env.IS_DOCKERIZED | default(0) == '1' %} --without-tcsetpgrp {% endif %} && make -j8 && make install", tags: [zsh] }
+  - { name: "Zsh: Set up alternatives", become: yes, alternatives: { name: "zsh", link: "/bin/zsh", path: "/opt/zsh-{{ zsh_version }}/bin/zsh" }, tags: [zsh] }
+  - { name: "Zsh: Add to /etc/shells", become: yes, lineinfile: { path: "/etc/shells", line: "/bin/zsh" }, tags: [zsh] }
+  - { name: "Zsh: Check shell", become: yes, shell: "cat /etc/passwd | grep '^{{ ansible_user_id }}:' | cut -d: -f7", register: zsh_shell_query, changed_when: no, tags: [zsh] }
+  - { name: "Zsh: Change shell", become: yes, command: "chsh -s /bin/zsh '{{ ansible_user_id }}'", when: "zsh_shell_query.stdout != '/bin/zsh'", tags: [zsh] }
 
   - { name: "Reset connection to allow shell changes", meta: reset_connection }
 
@@ -758,7 +795,64 @@
   - { name: "ufw: Allow VPN PPTP connections", become: yes, lineinfile: { path: "/etc/ufw/before.rules", regexp: "-p\\s+47\\b", line: "-A ufw-before-input -p 47 -j ACCEPT", insertbefore: "drop INVALID packets" }, tags: [ufw] }
   - { name: "ufw: Turn on", become: yes, ufw: { state: enabled }, tags: [ufw] }
 
-  # 2020. mosh
+  # 2020. SSH+mosh
+  - { name: "SSH: Install packages", become: yes, apt: { pkg: [openssh-server], state: present }, tags: [ssh] }
+  - { name: "SSH: Configure daemon", become: yes, lineinfile: { dest: /etc/ssh/sshd_config, regexp: "^[#\\s]*{{ item.key }}(?!\\.)\\b", line: "{{ item.key }}	{{ item.value }}", insertafter: EOF, state: present }, with_dict: "{{ sshd_config }}", notify: "sshd::restart", tags: [ssh] }
+  - { name: "SSH: Prune host keys", become: yes, lineinfile: { dest: /etc/ssh/sshd_config, regexp: "^[#\\s]*HostKey\\s+(?!(\\/etc\\/ssh\\/ssh_host_{{ sshd_host_keys | join('_key|\\/etc\\/ssh\\/ssh_host_') }}_key))", state: absent }, notify: "sshd::restart", tags: [ssh] }
+  - { name: "SSH: Configure host keys", become: yes, lineinfile: { dest: /etc/ssh/sshd_config, regexp: "^[#\\s]*HostKey\\s+/etc/ssh/ssh_host_{{ item }}_key", line: "HostKey	/etc/ssh/ssh_host_{{ item }}_key", state: present, insertafter: "^(Port|HostKey)\\b" }, with_items: "{{ sshd_host_keys }}", notify: "sshd::restart", tags: [ssh] }
+  - { name: "PAM: Google Authenticator: Install prerequisites", become: yes, apt: { pkg: [checkinstall, libqrencode3, libpam0g-dev], state: present }, tags: [ssh, pam] }
+  - { name: "PAM: Google Authenticator: Check installation", become: yes, shell: "{{ dpkg_query | format('libpam-google-authenticator') }}", register: pam_google_authenticator_dpkg_query, changed_when: no, failed_when: no, tags: [ssh, pam] }
+  - { name: "PAM: Google Authenticator: Download", get_url: { url: "https://github.com/google/google-authenticator-libpam/archive/{{ pam_google_authenticator_version }}.tar.gz", dest: "/tmp/google-authenticator-libpam-{{ pam_google_authenticator_version }}.tar.gz", checksum: "{{ pam_google_authenticator_checksum }}" }, when: "pam_google_authenticator_dpkg_query.rc > 0", tags: [ssh, pam] }
+  - name: "PAM: Google Authenticator: Compile & install package"
+    become: yes
+    when: "pam_google_authenticator_dpkg_query.rc > 0"
+    shell: |
+      cd /tmp &&
+      tar --overwrite -zxf 'google-authenticator-libpam-{{ pam_google_authenticator_version }}.tar.gz' &&
+      cd 'google-authenticator-libpam-{{ pam_google_authenticator_version }}' &&
+      autoreconf -i &&
+      ./configure --prefix='/usr/local' &&
+      make && checkinstall -y --install=no \
+        --maintainer 'stanimir@angeloff.name' \
+        --pkgname 'libpam-google-authenticator' \
+        --pkgversion '{{ pam_google_authenticator_version }}' \
+        --pkgrelease 1 \
+        --pkglicense 'Apache License, Version 2.0' \
+        --requires libqrencode3,libpam0g &&
+      dpkg -i 'libpam-google-authenticator_{{ pam_google_authenticator_version }}-'*.deb &&
+    args: { executable: "/bin/bash" }
+    tags: [ssh, pam]
+  - { name: "PAM: Google Authenticator: Check system installation", become: yes, command: "apt-mark showhold", register: pam_google_authenticator_system_install_query, changed_when: no, failed_when: no, tags: [pam] }
+  - { name: "PAM: Google Authenticator: Hold system packages", become: yes, when: "'libpam-google-authenticator' not in pam_google_authenticator_system_install_query.stdout", command: "apt-mark hold libpam-google-authenticator", tags: [pam] }
+  - { name: "", become: yes, when: "'libpam-google-authenticator' not in pam_google_authenticator_system_install_query.stdout", command: "apt-mark hold libpam-google-authenticator", tags: [pam] }
+  - name: "PAM: Notify: Add script"
+    tags: [ssh, pam]
+    copy:
+      dest: '/usr/local/bin/pam-notify-ssh-open-session'
+      owner: "{{ ansible_user_id }}"
+      mode: 'u=rwx,g=rx,o=rx'
+      force: yes
+      content: |
+        #!/bin/sh
+        set -x
+        [ "$PAM_TYPE" = "open_session" ] || exit 0
+        if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
+          pgrep 'gnome-session' -u "$PAM_USER" | while read -r pid; do
+            dbus_env="$( cat /proc/"$pid"/environ | grep -z '^DBUS_SESSION_BUS_ADDRESS=' )"
+            if [ -n "$dbus_env" ]; then
+              su -s /bin/sh -c "export $dbus_env ; exec notify-send -u critical -t 30000 -i system-log-out \"A new '$PAM_SERVICE' session was opened by\" \"$PAM_USER (on `date` from $PAM_RHOST)\"" "$PAM_USER"
+            fi
+          done
+        else
+          notify-send -u critical -t 30000 -i system-log-out "A new '$PAM_SERVICE' session was opened by" "$PAM_USER (on `date` from $PAM_RHOST)"
+        fi
+  - { name: "SSH: Configure PAM", become: yes, lineinfile: { dest: /etc/pam.d/sshd, regexp: "^[#\\s]*{{ item.service }}\\s+{{ item.control }}\\s+.*{{ item.path | basename }}\\b", line: "{{ item.service }}	{{ item.control }}	{{ item.path }}{% if 'arguments' in item %}	{{ item.arguments }}{% endif %}", insertafter: EOF, state: present }, notify: "sshd::restart", tags: [ssh], with_items: [
+      # See http://manpages.ubuntu.com/manpages/cosmic/en/man5/pam.d.5.html
+      { service: auth, control: required, path: /usr/local/lib/security/pam_google_authenticator.so, arguments: 'echo_verification_code grace_period=3600' },
+      { service: session, control: optional, path: pam_exec.so, arguments: '/usr/local/bin/pam-notify-ssh-open-session' }
+    ] }
+  - { name: "SSH: Override ufw rules", become: yes, lineinfile: { dest: /etc/ufw/applications.d/openssh-server, regexp: "^[#\\s]*ports\\s*=", line: "ports={{ sshd_config.Port | default(22) }}/tcp", state: present }, notify: "ufw::restart", tags: [ssh] }
+  - { name: "SSH: Configure ufw rules", become: yes, ufw: { rule: allow, name: OpenSSH, comment: 'Allow ports used by the OpenSSH server.' }, notify: "ufw::restart", tags: [ssh] }
   - { name: "Mosh: Install prerequisites", become: yes, apt: { pkg: [perl, protobuf-compiler, libprotobuf-dev, libncurses5-dev, zlib1g-dev, libutempter-dev, libssl-dev], state: present }, tags: [mosh] }
   - { name: "Mosh: Check installation", become: yes, command: "ls /opt/mosh-{{ mosh_version }}", register: mosh_install_query, changed_when: no, failed_when: no, tags: [mosh] }
   - { name: "Mosh: Download source", get_url: { url: "https://mosh.org/mosh-{{ mosh_version }}.tar.gz", dest: "/tmp/mosh-{{ mosh_version }}.tar.gz", checksum: "{{ mosh_checksum }}" }, when: "mosh_install_query.rc > 0", tags: [mosh] }
