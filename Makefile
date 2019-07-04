@@ -12,12 +12,14 @@ ansible:
 playbook cleanup:
 	ansible-playbook longitude.$@.yml --ask-become-pass --diff
 
+DOCKER_IMAGE_TAG = $(shell cat Dockerfile | grep '^FROM' | cut -d: -f2)
+
 docker-build: DOCKER_OPTIONS=
-docker-build:
-	@cat Dockerfile | docker build $(DOCKER_OPTIONS) -t stanangeloff/longitude:latest -
+docker-build: Dockerfile
+	@cat Dockerfile | docker build $(DOCKER_OPTIONS) -t stanangeloff/longitude:$(DOCKER_IMAGE_TAG) -
 
 docker-playbook:
-	@docker run --rm --tty --volume `pwd`:/home/maximus/longitude --cap-add=NET_ADMIN stanangeloff/longitude:latest
+	@docker run --rm --tty --volume `pwd`:/home/maximus/longitude --cap-add=NET_ADMIN stanangeloff/longitude:$(DOCKER_IMAGE_TAG)
 
 dearmor: keys/keybase-20190624.asc.gpg
 keys/%.asc.gpg: keys/%.asc
