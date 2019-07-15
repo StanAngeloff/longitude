@@ -559,7 +559,7 @@
   - { name: "HTTPie: Install packages", become: yes, pip: { executable: pip3, name: httpie, version: "{{ httpie_version }}", state: present }, tags: [httpie] }
   - { name: "HTTPie: Install plug-ins", become: yes, pip: { executable: pip3, name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: "{{ httpie_plugins }}" }
   # 980. bat
-  - { name: "bat: Check installation", become: yes, shell: "{{ dpkg_query | format('bat') }}", register: bat_dpkg_query, changed_when: no, failed_when: no }
+  - { name: "bat: Check installation", become: yes, shell: "{{ dpkg_query | format('bat-musl') }}", register: bat_dpkg_query, changed_when: no, failed_when: no }
   - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat-musl_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0" }
   - { name: "bat: Install packages", become: yes, apt: { deb: "/tmp/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0" }
   # 985. xidel
