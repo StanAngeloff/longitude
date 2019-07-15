@@ -58,6 +58,7 @@
       "network.trr.mode": 3
       "network.trr.bootstrapAddress": "1.1.1.1"
       "network.security.esni.enabled": true
+      "privacy.firstparty.isolate": true
       # Network
       #
       "network.dns.disableIPv6": true # We don't use or need IPv6.
@@ -68,6 +69,9 @@
       "browser.cache.memory.enable": true
       "browser.cache.memory.capacity": 8192000 # 8GB
       "browser.cache.memory.max_entry_size": 10240 # 10MB
+      # Experimental
+      #
+      "gfx.webrender.all": true
 
     firefox_locales: [en, bg]
 
