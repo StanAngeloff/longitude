@@ -454,6 +454,7 @@
   # - 'v4l2ucp' - a control panel for Video for Linux 2 Universal.
   # - 'w3m' - a text-based World Wide Web browser, useful for converting HTML to plain text.
   # - 'whois' - a command-line client for the WHOIS (RFC 3912) protocol.
+  # - 'zbar-tools' - scanning and decoding bar codes from various sources.
   #
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
       android-tools-adb,
@@ -475,7 +476,8 @@
       trash-cli,
       unp,
       w3m,
-      whois
+      whois,
+      zbar-tools
     ], state: present } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
   - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", with_items: [
