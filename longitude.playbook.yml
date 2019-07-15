@@ -432,7 +432,6 @@
   # 900. Tools and miscellaneous
   #
   # - 'android-tools-adb' - Android Debug Bridge (adb).
-  # - 'filezilla' - full-featured FTP/SFTP client.
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
   # - 'graphviz' - rich set of graph drawing tools.
@@ -458,7 +457,6 @@
   #
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
       android-tools-adb,
-      filezilla,
       gawk,
       gconf-editor, dconf-editor,
       graphviz,
@@ -965,10 +963,14 @@
   # org.remmina.Remmina
   #     https://remmina.org/
   #
+  # org.filezillaproject.Filezilla
+  #     https://filezilla-project.org/
+  #
   - { name: "Flathub: Install packages", flatpak: { method: user, name: "{{ item }}", remote: flathub, state: present }, tags: [flathub], with_items: [
       org.inkscape.Inkscape,
       org.gnome.Boxes,
-      org.remmina.Remmina
+      org.remmina.Remmina,
+      org.filezillaproject.Filezilla
     ] }
 
   # 6020. Evolution Mail
