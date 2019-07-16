@@ -102,6 +102,8 @@
 
     dropbox_version: 2019.01.31
 
+    tarsnap_version: 1.0.39
+
     imagemagick_version: 7.0.8-34
     imagemagick_checksum: "sha256:0456bb9617144619f56103414e13ae0bbfa63af68a60e5967a41fe69e7fb57bf"
 
@@ -428,6 +430,32 @@
     ] }
   - { name: "Keybase: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/keybase-20190624.asc.gpg' --verify /tmp/keybase_amd64.deb.sig", when: "keybase_dpkg_query.rc > 0", tags: [keybase] }
   - { name: "Keybase: Install package", become: yes, apt: { deb: "/tmp/keybase_amd64.deb", state: present }, when: "keybase_dpkg_query.rc > 0", tags: [keybase] }
+
+  # 760. Tarsnap
+  - { name: "Tarsnap: Install prerequisites", become: yes, apt: { pkg: [gcc, libc6-dev, make, libssl-dev, zlib1g-dev, e2fslibs-dev], state: present }, tags: [tarsnap] }
+  - { name: "Tarsnap: Check installation", become: yes, command: "ls /opt/tarsnap-{{ tarsnap_version }}", register: tarsnap_install_query, changed_when: no, failed_when: no, tags: [tarsnap] }
+  - { name: "Tarsnap: Download package and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "tarsnap_install_query.rc > 0", tags: [tarsnap], with_items: [
+      "https://www.tarsnap.com/download/tarsnap-autoconf-1.0.39.tgz",
+      "https://www.tarsnap.com/download/tarsnap-sigs-1.0.39.asc"
+    ] }
+  - { name: "Tarsnap: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/tarsnap-signing-key-2019.asc.gpg' --verify /tmp/tarsnap-sigs-1.0.39.asc", when: "tarsnap_install_query.rc > 0", tags: [tarsnap] }
+  - name: "Tarsnap: Compile & install packages"
+    when: "tarsnap_install_query.rc > 0"
+    shell: |
+      cd /tmp &&
+      tar --overwrite -zxf 'tarsnap-autoconf-{{ tarsnap_version }}.tgz' &&
+      cd 'tarsnap-autoconf-{{ tarsnap_version }}' &&
+      ./configure --prefix='/opt/tarsnap-{{ tarsnap_version }}' &&
+      make all && make install
+    args: { executable: "/bin/bash" }
+    tags: [tarsnap]
+  - { name: "Tarsnap: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/tarsnap-{{ tarsnap_version }}/bin/{{ item }}" }, tags: [tarsnap], with_items: [
+      tarsnap,
+      tarsnap-keygen,
+      tarsnap-keymgmt,
+      tarsnap-keyregen,
+      tarsnap-recrypt
+    ] }
 
   # 900. Tools and miscellaneous
   #
