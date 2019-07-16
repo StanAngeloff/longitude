@@ -982,6 +982,9 @@
   #
   # These packages don't require additional configuration and can be used off-the-shelf.
   #
+  # org.gtk.Gtk3theme.Adwaita-dark
+  #     The default GTK3 theme in a dark variant.
+  #
   # org.inkscape.Inkscape
   #     https://inkscape.org/
   #
@@ -995,6 +998,7 @@
   #     https://filezilla-project.org/
   #
   - { name: "Flathub: Install packages", flatpak: { method: user, name: "{{ item }}", remote: flathub, state: present }, tags: [flathub], with_items: [
+      org.gtk.Gtk3theme.Adwaita-dark,
       org.inkscape.Inkscape,
       org.gnome.Boxes,
       org.remmina.Remmina,
@@ -1038,6 +1042,9 @@
   - { name: "Flatpak: Configure fonts", copy: { src: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf", dest: "{{ ansible_env.HOME }}/.var/app/{{ item }}/config/fontconfig/conf.d/10-calibri.conf", force: yes }, tags: [flatpak], with_items: [
       org.gnome.Evolution,
       org.libreoffice.LibreOffice
+    ] }
+  - { name: "Flatpak: Enable dark theme for selected apps", ini_file: { create: yes, path: "{{ ansible_env.HOME }}/.var/app/{{ item }}/config/gtk-3.0/settings.ini", section: 'Settings', option: 'gtk-application-prefer-dark-theme', value: '1', no_extra_spaces: yes, state: present }, tags: [flathub, flatpak], with_items: [
+      org.remmina.Remmina
     ] }
 
   # }}}1
