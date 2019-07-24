@@ -33,4 +33,12 @@
 
   - { name: "Skype: Remove system packages", become: yes, apt: { pkg: [skypeforlinux], state: absent }, tags: [skype] }
 
+  # 900. Tools and miscellaneous
+  #
+  # - 'android-tools-adb' - Android Debug Bridge (adb), now part of Android Studio.
+  #
+  - { name: "Miscellaneous: Uninstall packages", become: yes, apt: { pkg: [
+      android-tools-adb
+    ], state: absent } }
+
 # vim: sw=2 ts=2 et :

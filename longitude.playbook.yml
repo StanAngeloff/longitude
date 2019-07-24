@@ -100,6 +100,11 @@
     authy_desktop_version: 1.7.0
     authy_desktop_checksum: "md5:bd2182d0ae4c957efe5f2d244d4dfdb5"
 
+    android_studio_build: 183.5692245
+    android_studio_version: 3.4.2.0
+    android_studio_checksum: "sha256:35eb8c74837d1aab59229101fc91568a607ac04854a40209f7a0ba7ac0601924"
+    android_home: /opt/android/sdk
+
     dropbox_version: 2019.01.31
 
     tarsnap_version: 1.0.39
@@ -459,7 +464,6 @@
 
   # 900. Tools and miscellaneous
   #
-  # - 'android-tools-adb' - Android Debug Bridge (adb).
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
   # - 'graphviz' - rich set of graph drawing tools.
@@ -484,7 +488,6 @@
   # - 'zbar-tools' - scanning and decoding bar codes from various sources.
   #
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
-      android-tools-adb,
       gawk,
       gconf-editor, dconf-editor,
       graphviz,
@@ -804,6 +807,42 @@
         Icon=/opt/authy-{{ authy_desktop_version }}/img/logos/icon128.png
         StartupWMClass=Authy Desktop
     tags: [authy]
+
+  # 1950. Android Studio
+  - { name: "Android Studio: Check installation", become: yes, command: "ls /opt/android-studio-{{ android_studio_version }}-{{ android_studio_build }}", register: android_studio_install_query, changed_when: no, failed_when: no, tags: [android] }
+  - { name: "Android Studio: Download Android Studio", get_url: { url: "https://dl.google.com/dl/android/studio/ide-zips/{{ android_studio_version }}/android-studio-ide-{{ android_studio_build }}-linux.tar.gz", dest: "/tmp/android-studio-{{ android_studio_version }}-{{ android_studio_build }}.tar.gz", checksum: "{{ android_studio_checksum }}" }, when: "android_studio_install_query.rc > 0", tags: [android] }
+  - { name: "Android Studio: Install Android Studio", shell: "cd /tmp && tar --overwrite -zxf 'android-studio-{{ android_studio_version }}-{{ android_studio_build }}.tar.gz' && mv ./android-studio '/opt/android-studio-{{ android_studio_version }}-{{ android_studio_build }}'", when: "android_studio_install_query.rc > 0", tags: [android] }
+  - name: "Android Studio: Add desktop icon"
+    copy:
+      dest: "{{ ansible_env.HOME }}/.local/share/applications/android-studio.desktop"
+      content: |
+        [Desktop Entry]
+        Version=1.0
+        Type=Application
+        Name=Android Studio
+        Exec=/opt/android-studio-{{ android_studio_version }}-{{ android_studio_build }}/bin/studio.sh %f
+        Icon=/opt/android-studio-{{ android_studio_version }}-{{ android_studio_build }}/bin/studio.png
+        Comment=The official Android IDE
+        Categories=Development;IDE;
+        Terminal=false
+        StartupNotify=true
+        StartupWMClass=jetbrains-studio
+        MimeType=application/x-extension-iml;
+    tags: [android]
+  - { name: "Android Studio: Capture local Zsh configuration", shell: 'echo ".localrc_`uname -n`_`uname -o 2>/dev/null || echo Darwin`" | tr "[A-Z]" "[a-z]" | tr "/" "_"', args: { executable: "/bin/bash" }, register: android_studio_localrc, changed_when: no, failed_when: no, tags: [android] }
+  - name: "Android Studio: Update Zsh configuration"
+    blockinfile:
+      marker: "### {mark} AUTOMATICALLY GENERATED"
+      block: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        export ANDROID_HOME="${ANDROID_HOME-{{ android_home }}}"
+        export PATH="${PATH}:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/tools"
+      create: yes
+      insertafter: EOF
+      path: "{{ ansible_env.HOME }}/{{ android_studio_localrc.stdout }}"
+    tags: [android]
 
   # 2000. InfoNotary: qualified electronic signature used when paying bills, accessing tax statements, etc.
   #

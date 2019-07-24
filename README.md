@@ -56,6 +56,9 @@ Non-goals
     ```
 - **Firefox**:
   * Run [Cloudflare ESNI Checker][esni] and make sure all checks get a pass ✅
+- **Android Studio**:
+  * Run Android Studio and complete the installation so the Android SDK is installed & available.
+    * When prompted, specify the install path as `/opt/android/sdk` (the directory will be missing, you need to create it first).
 
 Development
 -----------
