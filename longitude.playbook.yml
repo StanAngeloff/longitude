@@ -600,6 +600,10 @@
   - { name: "ngrok: Install ngrok", shell: "cd /tmp && unzip -o ngrok.zip && mv ./ngrok /usr/local/bin/ngrok", when: "ngrok_install_query.rc > 0" }
   # 995. ffsend (Firefox Send CLI)
   - { name: "Install ffsend", get_url: { url: "https://github.com/timvisee/ffsend/releases/download/v{{ ffsend_version }}/ffsend-v{{ ffsend_version }}-{{ ffsend_platform }}-static", dest: "/usr/local/bin/ffsend", mode: "+x", checksum: "{{ ffsend_checksum }}" } }
+  # 996. Magic Wormhole
+  - { name: "Magic Wormhole: Install prerequisites", become: yes, apt: { pkg: [libffi-dev], state: present }, tags: [wormhole] }
+  - { name: "Magic Wormhole: Install package", pip: { executable: pip3, extra_args: '--user', name: magic-wormhole, state: present }, tags: [wormhole] }
+
   # 999. AWS CLI
   - { name: "AWS: Install CLI packages", pip: { executable: pip3, extra_args: '--user', name: awscli, version: "{{ awscli_version }}", state: present }, tags: [aws, awscli] }
 
