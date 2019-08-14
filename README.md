@@ -59,6 +59,8 @@ Non-goals
 - **Android Studio**:
   * Run Android Studio and complete the installation so the Android SDK is installed & available.
     * When prompted, specify the install path as `/opt/android/sdk` (the directory will be missing, you need to create it first).
+- **Indexing Preferences**:
+  * See [Disable Tracker](https://web.archive.org/web/20190426161518/https://www.putorius.net/disable-tracker-on-fedora-21-fedora-20.html) for detailed steps. Turning indexing & location options off stops the deamon from consuming too much CPU & memory.
 
 Development
 -----------

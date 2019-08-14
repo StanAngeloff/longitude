@@ -480,6 +480,7 @@
   # - 'sqlite3' - a command-line interface for SQLite 3.
   # - 'sqlitebrowser' - a visual tool used to create, design and edit database files compatible with SQLite.
   # - 'tesseract*' - OCR'ing images and parsing text out.
+  # - 'tracker-gui' - A GUI to control indexing services of Gnome.
   # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
   # - 'unp' - a small Perl script which makes extraction of any archive files a bit easier.
   # - 'v4l2ucp' - a control panel for Video for Linux 2 Universal.
@@ -502,6 +503,7 @@
       pv,
       socat,
       tesseract-ocr, tesseract-ocr-bul, tesseract-ocr-eng,
+      tracker-gui,
       trash-cli,
       unp,
       w3m,
