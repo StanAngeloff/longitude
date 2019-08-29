@@ -481,6 +481,7 @@
   # - 'socat' - TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
   # - 'sqlite3' - a command-line interface for SQLite 3.
   # - 'sqlitebrowser' - a visual tool used to create, design and edit database files compatible with SQLite.
+  # - 'synaptic' - graphical package manager.
   # - 'tracker-gui' - A GUI to control indexing services of Gnome.
   # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
   # - 'unp' - a small Perl script which makes extraction of any archive files a bit easier.
@@ -504,6 +505,7 @@
       pv,
       socat,
       sqlite3, sqlitebrowser,
+      synaptic,
       tracker-gui,
       trash-cli,
       unp,
