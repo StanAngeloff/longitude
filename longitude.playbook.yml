@@ -503,6 +503,7 @@
       poedit,
       pv,
       socat,
+      sqlite3, sqlitebrowser,
       tracker-gui,
       trash-cli,
       unp,
