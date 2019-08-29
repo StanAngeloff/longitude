@@ -1077,13 +1077,17 @@
   # org.filezillaproject.Filezilla
   #     https://filezilla-project.org/
   #
+  # com.github.fabiocolacio.marker
+  #     A GTK3 markdown editor. https://fabiocolacio.github.io/Marker
+  #
   - { name: "Flathub: Install packages", flatpak: { method: user, name: "{{ item }}", remote: flathub, state: present }, tags: [flathub], with_items: [
       org.gtk.Gtk3theme.Adwaita-dark,
       org.inkscape.Inkscape,
       org.gnome.Boxes,
       org.videolan.VLC,
       org.remmina.Remmina,
-      org.filezillaproject.Filezilla
+      org.filezillaproject.Filezilla,
+      com.github.fabiocolacio.marker
     ] }
 
   # 6020. Evolution Mail
