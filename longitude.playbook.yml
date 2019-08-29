@@ -778,6 +778,27 @@
 
   # 1810. Tesseract OCR engine
   - { name: "Tesseract: Add PPA", become: yes, apt_repository: { repo: "ppa:alex-p/tesseract-ocr", update_cache: yes }, tags: [tesseract] }
+  - name: "Tesseract: Pin packages priorities"
+    become: yes
+    copy:
+      dest: '/etc/apt/preferences.d/tesseract-ocr'
+      force: yes
+      content: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        ### Adjust pin priority of packages and whitelist only certain packages from PPA `alex-p/tesseract-ocr`.
+
+        Package: *
+        Pin: release o=LP-PPA-alex-p-tesseract-ocr
+        Pin-Priority: 400
+
+        Package: tesseract* liblept5 libopenjp2-7 libtesseract4
+        Pin: release o=LP-PPA-alex-p-tesseract-ocr
+        Pin-Priority: 500
+    register: tesseract_pin_priorities
+    tags: [tesseract]
+  - { name: "Tesseract: Update apt cache", become: yes, apt: { update_cache: yes }, when: tesseract_pin_priorities.changed, tags: [tesseract] }
   - { name: "Tesseract: Install packages", become: yes, apt: { pkg: "{{ ('tesseract-ocr tesseract-ocr-' + tesseract_languages|join(' tesseract-ocr-')).split(' ') }}", state: present }, tags: [tesseract] }
 
   # 1900. Authy Desktop
