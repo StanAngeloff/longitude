@@ -256,6 +256,8 @@
     ffmpeg_platform: amd64
     ffmpeg_checksum: "md5:9bdb279ec557e281a6800718add63385"
 
+    tesseract_languages: [eng, bul]
+
     rambox_version: 0.6.9
     rambox_platform: linux-x86_64
     rambox_checksum: "sha256:a215afdea9bd84a0e166a902100229033a22282dfdf01c11ab0b6020ef1c9107"
@@ -479,7 +481,6 @@
   # - 'socat' - TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
   # - 'sqlite3' - a command-line interface for SQLite 3.
   # - 'sqlitebrowser' - a visual tool used to create, design and edit database files compatible with SQLite.
-  # - 'tesseract*' - OCR'ing images and parsing text out.
   # - 'tracker-gui' - A GUI to control indexing services of Gnome.
   # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
   # - 'unp' - a small Perl script which makes extraction of any archive files a bit easier.
@@ -502,7 +503,6 @@
       poedit,
       pv,
       socat,
-      tesseract-ocr, tesseract-ocr-bul, tesseract-ocr-eng,
       tracker-gui,
       trash-cli,
       unp,
@@ -772,6 +772,10 @@
       ffmpeg,
       ffprobe
     ] }
+
+  # 1810. Tesseract OCR engine
+  - { name: "Tesseract: Add PPA", become: yes, apt_repository: { repo: "ppa:alex-p/tesseract-ocr", update_cache: yes }, tags: [tesseract] }
+  - { name: "Tesseract: Install packages", become: yes, apt: { pkg: "{{ ('tesseract-ocr tesseract-ocr-' + tesseract_languages|join(' tesseract-ocr-')).split(' ') }}", state: present }, tags: [tesseract] }
 
   # 1900. Authy Desktop
   #
