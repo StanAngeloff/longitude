@@ -383,6 +383,11 @@
       insertafter: 'EOF'
     with_dict: "{{ gnupg_agent_conf }}"
 
+  # 590. i3wm
+  - { name: "i3: Add APT key", become: yes, apt_key: { file: "{{ ansible_env.PWD }}/keys/sur5r-keyring.gpg", id: 'E3CA1A89941C42E6', state: present }, tags: [i3] }
+  - { name: "i3: Add repository", become: yes, apt_repository: { repo: "deb https://debian.sur5r.net/i3/ {{ ansible_distribution_release }} universe", update_cache: yes }, tags: [i3] }
+  - { name: "i3: Install packages", become: yes, apt: { pkg: [i3], state: present }, tags: [i3] }
+
   # 600. Firefox
   - { name: "Firefox: Install packages", become: yes, apt: { pkg: "{{ ('firefox firefox-locale-' + firefox_locales|join(' firefox-locale-')).split(' ') }}", state: present }, tags: [firefox] }
   # 610. Firefox alternatives
