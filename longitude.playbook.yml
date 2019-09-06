@@ -390,6 +390,7 @@
 
   # 600. Firefox
   - { name: "Firefox: Install packages", become: yes, apt: { pkg: "{{ ('firefox firefox-locale-' + firefox_locales|join(' firefox-locale-')).split(' ') }}", state: present }, tags: [firefox] }
+  - { name: "Firefox: Install extras", become: yes, apt: { pkg: [fonts-lyx], state: present }, tags: [firefox] }
   # 610. Firefox alternatives
   - { name: "Firefox: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/firefox" }, with_items: [gnome-www-browser, x-www-browser], tags: [firefox] }
   # 620. Firefox policy for enterprise deployments
