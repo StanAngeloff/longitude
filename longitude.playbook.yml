@@ -48,6 +48,10 @@
     # See https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig
     #
     firefox_about_config:
+      # Usability & quality of life improvements
+      #
+      "mousewheel.acceleration.start": 10 # Wait for two mouse wheel scrolls before enabling acceleration,
+      "mousewheel.acceleration.factor": 5 # Accelerate by this much for each mouse wheel scroll.
       # Development
       #
       "devtools.chrome.enabled": true # This enables Ctrl+Alt+Shift+J as well as the command entry in Ctrl+Shift+J.
