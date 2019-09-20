@@ -159,6 +159,12 @@
     ffsend_platform: linux-x64
     ffsend_checksum: "sha256:9c6ba0596c0f65d5f70fb96f5a51426ae03f3baa44be803e34fd26755f327d69"
 
+    terraform_version: 0.12.9
+    terraform_checksum: "sha256:69712c6216cc09b7eca514b9fb137d4b1fead76559c66f338b4185e1c347ace5"
+    terraform_platform: linux_amd64
+    terraform_plugins:
+      terraform-provider-mailgunv3: { url: "https://github.com/phillbaker/terraform-provider-mailgunv3/releases/download/v%(version)s/%(name)s_v%(version)s_%(platform)s", version: 0.3.2, checksum: "md5:ec780c1c15898253e599fbadfacf17f0" } # See https://github.com/phillbaker/terraform-provider-mailgunv3/releases
+
     zsh_version: 5.7.1
     zsh_checksum: "md5:374f9fdd121b5b90e07abfcad7df0627"
 
@@ -621,6 +627,23 @@
   # 996. Magic Wormhole
   - { name: "Magic Wormhole: Install prerequisites", become: yes, apt: { pkg: [libffi-dev], state: present }, tags: [wormhole] }
   - { name: "Magic Wormhole: Install package", pip: { executable: pip3, extra_args: '--user', name: magic-wormhole, state: present }, tags: [wormhole] }
+  # 997. Terraform & plug-ins
+  - { name: "Terraform: Check installation", become: yes, command: "ls '/opt/terraform-{{ terraform_version }}/bin/terraform'", register: terraform_install_query, changed_when: no, failed_when: no, tags: [terraform] }
+  - { name: "Terraform: Download package", get_url: { url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_{{ terraform_platform }}.zip", dest: "/tmp/terraform.zip", checksum: "{{ terraform_checksum }}" }, when: "terraform_install_query.rc > 0", tags: [terraform] }
+  - { name: "Terraform: Install package", shell: "cd /tmp && unzip -o terraform.zip && mkdir -p '/opt/terraform-{{ terraform_version }}/bin' && mv ./terraform '/opt/terraform-{{ terraform_version }}/bin/terraform'", when: "terraform_install_query.rc > 0", tags: [terraform] }
+  - { name: "Terraform: Set up alternatives", become: yes, alternatives: { name: "terraform", link: "/usr/local/bin/terraform", path: "/opt/terraform-{{ terraform_version }}/bin/terraform" }, tags: [terraform] }
+  - { name: "Terraform: Set up plug-ins directories", file: { path: "{{ item }}", state: directory }, tags: [terraform], with_items: [
+      "{{ ansible_env.HOME }}/terraform.d",
+      "{{ ansible_env.HOME }}/terraform.d/plugins",
+    ] }
+  - name: "Terraform: Download plug-ins"
+    get_url:
+      url: "{{ item.value.url | format(name=item.key, version=item.value.version, platform=terraform_platform) }}"
+      dest: "{{ ansible_env.HOME }}/terraform.d/plugins/{{ item.key }}_v{{ item.value.version }}"
+      mode: '+x'
+      checksum: "{{ item.value.checksum }}"
+    with_dict: "{{ terraform_plugins }}"
+    tags: [terraform]
 
   # 999. AWS CLI
   - { name: "AWS: Install CLI packages", pip: { executable: pip3, extra_args: '--user', name: awscli, version: "{{ awscli_version }}", state: present }, tags: [aws, awscli] }
