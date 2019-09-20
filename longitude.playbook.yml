@@ -633,13 +633,13 @@
   - { name: "Terraform: Install package", shell: "cd /tmp && unzip -o terraform.zip && mkdir -p '/opt/terraform-{{ terraform_version }}/bin' && mv ./terraform '/opt/terraform-{{ terraform_version }}/bin/terraform'", when: "terraform_install_query.rc > 0", tags: [terraform] }
   - { name: "Terraform: Set up alternatives", become: yes, alternatives: { name: "terraform", link: "/usr/local/bin/terraform", path: "/opt/terraform-{{ terraform_version }}/bin/terraform" }, tags: [terraform] }
   - { name: "Terraform: Set up plug-ins directories", file: { path: "{{ item }}", state: directory }, tags: [terraform], with_items: [
-      "{{ ansible_env.HOME }}/terraform.d",
-      "{{ ansible_env.HOME }}/terraform.d/plugins",
+      "{{ ansible_env.HOME }}/.terraform.d",
+      "{{ ansible_env.HOME }}/.terraform.d/plugins",
     ] }
   - name: "Terraform: Download plug-ins"
     get_url:
       url: "{{ item.value.url | format(name=item.key, version=item.value.version, platform=terraform_platform) }}"
-      dest: "{{ ansible_env.HOME }}/terraform.d/plugins/{{ item.key }}_v{{ item.value.version }}"
+      dest: "{{ ansible_env.HOME }}/.terraform.d/plugins/{{ item.key }}_v{{ item.value.version }}"
       mode: '+x'
       checksum: "{{ item.value.checksum }}"
     with_dict: "{{ terraform_plugins }}"
