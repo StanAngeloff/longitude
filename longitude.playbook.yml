@@ -79,6 +79,8 @@
 
     firefox_locales: [en, bg]
 
+    neovim_version: 0.4.2
+    neovim_checksum: "sha256:58ef252e4b26b5589d0f5024952004557196dcbe0cec1674985e1ad591d8b5aa"
     neovim_dictionaries: [bg.utf-8]
 
     git_lfs_gpg_key_id: "DC282033"
@@ -327,12 +329,11 @@
   - { name: "etckeeper: Turn off Git signing", become: yes, lineinfile: { path: "/etc/etckeeper/etckeeper.conf", regexp: "^GIT_COMMIT_OPTIONS=", line: "GIT_COMMIT_OPTIONS=\"--no-gpg-sign\"" } }
 
   # 400. Neovim
-  - { name: "Neovim: Add stable PPA", become: yes, apt_repository: { repo: "ppa:neovim-ppa/stable", update_cache: yes } }
-  - { name: "Neovim: Install packages", become: yes, apt: { pkg: [neovim], state: present } }
+  - { name: "Neovim: Install AppImage", get_url: { url: "https://github.com/neovim/neovim/releases/download/v{{ neovim_version }}/nvim.appimage", dest: "/usr/local/bin/nvim-{{ neovim_version }}", mode: "+x", checksum: "{{ neovim_checksum }}" }, tags: [vim, neovim] }
   # 410. Neovim Python support
-  - { name: "Neovim: Add Python support", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip2, pip3] }
+  - { name: "Neovim: Add Python support", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip2, pip3], tags: [vim, neovim] }
   # 420. Neovim alternatives
-  - { name: "Neovim: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/nvim" }, with_items: [vi, vim, editor] }
+  - { name: "Neovim: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/usr/local/bin/nvim-{{ neovim_version }}" }, with_items: [vi, vim, nvim, editor], tags: [vim, neovim] }
 
   # 500. Docker
   - { name: "Docker: Install prerequisites", become: yes, apt: { pkg: [apt-transport-https, ca-certificates, curl, gnupg-agent, software-properties-common], state: present }, tags: [docker] }

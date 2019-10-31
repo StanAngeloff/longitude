@@ -16,6 +16,9 @@
       "/usr/share/applications/org.keepassxc.KeePassXC.desktop"
     ] }
 
+  - { name: "Neovim: Remove stable PPA", become: yes, apt_repository: { repo: "ppa:neovim-ppa/stable", state: absent }, tags: [vim, neovim] }
+  - { name: "Neovim: Remove packages", become: yes, apt: { pkg: [neovim, neovim-runtime], state: absent }, tags: [vim, neovim] }
+
   - { name: "Franz: Uninstall AppImage & artifacts", file: { path: "{{ item }}", state: absent }, tags: [franz], with_items: [
       "/usr/local/bin/franz",
       "{{ ansible_env.HOME }}/.local/share/applications/appimagekit-franz.desktop",
