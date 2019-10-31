@@ -1020,6 +1020,7 @@
     #       The Flathub package has a broken tray icon making it unusable.
     #       We are stuck installing from an untrusted .deb.
   - { name: "Viber: Install packages", become: yes, when: "viber_dpkg_query.rc > 0", apt: { deb: "https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb", state: present }, tags: [viber] }
+  - { name: "Viber: Increase UI scale", become: yes, replace: { path: "/usr/share/applications/viber.desktop", regexp: "^Exec=(env .*\\s)?(/opt/viber/Viber)", replace: 'Exec=env QT_SCALE_FACTOR=1.15 \2' }, tags: [viber] }
 
   # 3100. Steam
   - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
