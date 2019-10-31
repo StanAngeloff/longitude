@@ -11,7 +11,23 @@
     dpkg_query: "dpkg-query --show --showformat='${db:Status-Status}\n' '%s' | grep '^installed'"
 
     firefox_unofficial_extensions:
-      bypass-paywalls: { url: "https://github.com/iamadamdev/bypass-paywalls-firefox/releases/download/v%(version)s/bypass_paywalls-%(version)s-an+fx.xpi", version: 1.5.1, checksum: "md5:8937de9f94d350abf532d585e2f22df5" } # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
+      bypass-paywalls: # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
+        url: "https://github.com/iamadamdev/bypass-paywalls-firefox/releases/download/v%(version)s/bypass_paywalls-%(version)s-an+fx.xpi"
+        version: 1.5.1
+        checksum: "md5:8937de9f94d350abf532d585e2f22df5"
+      browser-mpris2: # See https://github.com/otommod/browser-mpris2/issues/11#issuecomment-493687444
+        url: "https://github.com/CBiX/browser-mpris2/releases/download/v%(version)s-%(commit)s/browser-mpris2-%(commit)s-signed-firefox-fh.cbix.de.xpi"
+        version: 0.1-20190518
+        commit: 7f11327
+        checksum: "md5:1e827d98b8d23ff52f9a4669c8e83252"
+        native:
+          name: "org.mpris.browser_host"
+          allowed_extensions: ["browser-mpris2-%(commit)s-signed-fh@cbix.de"]
+          type: "stdio"
+          url: "https://raw.githubusercontent.com/otommod/browser-mpris2/%(commit)s/native/chrome-mpris2"
+          checksum: "md5:71af835e0d424e629645feb62c8173e3"
+          path: "~/bin/chrome-mpris2"
+          mode: "+x"
 
     # See https://github.com/mozilla/policy-templates/blob/master/README.md
     #
@@ -40,7 +56,7 @@
           %}{%
             for name, extension in firefox_unofficial_extensions | dictsort
           %}{%
-              set _ = extensions.extend([ \"/usr/local/lib/firefox/extensions/\" + name + \"-\" + extension.version + \"-unofficial.xpi\" ])
+              set _ = extensions.extend([ \"/usr/local/lib/firefox/extensions/\" + name + \"-\" + extension.version + (\"-\" + extension.commit if \"commit\" in extension else \"\") + \"-unofficial.xpi\" ])
           %}{%
             endfor
           %}{{ extensions }}"
@@ -411,7 +427,32 @@
       "/usr/local/lib/firefox",
       "/usr/local/lib/firefox/extensions"
     ] }
-  - { name: "Firefox: Download unofficial extensions", get_url: { url: "{{ item.value.url | format(version=item.value.version) }}", dest: "/usr/local/lib/firefox/extensions/{{ item.key }}-{{ item.value.version }}-unofficial.xpi", checksum: "{{ item.value.checksum }}" }, with_dict: "{{ firefox_unofficial_extensions }}", tags: [firefox] }
+  - { name: "Firefox: Download unofficial extensions", get_url: { url: "{{ item.value.url | format(version=item.value.version, commit=item.value.commit | default(omit)) }}", dest: "/usr/local/lib/firefox/extensions/{{ item.key }}-{{ item.value.version + (\"-\" + item.value.commit if \"commit\" in item.value else \"\") }}-unofficial.xpi", checksum: "{{ item.value.checksum }}" }, with_dict: "{{ firefox_unofficial_extensions }}", tags: [firefox] }
+  - name: "Firefox: Download native messaging hosts"
+    get_url:
+      url: "{{ item.value.native.url | format(version=item.value.version, commit=item.value.commit | default(omit)) }}"
+      dest: "{{ item.value.native.path | regex_replace('^~', ansible_env.HOME) }}"
+      checksum: "{{ item.value.native.checksum }}"
+      mode: "{{ item.value.native.mode | default(omit) }}"
+    with_dict: "{{ firefox_unofficial_extensions }}"
+    when: "'native' in item.value"
+    tags: [firefox]
+  - name: "Firefox: Create native messaging hosts manifests"
+    copy:
+      dest: "{{ ansible_env.HOME }}/.mozilla/native-messaging-hosts/{{ item.value.native.name }}.json"
+      content: "{{ {
+        \"name\": item.value.native.name,
+        \"description\": item.value.native.description | default(\"\"),
+        \"path\": item.value.native.path | regex_replace(\"^~\", ansible_env.HOME),
+        \"type\": item.value.native.type | default(\"stdio\"),
+        \"allowed_extensions\": (item.value.native.allowed_extensions | default([]) | join(\",\") | format(version=item.value.version, commit=item.value.commit | default(omit))).split(\",\")
+      } | to_nice_json }}"
+      owner: "{{ ansible_user_id }}"
+      mode: 0444
+      force: yes
+    with_dict: "{{ firefox_unofficial_extensions }}"
+    when: "'native' in item.value"
+    tags: [firefox]
   - { name: "Firefox: Create enterprise deployment policy", become: yes, copy: { dest: "/usr/lib/firefox/distribution/policies.json", content: "{{ firefox_policies | to_nice_json }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes }, tags: [firefox] }
   - name: "Firefox: Setting up AutoConfig"
     become: yes
