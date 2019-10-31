@@ -493,7 +493,6 @@
   # - 'parcellite' - a clipboard manager from the dark ages, but does its job well.
   # - 'pdftk' - tool for manipulating PDF documents.
   # - 'pigz' - Parallel Implementation of GZip.
-  # - 'poedit' - an editor for gettext catalogs (.po files).
   # - 'pv' - a Pipe Viewer which can be used to dislay a progress for long running operatings.
   # - 'socat' - TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
   # - 'sqlite3' - a command-line interface for SQLite 3.
@@ -518,7 +517,6 @@
       parcellite,
       pdftk,
       pigz,
-      poedit,
       pv,
       socat,
       sqlite3, sqlitebrowser,
@@ -1140,6 +1138,10 @@
   - { name: "LibreOffice: Remove system packages", become: yes, apt: { pkg: [libreoffice-calc, libreoffice-draw, libreoffice-gnome, libreoffice-gtk, libreoffice-impress, libreoffice-math, libreoffice-ogltrans, libreoffice-pdfimport, libreoffice-style-breeze, libreoffice-style-galaxy, libreoffice-style-tango, libreoffice-writer], state: absent }, tags: [libreoffice] }
   - { name: "LibreOffice: Install Flathub packages", flatpak: { method: user, name: org.libreoffice.LibreOffice, remote: flathub, state: present }, register: libreoffice_installed, tags: [libreoffice] }
   - { name: "LibreOffice: Re-install locale package", command: "flatpak install --user --reinstall --noninteractive flathub org.libreoffice.LibreOffice.Locale", when: libreoffice_installed.changed, tags: [libreoffice] }
+
+  # 6045. Poedit
+  - { name: "Poedit: Install Flathub packages", flatpak: { method: user, name: net.poedit.Poedit, remote: flathub, state: present }, register: poedit_installed, tags: [poedit] }
+  - { name: "Poedit: Allow broader filesystem access", command: "flatpak override --user net.poedit.Poedit --filesystem=/data", when: poedit_installed.changed, tags: [poedit] }
 
   # 6050. KeePassXC
   - { name: "KeePassXC: Install Flathub packages", flatpak: { method: user, name: org.keepassxc.KeePassXC, remote: flathub, state: present }, tags: [keepassxc] }
