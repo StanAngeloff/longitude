@@ -427,6 +427,11 @@
       "/usr/local/lib/firefox",
       "/usr/local/lib/firefox/extensions"
     ] }
+  - { name: "Firefox: Create directories", file: "{{ item }}", tags: [firefox], with_items: [
+      { path: "{{ ansible_env.HOME }}/bin", state: directory },
+      { path: "{{ ansible_env.HOME }}/.mozilla", state: directory },
+      { path: "{{ ansible_env.HOME }}/.mozilla/native-messaging-hosts", state: directory }
+    ] }
   - { name: "Firefox: Download unofficial extensions", get_url: { url: "{{ item.value.url | format(version=item.value.version, commit=item.value.commit | default(omit)) }}", dest: "/usr/local/lib/firefox/extensions/{{ item.key }}-{{ item.value.version + (\"-\" + item.value.commit if \"commit\" in item.value else \"\") }}-unofficial.xpi", checksum: "{{ item.value.checksum }}" }, with_dict: "{{ firefox_unofficial_extensions }}", tags: [firefox] }
   - name: "Firefox: Download native messaging hosts"
     get_url:
