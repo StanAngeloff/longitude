@@ -363,6 +363,7 @@
       'python%(version)s',
       'python%(version)s-config'
     ] }
+  - { name: "Python: Install local virtualenv", pip: { executable: "/opt/python{{ python_version.split('.')[:2]|join('.') }}/bin/pip3", name: virtualenv, state: present }, tags: [python] }
 
   # 250. Git
   - { name: "Git: Add supporting tools", become: yes, pip: { executable: pip2, name: diff-highlight, state: present } }
