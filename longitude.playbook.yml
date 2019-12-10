@@ -556,6 +556,7 @@
 
   # 900. Tools and miscellaneous
   #
+  # - 'exfat-fuse', 'exfat-utils' - read and write exFAT driver for FUSE.
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
   # - 'graphviz' - rich set of graph drawing tools.
@@ -580,6 +581,7 @@
   # - 'zbar-tools' - scanning and decoding bar codes from various sources.
   #
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
+      exfat-fuse, exfat-utils,
       gawk,
       gconf-editor, dconf-editor,
       graphviz,
