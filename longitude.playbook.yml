@@ -506,10 +506,10 @@
   - { name: "Tarsnap: Install prerequisites", become: yes, apt: { pkg: [gcc, libc6-dev, make, libssl-dev, zlib1g-dev, e2fslibs-dev], state: present }, tags: [tarsnap] }
   - { name: "Tarsnap: Check installation", become: yes, command: "ls /opt/tarsnap-{{ tarsnap_version }}", register: tarsnap_install_query, changed_when: no, failed_when: no, tags: [tarsnap] }
   - { name: "Tarsnap: Download package and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "tarsnap_install_query.rc > 0", tags: [tarsnap], with_items: [
-      "https://www.tarsnap.com/download/tarsnap-autoconf-1.0.39.tgz",
-      "https://www.tarsnap.com/download/tarsnap-sigs-1.0.39.asc"
+      "https://www.tarsnap.com/download/tarsnap-autoconf-{{ tarsnap_version }}.tgz",
+      "https://www.tarsnap.com/download/tarsnap-sigs-{{ tarsnap_version }}.asc"
     ] }
-  - { name: "Tarsnap: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/tarsnap-signing-key-2019.asc.gpg' --verify /tmp/tarsnap-sigs-1.0.39.asc", when: "tarsnap_install_query.rc > 0", tags: [tarsnap] }
+  - { name: "Tarsnap: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/tarsnap-signing-key-2019.asc.gpg' --verify /tmp/tarsnap-sigs-{{ tarsnap_version }}.asc", when: "tarsnap_install_query.rc > 0", tags: [tarsnap] }
   - name: "Tarsnap: Compile & install packages"
     when: "tarsnap_install_query.rc > 0"
     shell: |
