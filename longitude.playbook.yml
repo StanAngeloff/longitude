@@ -92,6 +92,7 @@
       # Experimental
       #
       "gfx.webrender.all": true
+      "media.videocontrols.picture-in-picture.enabled": true # https://web.archive.org/web/20191203233905/https://css-tricks.com/an-introduction-to-the-picture-in-picture-web-api/#article-header-id-0
 
     firefox_locales: [en, bg]
 
