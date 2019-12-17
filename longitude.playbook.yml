@@ -325,16 +325,28 @@
   - { name: "System: Install essentials", become: yes, apt: { pkg: [build-essential, unzip], state: present } }
 
   # 100. Git
-  - { name: "Git: Add PPA", become: yes, apt_repository: { repo: "ppa:git-core/ppa", update_cache: yes } }
-  - { name: "Git: Install packages", become: yes, apt: { pkg: [git, git-gui, gitk], state: present } }
+  - { name: "Git: Add PPA", become: yes, apt_repository: { repo: "ppa:git-core/ppa", update_cache: yes }, tags: [git] }
+  - { name: "Git: Install packages", become: yes, apt: { pkg: [git, git-gui, gitk], state: present }, tags: [git] }
   # 110. Git LFS
-  - { name: "Git: Install Git LFS prerequisites", become: yes, apt: { pkg: [gnupg, curl, debian-archive-keyring, apt-transport-https], state: present } }
-  - { name: "Git: Import Git LFS GPG key", become: yes, apt_key: { id: "{{ git_lfs_gpg_key_id }}", url: "https://packagecloud.io/github/git-lfs/gpgkey" } }
-  - { name: "Git: Add Git LFS repository", become: yes, apt_repository: { repo: "deb https://packagecloud.io/github/git-lfs/ubuntu/ {{ ansible_distribution_release }} main", update_cache: yes } }
-  - { name: "Git: Install Git LFS packages", become: yes, apt: { pkg: [git-lfs], state: present } }
-  - { name: "Git: Install git-extras packages", become: yes, apt: { pkg: [git-extras], state: present } }
+  - { name: "Git: Install Git LFS prerequisites", become: yes, apt: { pkg: [gnupg, curl, debian-archive-keyring, apt-transport-https], state: present }, tags: [git] }
+  - { name: "Git: Import Git LFS GPG key", become: yes, apt_key: { id: "{{ git_lfs_gpg_key_id }}", url: "https://packagecloud.io/github/git-lfs/gpgkey" }, tags: [git] }
+  - { name: "Git: Add Git LFS repository", become: yes, apt_repository: { repo: "deb https://packagecloud.io/github/git-lfs/ubuntu/ {{ ansible_distribution_release }} main", update_cache: yes }, tags: [git] }
+  - { name: "Git: Install Git LFS packages", become: yes, apt: { pkg: [git-lfs], state: present }, tags: [git] }
+  - { name: "Git: Install git-extras packages", become: yes, apt: { pkg: [git-extras], state: present }, tags: [git] }
   # 120. git-crypt
-  - { name: "Git: Install git-crypt packages", become: yes, apt: { pkg: [git-crypt], state: present } }
+  - { name: "Git: Install git-crypt packages", become: yes, apt: { pkg: [git-crypt], state: present }, tags: [git] }
+  # 130. Git contrib tools
+  - { name: "Git: Capture installed version", shell: "git --version | cut -d' ' -f3", register: git_installed_version, changed_when: no, tags: [git] }
+  - { name: "diff-highlight: Check installation", become: yes, command: "ls /usr/local/bin/diff-highlight-{{ git_installed_version.stdout }}", register: git_diff_highlight_install_query, changed_when: no, failed_when: no, tags: [git] }
+  - name: "diff-highlight: Compile contrib script"
+    become: yes
+    when: "git_diff_highlight_install_query.rc > 0"
+    shell: |
+      cd /usr/share/doc/git/contrib/diff-highlight/ &&
+      make clean diff-highlight &&
+      cp diff-highlight /usr/local/bin/diff-highlight-{{ git_installed_version.stdout }}
+    tags: [git]
+  - { name: "diff-highlight: Set up alternatives", become: yes, alternatives: { name: 'diff-highlight', link: '/usr/local/bin/diff-highlight', path: '/usr/local/bin/diff-highlight-{{ git_installed_version.stdout }}' }, tags: [git] }
 
   # 200. Python
   - { name: "Python: Install pip packages & Python development headers", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present }, tags: [python] }
@@ -364,9 +376,6 @@
       'python%(version)s-config'
     ] }
   - { name: "Python: Install local virtualenv", pip: { executable: "/opt/python{{ python_version.split('.')[:2]|join('.') }}/bin/pip3", name: virtualenv, state: present }, tags: [python] }
-
-  # 250. Git
-  - { name: "Git: Add supporting tools", become: yes, pip: { executable: pip2, name: diff-highlight, state: present } }
 
   # 300. etkkeeper
   - { name: "etckeeper: Install packages", become: yes, apt: { pkg: [etckeeper], state: present } }
