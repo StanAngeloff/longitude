@@ -96,6 +96,12 @@
 
     firefox_locales: [en, bg]
 
+    waterfox_version: 2020.02
+    waterfox_release: linux64
+    waterfox_platform: linux-x86_64
+    waterfox_locale: en-US
+    waterfox_checksum: "sha256:a3b5d62078fad09bd165d54af9c73d6928891aafab65d2cd7916eac19e6d6980"
+
     neovim_version: 0.4.2
     neovim_checksum: "sha256:58ef252e4b26b5589d0f5024952004557196dcbe0cec1674985e1ad591d8b5aa"
     neovim_dictionaries: [bg.utf-8]
@@ -525,6 +531,44 @@
         {% for name, value in firefox_about_config | dictsort %}
         lockPref({{ name | to_json }}, {{ value | to_json }});
         {% endfor %}
+
+  # 650. Waterfox
+  - { name: "Waterfox: Check installation", become: yes, command: "ls /opt/waterfox-classic-{{ waterfox_version }}", register: waterfox_install_query, changed_when: no, failed_when: no, tags: [waterfox] }
+  - { name: "Waterfox: Download classic build", get_url: { url: "https://storage-waterfox.netdna-ssl.com/releases/{{ waterfox_release }}/installer/waterfox-classic-{{ waterfox_version }}.{{ waterfox_locale }}.{{ waterfox_platform }}.tar.bz2", dest: "/tmp/waterfox-classic-{{ waterfox_version }}.tar.bz2", checksum: "{{ waterfox_checksum }}" }, when: "waterfox_install_query.rc > 0", tags: [waterfox] }
+  - { name: "Waterfox: Unpack & install packages", when: "waterfox_install_query.rc > 0",
+      shell: "cd /tmp && tar --overwrite -jxf 'waterfox-classic-{{ waterfox_version }}.tar.bz2' && mv waterfox-classic '/opt/waterfox-classic-{{ waterfox_version }}'", tags: [waterfox] }
+  - { name: "Waterfox: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/waterfox-classic-{{ waterfox_version }}/{{ item }}" }, tags: [waterfox], with_items: [
+      waterfox,
+    ] }
+  - name: "Waterfox: Add desktop icon"
+    become: yes
+    copy:
+      dest: "/usr/share/applications/waterfox.desktop"
+      content: |
+        [Desktop Entry]
+        Version={{ waterfox_version }}
+        Name=Waterfox Web Browser
+        Comment=Browse the World Wide Web
+        GenericName=Web Browser
+        Keywords=Internet;WWW;Browser;Web;Explorer
+        Exec=/opt/waterfox-classic-{{ waterfox_version }}/waterfox %u
+        Terminal=false
+        X-MultipleArgs=false
+        Type=Application
+        Icon=/opt/waterfox-classic-{{ waterfox_version }}/browser/chrome/icons/default/default256.png
+        Categories=GNOME;GTK;Network;WebBrowser;
+        MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;video/webm;application/x-xpinstall;
+        StartupNotify=true
+        Actions=new-window;new-private-window;
+
+        [Desktop Action new-window]
+        Name=Open a New Window
+        Exec=/opt/waterfox-classic-{{ waterfox_version }}/waterfox -new-window
+
+        [Desktop Action new-private-window]
+        Name=Open a New Private Window
+        Exec=/opt/waterfox-classic-{{ waterfox_version }}/waterfox -private-window
+    tags: [waterfox]
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
