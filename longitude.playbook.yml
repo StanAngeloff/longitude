@@ -128,8 +128,8 @@
       default-cache-ttl: 3600
       max-cache-ttl: 7200
 
-    authy_desktop_version: 1.7.0
-    authy_desktop_checksum: "md5:bd2182d0ae4c957efe5f2d244d4dfdb5"
+    authy_desktop_version: 1.8.0
+    authy_desktop_checksum: "md5:2612c816ae5ea59ecfbbaef02e26830b"
 
     android_studio_build: 183.5692245
     android_studio_version: 3.4.2.0
@@ -995,10 +995,10 @@
       7z x "AuthyDesktopSetup{{ authy_desktop_version }}.exe" -o"authy-{{ authy_desktop_version }}" -y &&
       cd "authy-{{ authy_desktop_version }}" &&
       7z x "authy-electron-{{ authy_desktop_version }}-full.nupkg" -y &&
-      mkdir app &&
+      mkdir -p app &&
       npx -q asar@2 e lib/net45/resources/app.asar app &&
       cd app &&
-      npm i --save -q electron@4 &&
+      npx -q yarn@1.22 add electron@8 &&
       cp -R "/tmp/authy-{{ authy_desktop_version }}/app" /opt/authy-{{ authy_desktop_version }}
     args: { executable: "/bin/bash" }
     tags: [authy]
