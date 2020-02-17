@@ -574,6 +574,7 @@
   # - 'gawk' - a better and more robust AWK.
   # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
   # - 'graphviz' - rich set of graph drawing tools.
+  # - 'icu-devtools' - development utilities for International Components for Unicode, uconv CLI tool.
   # - 'kazam' - capturing screencasts and screenshots.
   # - 'moreutils' - additional Unix utilities, e.g., sponge.
   # - 'mpack' - utilities for encoding and decoding binary files in MIME.
@@ -593,12 +594,14 @@
   # - 'w3m' - a text-based World Wide Web browser, useful for converting HTML to plain text.
   # - 'whois' - a command-line client for the WHOIS (RFC 3912) protocol.
   # - 'zbar-tools' - scanning and decoding bar codes from various sources.
+  # - 'zstd' - fast lossless compression algorithm, CLI tool.
   #
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
       exfat-fuse, exfat-utils,
       gawk,
       gconf-editor, dconf-editor,
       graphviz,
+      icu-devtools,
       kazam,
       moreutils,
       mpack,
@@ -615,7 +618,8 @@
       unp,
       w3m,
       whois,
-      zbar-tools
+      zbar-tools,
+      zstd
     ], state: present } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
   - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", with_items: [
