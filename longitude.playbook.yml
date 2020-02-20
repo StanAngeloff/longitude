@@ -1161,12 +1161,6 @@
 
   # 3000. Communications
   - { name: "Rambox: Install AppImage", get_url: { url: "https://github.com/ramboxapp/community-edition/releases/download/{{ rambox_version }}/Rambox-{{ rambox_version }}-{{ rambox_platform }}.AppImage", dest: "/usr/local/bin/rambox", mode: "+x", checksum: "{{ rambox_checksum }}" }, tags: [rambox] }
-  - { name: "Viber: Check installation", become: yes, shell: "{{ dpkg_query | format('viber') }}", register: viber_dpkg_query, changed_when: no, failed_when: no, tags: [viber] }
-    # NOTE: Viber developers maintain a single rolling .deb package of the latest version and provide no GPG signatures.
-    #       The Flathub package has a broken tray icon making it unusable.
-    #       We are stuck installing from an untrusted .deb.
-  - { name: "Viber: Install packages", become: yes, when: "viber_dpkg_query.rc > 0", apt: { deb: "https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb", state: present }, tags: [viber] }
-  - { name: "Viber: Increase UI scale", become: yes, replace: { path: "/usr/share/applications/viber.desktop", regexp: "^Exec=(env .*\\s)?(/opt/viber/Viber)", replace: 'Exec=env QT_SCALE_FACTOR=1.15 \2' }, tags: [viber] }
 
   # 3100. Steam
   - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
@@ -1261,6 +1255,9 @@
   # com.github.fabiocolacio.marker
   #     A GTK3 markdown editor. https://fabiocolacio.github.io/Marker
   #
+  # com.skype.Client
+  #     Call and message Skype users, with video chat support.
+  #
   - { name: "Flathub: Install packages", flatpak: { method: user, name: "{{ item }}", remote: flathub, state: present }, tags: [flathub], with_items: [
       org.gtk.Gtk3theme.Adwaita-dark,
       org.inkscape.Inkscape,
@@ -1268,7 +1265,8 @@
       org.videolan.VLC,
       org.remmina.Remmina,
       org.filezillaproject.Filezilla,
-      com.github.fabiocolacio.marker
+      com.github.fabiocolacio.marker,
+      com.skype.Client,
     ] }
 
   # 6020. Evolution Mail
@@ -1291,7 +1289,8 @@
   - { name: "KeePassXC: Fix system tray icon", replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^(Exec=/usr/bin/flatpak run)( --own-name=\"org.kde.*\")?", replace: '\1 --own-name="org.kde.*"' }, tags: [keepassxc] }
 
   # 6100. Communications
-  - { name: "Skype: Install Flathub packages", flatpak: { method: user, name: com.skype.Client, remote: flathub, state: present }, tags: [skype] }
+  - { name: "Viber: Install Flathub packages", flatpak: { method: user, name: com.viber.Viber, remote: flathub, state: present }, tags: [viber] }
+  - { name: "Viber: Increase UI scale", become: yes, replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/com.viber.Viber.desktop", regexp: "^Exec=(env .*\\s)?(/usr/bin/flatpak run)", replace: 'Exec=env QT_SCALE_FACTOR=1.15 \2' }, tags: [viber] }
 
   # 6999. Flatpak
   - { name: "Flatpak: Create font directories", file: { path: "{{ item[1] | format(name=item[0], HOME=ansible_env.HOME) }}", state: directory }, tags: [flatpak], with_nested: [
