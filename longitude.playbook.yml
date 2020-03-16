@@ -1161,6 +1161,22 @@
 
   # 3000. Communications
   - { name: "Rambox: Install AppImage", get_url: { url: "https://github.com/ramboxapp/community-edition/releases/download/{{ rambox_version }}/Rambox-{{ rambox_version }}-{{ rambox_platform }}.AppImage", dest: "/usr/local/bin/rambox", mode: "+x", checksum: "{{ rambox_checksum }}" }, tags: [rambox] }
+  - { name: "Rambox: Download desktop icon", get_url: { url: "https://github.com/ramboxapp/community-edition/raw/{{ rambox_version }}/resources/logo/512x512.png", dest: "{{ ansible_env.HOME }}/.local/share/icons/appimagekit-rambox.png" }, tags: [rambox] }
+  - name: "Rambox: Add desktop icon"
+    copy:
+      dest: "{{ ansible_env.HOME }}/.local/share/applications/appimagekit-rambox.desktop"
+      content: |
+        [Desktop Entry]
+        Name=Rambox
+        Exec="/usr/local/bin/rambox" %U
+        Terminal=false
+        Type=Application
+        Icon=appimagekit-rambox
+        StartupWMClass=Rambox
+        X-AppImage-Version={{ rambox_version }}
+        Categories=Network;
+        Comment=Free and Open Source messaging and emailing app that combines common web applications into one.
+    tags: [rambox]
 
   # 3100. Steam
   - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
