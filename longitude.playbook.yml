@@ -306,6 +306,9 @@
     steam_launcher_version: 1.0.0.61
     steam_launcher_checksum: "sha256:5e7d3f1cb1de847f31152998bdc8137855a1a0f7b0dc099db6a7f4d7e33fd911"
 
+    fraidycat_version: 1.1.2
+    fraidycat_checksum: "sha256:1e0d91fc2aa8a925d00f8549876db28fd9c56c20b8724c391f4d18a1ce4155b7"
+
     ufw_policy:
       - { direction: incoming, policy: deny }
       - { direction: outgoing, policy: allow }
@@ -1182,6 +1185,25 @@
   - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
   - { name: "Steam: Download packages", get_url: { url: "http://repo.steampowered.com/steam/archive/precise/steam-launcher_{{ steam_launcher_version }}_all.deb", dest: "/tmp/steam-launcher-{{ steam_launcher_version }}.deb", checksum: "{{ steam_launcher_checksum }}" }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
   - { name: "Steam: Install packages", become: yes, apt: { deb: "/tmp/steam-launcher-{{ steam_launcher_version }}.deb", state: present }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
+
+  # 3200. Fraidycat
+  - { name: "Fraidycat: Install AppImage", get_url: { url: "https://github.com/kickscondor/fraidycat/releases/download/v{{ fraidycat_version }}/Fraidycat-{{ fraidycat_version }}.AppImage", dest: "/usr/local/bin/Fraidycat", mode: "+x", checksum: "{{ fraidycat_checksum }}" }, tags: [fraidycat] }
+  - { name: "Fraidycat: Download desktop icon", get_url: { url: "https://github.com/kickscondor/fraidycat/raw/v{{ fraidycat_version }}/src/images/flatcat-512.png", dest: "{{ ansible_env.HOME }}/.local/share/icons/appimagekit-fraidycat.png" }, tags: [fraidycat] }
+  - name: "Fraidycat: Add desktop icon"
+    copy:
+      dest: "{{ ansible_env.HOME }}/.local/share/applications/appimagekit-fraidycat.desktop"
+      content: |
+        [Desktop Entry]
+        Name=Fraidycat
+        Exec="/usr/local/bin/Fraidycat" %U
+        Terminal=false
+        Type=Application
+        Icon=appimagekit-fraidycat
+        StartupWMClass=Fraidycat
+        X-AppImage-Version={{ fraidycat_version }}
+        Comment=Follow blogs, wikis, YouTube, Twitter, Reddit, Instagram and the like... from a distance.
+        Categories=News;
+    tags: [fraidycat]
 
   # 5000. Post-install clean up & purging of packages
   #
