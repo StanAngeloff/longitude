@@ -286,8 +286,6 @@
     php_version: 7.2
     php_extensions: [bcmath, curl, gd, gmp, intl, json, mbstring, mysql, pgsql, sqlite3, xml, zip]
 
-    composer_setup_checksum: "a5c698ffe4b8e849a443b120cd5ba38043260d5c4023dbf93e1558871f1f07f58274fc6f4c93bcfd858c6bd0775cd8d1"
-
     nodesource_gpg_key_id: "68576280"
     nodejs_version: 8
 
@@ -905,12 +903,11 @@
       shell: "cd /tmp && tar --overwrite -zxf 'envchain-{{ envchain_version }}.tar.gz' && cd 'envchain-{{ envchain_version }}' && make && make install DESTDIR='/usr/local'" }
 
   # 1500. PHP & extensions
-  - { name: "PHP: Add PPA", become: yes, apt_repository: { repo: "ppa:ondrej/php", update_cache: yes } }
-  - { name: "PHP: Install packages", become: yes, apt: { pkg: "{{ ('php-pear php' + php_version|string + '-cli php' + php_version|string + '-dev php' + php_version|string + '-' + php_extensions|join(' php' + php_version|string + '-')).split(' ') }}", state: present } }
-  - { name: "PHP: Check Composer installation", become: yes, command: "ls /usr/local/bin/composer", register: composer_install_query, changed_when: no, failed_when: no }
-  - { name: "PHP: Install Composer", command: "{{ item }}", when: "composer_install_query.rc > 0", with_items: [
-      "php -r \"copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');\"",
-      "php -r \"if (hash_file('sha384', '/tmp/composer-setup.php') === '{{ composer_setup_checksum }}') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('/tmp/composer-setup.php'); } echo PHP_EOL;\"",
+  - { name: "PHP: Add PPA", become: yes, apt_repository: { repo: "ppa:ondrej/php", update_cache: yes }, tags: [php] }
+  - { name: "PHP: Install packages", become: yes, apt: { pkg: "{{ ('php-pear php' + php_version|string + '-cli php' + php_version|string + '-dev php' + php_version|string + '-' + php_extensions|join(' php' + php_version|string + '-')).split(' ') }}", state: present }, tags: [php] }
+  - { name: "PHP: Check Composer installation", become: yes, command: "ls /usr/local/bin/composer", register: composer_install_query, changed_when: no, failed_when: no, tags: [php, composer] }
+  - { name: "PHP: Download Composer setup", get_url: { url: "https://getcomposer.org/installer", dest: "/tmp/composer-setup.php", checksum: "sha384:{{ lookup('url', 'https://composer.github.io/installer.sig', split_lines=false) }}" }, when: "composer_install_query.rc > 0", tags: [php, composer] }
+  - { name: "PHP: Install Composer", command: "{{ item }}", when: "composer_install_query.rc > 0", tags: [php, composer], with_items: [
       "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer",
       "php -r \"unlink('/tmp/composer-setup.php');\"",
     ] }
