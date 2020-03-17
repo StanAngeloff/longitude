@@ -1,0 +1,38 @@
+# The default GTK3 theme in a dark variant.
+org.gtk.Gtk3theme.Adwaita-dark
+
+# Vector Graphics Editor. https://inkscape.org/
+org.inkscape.Inkscape
+
+# Simple remote and virtual machines. https://help.gnome.org/users/gnome-boxes/stable/
+org.gnome.Boxes
+
+# VLC is a free and open source cross-platform multimedia player and framework.
+org.videolan.VLC
+
+# Remote Desktop Client. https://remmina.org/
+org.remmina.Remmina
+
+# FileZilla Client is a fast and reliable cross-platform FTP, FTPS and SFTP client. https://filezilla-project.org/
+org.filezillaproject.Filezilla
+
+# Distraction-free text editor for Markdown. https://wereturtle.github.io/ghostwriter/
+io.github.wereturtle.ghostwriter
+
+# Call and message Skype users, with video chat support.
+com.skype.Client
+
+# The LibreOffice productivity suite.
+org.libreoffice.LibreOffice
+
+# Simple translation editor. https://poedit.net/
+net.poedit.Poedit
+
+# Community-driven port of the Windows application “KeePass Password Safe”. https://keepassxc.org/
+org.keepassxc.KeePassXC
+
+# Send free messages and make free calls to other Viber users.
+com.viber.Viber
+
+
+# vim: ft=conf :

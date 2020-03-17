@@ -1,4 +1,4 @@
-# 6000. Flatpak (requires a reboot) {{{1
+# 6000. Flatpak (requires a reboot)
 #
 # See https://flatpak.org/setup/Ubuntu/
 #
@@ -15,77 +15,29 @@
 
 # 6010. Flathub
 #
-# These packages don't require additional configuration and can be used off-the-shelf.
-#
-# org.gtk.Gtk3theme.Adwaita-dark
-#     The default GTK3 theme in a dark variant.
-#
-# org.inkscape.Inkscape
-#     https://inkscape.org/
-#
-# org.gnome.Boxes
-#     https://help.gnome.org/users/gnome-boxes/stable/
-#
-# org.videolan.VLC
-#     VLC is a free and open source cross-platform multimedia player and framework.
-#
-# org.remmina.Remmina
-#     https://remmina.org/
-#
-# org.filezillaproject.Filezilla
-#     https://filezilla-project.org/
-#
-# io.github.wereturtle.ghostwriter
-#     Distraction-free text editor for Markdown. https://wereturtle.github.io/ghostwriter/
-#
-# com.skype.Client
-#     Call and message Skype users, with video chat support.
-#
-- { name: "Flathub: Install packages", flatpak: { method: user, name: "{{ item }}", remote: flathub, state: present }, tags: [flathub], with_items: [
-    org.gtk.Gtk3theme.Adwaita-dark,
-    org.inkscape.Inkscape,
-    org.gnome.Boxes,
-    org.videolan.VLC,
-    org.remmina.Remmina,
-    org.filezillaproject.Filezilla,
-    io.github.wereturtle.ghostwriter,
-    com.skype.Client,
-  ] }
+- { name: "Flathub: Install packages", flatpak: { method: user, name: "{{ item }}", remote: flathub, state: present }, tags: [flatpak, flathub], with_items: "{{ lookup('file', 'flatpak.flathub.txt').splitlines() | map('regex_replace', '#.*$', '') | map('trim') | select('regex', '.') | list }}" }
 
-# 6040. LibreOffice
-- { name: "LibreOffice: Install Flathub packages", flatpak: { method: user, name: org.libreoffice.LibreOffice, remote: flathub, state: present }, register: libreoffice_installed, tags: [libreoffice] }
-- { name: "LibreOffice: Re-install locale package", command: "flatpak install --user --reinstall --noninteractive flathub org.libreoffice.LibreOffice.Locale", when: libreoffice_installed.changed, tags: [libreoffice] }
-
-# 6045. Poedit
-- { name: "Poedit: Install Flathub packages", flatpak: { method: user, name: net.poedit.Poedit, remote: flathub, state: present }, register: poedit_installed, tags: [poedit] }
-- { name: "Poedit: Allow broader filesystem access", command: "flatpak override --user net.poedit.Poedit --filesystem=/data", when: poedit_installed.changed, tags: [poedit] }
-
-# 6050. KeePassXC
-- { name: "KeePassXC: Install Flathub packages", flatpak: { method: user, name: org.keepassxc.KeePassXC, remote: flathub, state: present }, tags: [keepassxc] }
-- { name: "KeePassXC: Fix system tray icon", replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^(Exec=/usr/bin/flatpak run)( --own-name=\"org.kde.*\")?", replace: '\1 --own-name="org.kde.*"' }, tags: [keepassxc] }
-
-# 6100. Communications
-- { name: "Viber: Install Flathub packages", flatpak: { method: user, name: com.viber.Viber, remote: flathub, state: present }, tags: [viber] }
-- { name: "Viber: Increase UI scale", become: yes, replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/com.viber.Viber.desktop", regexp: "^Exec=(env .*\\s)?(/usr/bin/flatpak run)", replace: 'Exec=env QT_SCALE_FACTOR=1.15 \2' }, tags: [viber] }
+# 6100. Fixes and workarounds
+- { name: "Flatpak: Poedit: Allow broader filesystem access", command: "flatpak override --user net.poedit.Poedit --filesystem=/data", tags: [flatpak, poedit] }
+- { name: "Flatpak: KeePassXC: Fix system tray icon", replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^(Exec=/usr/bin/flatpak run)( --own-name=\"org.kde.*\")?", replace: '\1 --own-name="org.kde.*"' }, tags: [flatpak, keepassxc] }
+- { name: "Flatpak: Viber: Increase UI scale", become: yes, replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/com.viber.Viber.desktop", regexp: "^Exec=(env .*\\s)?(/usr/bin/flatpak run)", replace: 'Exec=env QT_SCALE_FACTOR=1.15 \2' }, tags: [flatpak, viber] }
 
 # 6999. Flatpak
-- { name: "Flatpak: Create font directories", file: { path: "{{ item[1] | format(name=item[0], HOME=ansible_env.HOME) }}", state: directory }, tags: [flatpak], with_nested: [
-    [
-      org.libreoffice.LibreOffice
-    ],
+- { name: "Flatpak: Create font directories", file: { path: "{{ item[0] | format(name=item[1], HOME=ansible_env.HOME) }}", state: directory }, tags: [flatpak], with_nested: [
     [
       "%(HOME)s/.var/app/%(name)s/config/fontconfig",
-      "%(HOME)s/.var/app/%(name)s/config/fontconfig/conf.d"
+      "%(HOME)s/.var/app/%(name)s/config/fontconfig/conf.d",
+    ],
+    [
+      org.libreoffice.LibreOffice,
     ]
   ] }
 - { name: "Flatpak: Configure fonts", copy: { src: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf", dest: "{{ ansible_env.HOME }}/.var/app/{{ item }}/config/fontconfig/conf.d/10-calibri.conf", force: yes }, tags: [flatpak], with_items: [
-    org.libreoffice.LibreOffice
+    org.libreoffice.LibreOffice,
   ] }
-- { name: "Flatpak: Enable dark theme for selected apps", ini_file: { create: yes, path: "{{ ansible_env.HOME }}/.var/app/{{ item }}/config/gtk-3.0/settings.ini", section: 'Settings', option: 'gtk-application-prefer-dark-theme', value: '1', no_extra_spaces: yes, state: present }, tags: [flathub, flatpak], with_items: [
-    org.remmina.Remmina
+- { name: "Flatpak: Enable dark theme", ini_file: { create: yes, path: "{{ ansible_env.HOME }}/.var/app/{{ item }}/config/gtk-3.0/settings.ini", section: 'Settings', option: 'gtk-application-prefer-dark-theme', value: '1', no_extra_spaces: yes, state: present }, tags: [flathub, flatpak], with_items: [
+    org.remmina.Remmina,
   ] }
-
-# }}}1
 
 
 # vim: sw=2 ts=2 et :
