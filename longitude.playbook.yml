@@ -295,9 +295,9 @@
     qemu_version: 4.0.0
     qemu_checksum: "sha256:13a93dfe75b86734326f8d5b475fde82ec692d5b5a338b4262aeeb6b0fa4e469"
 
-    ffmpeg_version: 4.1.3
+    ffmpeg_version: 4.1.4
     ffmpeg_platform: amd64
-    ffmpeg_checksum: "md5:9bdb279ec557e281a6800718add63385"
+    ffmpeg_checksum: "md5:d5828f8cc093812041570860c50d5a28"
 
     tesseract_languages: [eng, bul]
 
@@ -951,11 +951,12 @@
   - { name: "QEMU: Set up bridge helper alternative", become: yes, alternatives: { name: "qemu-bridge-helper", link: "/usr/local/bin/qemu-bridge-helper", path: "/opt/qemu-{{ qemu_version }}/libexec/qemu-bridge-helper" }, tags: [qemu] }
 
   # 1800. ffmpeg
-  - { name: "ffmpeg: Check installation", become: yes, command: "ls /opt/ffmpeg-{{ ffmpeg_version }}", register: ffmpeg_install_query, changed_when: no, failed_when: no }
-  - { name: "ffmpeg: Download static build", get_url: { url: "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-{{ ffmpeg_platform }}-static.tar.xz", dest: "/tmp/ffmpeg-{{ ffmpeg_version }}.tar.xz", checksum: "{{ ffmpeg_checksum }}" }, when: "ffmpeg_install_query.rc > 0" }
+  - { name: "ffmpeg: Check installation", become: yes, command: "ls /opt/ffmpeg-{{ ffmpeg_version }}", register: ffmpeg_install_query, changed_when: no, failed_when: no, tags: [ffmpeg] }
+  - { name: "ffmpeg: Download static build", get_url: { url: "https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-{{ ffmpeg_version }}-{{ ffmpeg_platform }}-static.tar.xz", dest: "/tmp/ffmpeg-{{ ffmpeg_version }}.tar.xz", checksum: "{{ ffmpeg_checksum }}" }, when: "ffmpeg_install_query.rc > 0", tags: [ffmpeg] }
   - { name: "ffmpeg: Unpack & install packages", when: "ffmpeg_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -Jxf 'ffmpeg-{{ ffmpeg_version }}.tar.xz' && mv 'ffmpeg-{{ ffmpeg_version }}-{{ ffmpeg_platform }}-static' '/opt/ffmpeg-{{ ffmpeg_version }}'" }
-  - { name: "ffmpeg: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/ffmpeg-{{ ffmpeg_version }}/{{ item }}" }, with_items: [
+      shell: "cd /tmp && tar --overwrite -Jxf 'ffmpeg-{{ ffmpeg_version }}.tar.xz' && mv 'ffmpeg-{{ ffmpeg_version }}-{{ ffmpeg_platform }}-static' '/opt/ffmpeg-{{ ffmpeg_version }}'",
+      tags: [ffmpeg] }
+  - { name: "ffmpeg: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/ffmpeg-{{ ffmpeg_version }}/{{ item }}" }, tags: [ffmpeg], with_items: [
       ffmpeg,
       ffprobe
     ] }
