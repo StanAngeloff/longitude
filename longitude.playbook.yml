@@ -102,6 +102,10 @@
     waterfox_locale: en-US
     waterfox_checksum: "sha256:a3b5d62078fad09bd165d54af9c73d6928891aafab65d2cd7916eac19e6d6980"
 
+    mailspring_version: 1.7.4
+    mailspring_platform: amd64
+    mailspring_checksum: 'sha256:7c92cdc93151c293fe2e4975be3668c950dbb4dec492f5c955136dccee96a12d'
+
     neovim_version: 0.4.2
     neovim_checksum: "sha256:58ef252e4b26b5589d0f5024952004557196dcbe0cec1674985e1ad591d8b5aa"
     neovim_dictionaries: [bg.utf-8]
@@ -574,6 +578,14 @@
         Name=Open a New Private Window
         Exec=/opt/waterfox-classic-{{ waterfox_version }}/waterfox -private-window
     tags: [waterfox]
+
+  # 660. Mailspring
+  - { name: "Mailspring: Install prerequisites", become: yes, apt: { pkg: [xdg-utils, zenity], state: present }, tags: [mailspring] }
+  - { name: "Mailspring: Check installation", become: yes, shell: "{{ dpkg_query | format('mailspring') }}", register: mailspring_dpkg_query, changed_when: no, failed_when: no, tags: [mailspring] }
+  - { name: "Mailspring: Download packages", get_url: { url: "https://github.com/Foundry376/Mailspring/releases/download/{{ mailspring_version }}/mailspring-{{ mailspring_version }}-{{ mailspring_platform }}.deb", dest: "/tmp/mailspring-{{ mailspring_version }}.deb", checksum: "{{ mailspring_checksum }}" }, when: "mailspring_dpkg_query.rc > 0", tags: [mailspring] }
+  - { name: "Mailspring: Install packages", become: yes, apt: { deb: "/tmp/mailspring-{{ mailspring_version }}.deb", state: present }, when: "mailspring_dpkg_query.rc > 0", tags: [mailspring] }
+  - { name: "Mailspring: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: mailspring_mime_query_1, changed_when: no, failed_when: no, tags: [mailspring] }
+  - { name: "Mailspring: Set as MIME handler", when: "(mailspring_mime_query_1.rc == 0) and ('mailspring.desktop' not in mailspring_mime_query_1.stdout)", command: "xdg-mime default mailspring.desktop x-scheme-handler/mailto", tags: [mailspring] }
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme], state: present } }
