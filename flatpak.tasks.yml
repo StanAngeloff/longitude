@@ -52,14 +52,7 @@
     com.skype.Client,
   ] }
 
-# 6020. Evolution Mail
-- { name: "Evolution: Remove system packages", become: yes, apt: { pkg: [evolution, evolution-common, evolution-indicator, evolution-plugins, evolution-plugins-experimental], state: absent }, tags: [evolution] }
-
-# 6030. GIMP
-- { name: "GIMP: Remove system packages", become: yes, apt: { pkg: [gimp], state: absent }, tags: [gimp] }
-
 # 6040. LibreOffice
-- { name: "LibreOffice: Remove system packages", become: yes, apt: { pkg: [libreoffice-calc, libreoffice-draw, libreoffice-gnome, libreoffice-gtk, libreoffice-impress, libreoffice-math, libreoffice-ogltrans, libreoffice-pdfimport, libreoffice-style-breeze, libreoffice-style-galaxy, libreoffice-style-tango, libreoffice-writer], state: absent }, tags: [libreoffice] }
 - { name: "LibreOffice: Install Flathub packages", flatpak: { method: user, name: org.libreoffice.LibreOffice, remote: flathub, state: present }, register: libreoffice_installed, tags: [libreoffice] }
 - { name: "LibreOffice: Re-install locale package", command: "flatpak install --user --reinstall --noninteractive flathub org.libreoffice.LibreOffice.Locale", when: libreoffice_installed.changed, tags: [libreoffice] }
 

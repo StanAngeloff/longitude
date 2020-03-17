@@ -24,5 +24,26 @@ webbrowser-app
 empathy
 empathy-common
 
+evolution
+evolution-common
+evolution-indicator
+evolution-plugins
+evolution-plugins-experimental
+
+gimp
+
+libreoffice-calc
+libreoffice-draw
+libreoffice-gnome
+libreoffice-gtk
+libreoffice-impress
+libreoffice-math
+libreoffice-ogltrans
+libreoffice-pdfimport
+libreoffice-style-breeze
+libreoffice-style-galaxy
+libreoffice-style-tango
+libreoffice-writer
+
 
 # vim: ft=conf :
