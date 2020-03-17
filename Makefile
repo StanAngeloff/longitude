@@ -1,4 +1,4 @@
-.PHONY: usage ansible playbook cleanup docker-build docker-playbook dearmor
+.PHONY: usage ansible playbook docker-build docker-playbook dearmor
 
 usage:
 	@echo 'Usage: make [ ansible | playbook ]'
@@ -9,7 +9,7 @@ ansible:
 	@sudo apt-add-repository -y --update ppa:ansible/ansible
 	@sudo apt-get install -y ansible
 
-playbook cleanup:
+playbook:
 	ansible-playbook longitude.$@.yml --ask-become-pass --diff
 
 DOCKER_IMAGE_TAG = $(shell cat Dockerfile | grep '^FROM' | cut -d: -f2)
