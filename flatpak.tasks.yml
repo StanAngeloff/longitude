@@ -35,8 +35,8 @@
 # org.filezillaproject.Filezilla
 #     https://filezilla-project.org/
 #
-# com.github.fabiocolacio.marker
-#     A GTK3 markdown editor. https://fabiocolacio.github.io/Marker
+# io.github.wereturtle.ghostwriter
+#     Distraction-free text editor for Markdown. https://wereturtle.github.io/ghostwriter/
 #
 # com.skype.Client
 #     Call and message Skype users, with video chat support.
@@ -48,7 +48,7 @@
     org.videolan.VLC,
     org.remmina.Remmina,
     org.filezillaproject.Filezilla,
-    com.github.fabiocolacio.marker,
+    io.github.wereturtle.ghostwriter,
     com.skype.Client,
   ] }
 
