@@ -21,6 +21,6 @@ docker-build: Dockerfile
 docker-playbook:
 	@docker run --rm --tty --volume `pwd`:/home/maximus/longitude --cap-add=NET_ADMIN stanangeloff/longitude:$(DOCKER_IMAGE_TAG)
 
-dearmor: keys/keybase-20190624.asc.gpg keys/tarsnap-signing-key-2019.asc.gpg keys/python-Lukasz-Langa-keybase.asc.gpg
+dearmor: keys/keybase-20190624.asc.gpg keys/tarsnap-signing-key-2020.asc.gpg keys/python-Lukasz-Langa-keybase.asc.gpg
 keys/%.asc.gpg: keys/%.asc
 	gpg2 --yes -o "$@" --dearmor "$?"

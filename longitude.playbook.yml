@@ -600,7 +600,7 @@
       "https://www.tarsnap.com/download/tarsnap-autoconf-{{ tarsnap_version }}.tgz",
       "https://www.tarsnap.com/download/tarsnap-sigs-{{ tarsnap_version }}.asc"
     ] }
-  - { name: "Tarsnap: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/tarsnap-signing-key-2019.asc.gpg' --verify /tmp/tarsnap-sigs-{{ tarsnap_version }}.asc", when: "tarsnap_install_query.rc > 0", tags: [tarsnap] }
+  - { name: "Tarsnap: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/tarsnap-signing-key-2020.asc.gpg' --verify /tmp/tarsnap-sigs-{{ tarsnap_version }}.asc", when: "tarsnap_install_query.rc > 0", tags: [tarsnap] }
   - name: "Tarsnap: Compile & install packages"
     when: "tarsnap_install_query.rc > 0"
     shell: |
