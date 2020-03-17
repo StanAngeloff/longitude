@@ -807,6 +807,7 @@
       { path: "{{ ansible_env.HOME }}/.local", state: directory },
       { path: "{{ ansible_env.HOME }}/.local/share", state: directory },
       { path: "{{ ansible_env.HOME }}/.local/share/applications", state: directory },
+      { path: "{{ ansible_env.HOME }}/.local/share/icons", state: directory },
 
       { path: "{{ ansible_env.HOME }}/.vimrc", src: "{{ ansible_env.HOME }}/dotfiles/.vimrc", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.config/nvim/init.vim", src: "{{ ansible_env.HOME }}/.vimrc", state: hard, force: yes },
