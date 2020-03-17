@@ -1,0 +1,6 @@
+# The 'snapd' package provides the `snap` binary & daemon.
+# I prefer Flatpak which is decentralized and less intrusive.
+snapd
+
+
+# vim: ft=conf :

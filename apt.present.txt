@@ -1,0 +1,30 @@
+exfat-fuse	# read and write exFAT driver for FUSE.
+exfat-utils
+gawk	# a better and more robust AWK.
+gconf-editor	# a command-line utility for messing with Gnome's settings.
+dconf-editor
+graphviz	# rich set of graph drawing tools.
+icu-devtools	# development utilities for International Components for Unicode, uconv CLI tool.
+kazam	# capturing screencasts and screenshots.
+moreutils	# additional Unix utilities, e.g., sponge.
+mpack	# utilities for encoding and decoding binary files in MIME.
+mysql-client	# for interacting with MySQL servers.
+parcellite	# a clipboard manager from the dark ages, but does its job well.
+pdftk	# tool for manipulating PDF documents.
+pigz	# Parallel Implementation of GZip.
+pv	# a Pipe Viewer which can be used to dislay a progress for long running operatings.
+socat	# TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
+sqlite3	# a command-line interface for SQLite 3.
+sqlitebrowser	# a visual tool used to create, design and edit database files compatible with SQLite.
+synaptic	# graphical package manager.
+tracker-gui	# A GUI to control indexing services of Gnome.
+trash-cli	# a `trash` command-line utility for sending files to the rubbish bin.
+unp	# a small Perl script which makes extraction of any archive files a bit easier.
+v4l2ucp	# a control panel for Video for Linux 2 Universal.
+w3m	# a text-based World Wide Web browser, useful for converting HTML to plain text.
+whois	# a command-line client for the WHOIS (RFC 3912) protocol.
+zbar-tools	# scanning and decoding bar codes from various sources.
+zstd	# fast lossless compression algorithm, CLI tool.
+
+
+# vim: ft=conf ts=16 :

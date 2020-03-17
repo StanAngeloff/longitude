@@ -619,57 +619,7 @@
 
   # 900. Tools and miscellaneous
   #
-  # - 'exfat-fuse', 'exfat-utils' - read and write exFAT driver for FUSE.
-  # - 'gawk' - a better and more robust AWK.
-  # - 'gconf|dconf-editor' - a command-line utility for messing with Gnome's settings.
-  # - 'graphviz' - rich set of graph drawing tools.
-  # - 'icu-devtools' - development utilities for International Components for Unicode, uconv CLI tool.
-  # - 'kazam' - capturing screencasts and screenshots.
-  # - 'moreutils' - additional Unix utilities, e.g., sponge.
-  # - 'mpack' - utilities for encoding and decoding binary files in MIME.
-  # - 'mysql-client' - for interacting with MySQL servers.
-  # - 'parcellite' - a clipboard manager from the dark ages, but does its job well.
-  # - 'pdftk' - tool for manipulating PDF documents.
-  # - 'pigz' - Parallel Implementation of GZip.
-  # - 'pv' - a Pipe Viewer which can be used to dislay a progress for long running operatings.
-  # - 'socat' - TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
-  # - 'sqlite3' - a command-line interface for SQLite 3.
-  # - 'sqlitebrowser' - a visual tool used to create, design and edit database files compatible with SQLite.
-  # - 'synaptic' - graphical package manager.
-  # - 'tracker-gui' - A GUI to control indexing services of Gnome.
-  # - 'trash-cli' - a `trash` command-line utility for sending files to the rubbish bin.
-  # - 'unp' - a small Perl script which makes extraction of any archive files a bit easier.
-  # - 'v4l2ucp' - a control panel for Video for Linux 2 Universal.
-  # - 'w3m' - a text-based World Wide Web browser, useful for converting HTML to plain text.
-  # - 'whois' - a command-line client for the WHOIS (RFC 3912) protocol.
-  # - 'zbar-tools' - scanning and decoding bar codes from various sources.
-  # - 'zstd' - fast lossless compression algorithm, CLI tool.
-  #
-  - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: [
-      exfat-fuse, exfat-utils,
-      gawk,
-      gconf-editor, dconf-editor,
-      graphviz,
-      icu-devtools,
-      kazam,
-      moreutils,
-      mpack,
-      mysql-client,
-      parcellite,
-      pdftk,
-      pigz,
-      pv,
-      socat,
-      sqlite3, sqlitebrowser,
-      synaptic,
-      tracker-gui,
-      trash-cli,
-      unp,
-      w3m,
-      whois,
-      zbar-tools,
-      zstd
-    ], state: present } }
+  - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: "{{ lookup('file', 'apt.present.txt').splitlines() | map('regex_replace', '#.*$', '') | map('trim') | select('regex', '.') | list }}", state: present } }
   - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
   - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", with_items: [
       { key: "/org/gnome/mutter/overlay-key", value: "''" },
@@ -1210,23 +1160,8 @@
 
   # 5000. Post-install clean up & purging of packages
   #
-  # - 'snapd' - This is the package providing the `snap` binary, prefer Flatpak which is decentralized.
-  #
-  - { name: "Post-install: Clean up packages", become: yes, apt: { pkg: [
-      aisleriot,
-      chromium-browser, chromium-browser-l10n, chromium-codecs-ffmpeg-extra,
-      gnome-mahjongg, gnome-mines, gnome-sudoku,
-      rhythmbox, rhythmbox-data,
-      shotwell,
-      thunderbird,
-      totem, totem-common, totem-plugins,
-      webbrowser-app,
-      empathy, empathy-common,
-      snapd
-    ], state: absent, autoremove: yes } }
-  - { name: "Post-install: Purge packages", become: yes, apt: { pkg: [
-      snapd
-    ], state: absent, purge: true } }
+  - { name: "Post-install: Clean packages", become: yes, apt: { pkg: "{{ lookup('file', 'apt.absent.txt').splitlines() | map('regex_replace', '#.*$', '') | map('trim') | select('regex', '.') | list }}", state: absent, autoremove: yes }, tags: [post-install] }
+  - { name: "Post-install: Purge packages", become: yes, apt: { pkg: "{{ lookup('file', 'apt.purge.txt').splitlines() | map('regex_replace', '#.*$', '') | map('trim') | select('regex', '.') | list }}", state: absent, autoremove: yes, purge: true }, tags: [post-install] }
 
   # 5010. Scheduled jobs to tame caches
   - name: "Post-install: Clean up caches daily"
