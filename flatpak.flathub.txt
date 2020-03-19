@@ -19,6 +19,9 @@ org.filezillaproject.Filezilla
 # Distraction-free text editor for Markdown. https://wereturtle.github.io/ghostwriter/
 io.github.wereturtle.ghostwriter
 
+# Powerful markdown editor. https://github.com/fabiocolacio/Marker
+com.github.fabiocolacio.marker
+
 # Call and message Skype users, with video chat support.
 com.skype.Client
 
