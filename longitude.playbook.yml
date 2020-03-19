@@ -170,7 +170,7 @@
     jq_platform: linux64
     jq_checksum: "sha256:af986793a515d500ab2d35f8d2aecd656e764504b789b66d7e1a0b727a124c44"
 
-    httpie_version: 1.0.2
+    httpie_version: 2.0.0
     httpie_plugins:
       - { name: 'httpie-oauth', version: 1.0.2 }
 
@@ -715,8 +715,8 @@
   - { name: "jq: Download jq", get_url: { url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-{{ jq_platform }}", dest: "/usr/local/bin/jq-{{ jq_version }}", mode: "+x", checksum: "{{ jq_checksum }}" }, when: "jq_install_query.rc > 0" }
   - { name: "jq: Set up alternatives", become: yes, alternatives: { name: "jq", link: "/usr/local/bin/jq", path: "/usr/local/bin/jq-{{ jq_version }}" } }
   # 970. HTTPie
-  - { name: "HTTPie: Install packages", pip: { executable: pip3, extra_args: '--user', name: httpie, version: "{{ httpie_version }}", state: present }, tags: [httpie] }
-  - { name: "HTTPie: Install plug-ins", pip: { executable: pip3, extra_args: '--user', name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: "{{ httpie_plugins }}" }
+  - { name: "HTTPie: Install packages", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: httpie, version: "{{ httpie_version }}", state: present }, tags: [httpie] }
+  - { name: "HTTPie: Install plug-ins", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: "{{ httpie_plugins }}" }
   # 980. bat
   - { name: "bat: Check installation", become: yes, shell: "{{ dpkg_query | format('bat-musl') }}", register: bat_dpkg_query, changed_when: no, failed_when: no }
   - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat-musl_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0" }
