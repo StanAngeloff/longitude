@@ -114,6 +114,8 @@
 
     python_version: '3.8.0'
 
+    ruby_version: '2.6.5'
+
     docker_gpg_key_id: "0EBFCD88"
     docker_platform: amd64
     docker_compose_version: 1.25.4
@@ -400,6 +402,14 @@
       'python%(version)s-config'
     ] }
   - { name: "Python: Install local virtualenv", pip: { executable: "/opt/python{{ python_version.split('.')[:2]|join('.') }}/bin/pip3", name: virtualenv, state: present }, tags: [python] }
+
+  # 250. Ruby
+  - { name: "Ruby: Create directories", file: { path: "/opt/rubies", state: directory }, tags: [ruby] }
+  - { name: "Ruby: rbenv: Check installation", command: "ls {{ ansible_env.HOME }}/.rbenv/bin/rbenv", register: ruby_rbenv_install_query, changed_when: no, failed_when: no, tags: [ruby] }
+  - { name: "Ruby: rbenv: Run installer", command: "bin/rbenv-installer", when: "ruby_rbenv_install_query.rc > 0", tags: [ruby] }
+  - { name: "Ruby: Check local installation", shell: "{{ ansible_env.HOME }}/.rbenv/bin/rbenv versions --bare | grep '^{{ ruby_version }}$'", register: ruby_install_query, changed_when: no, failed_when: no, tags: [ruby] }
+  - { name: "Ruby: Compile & install local package", command: "{{ ansible_env.HOME }}/.rbenv/bin/rbenv install '{{ ruby_version }}'", when: "ruby_install_query.rc > 0", tags: [ruby] }
+  - { name: "Ruby: Set default version", command: "{{ ansible_env.HOME }}/.rbenv/bin/rbenv global '{{ ruby_version }}'", changed_when: no, tags: [ruby] }
 
   # 300. etkkeeper
   - { name: "etckeeper: Install packages", become: yes, apt: { pkg: [etckeeper], state: present } }
