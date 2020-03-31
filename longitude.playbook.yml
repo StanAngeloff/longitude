@@ -327,6 +327,7 @@
   handlers:
     - { name: "ufw::restart", become: yes, service: { name: ufw, state: restarted } }
     - { name: "sshd::restart", become: yes, service: { name: ssh, state: restarted } }
+    - { name: "bluetooth::restart", become: yes, service: { name: bluetooth, state: restarted } }
 
   tasks:
 
@@ -349,6 +350,26 @@
   - { name: "Tweak kernel parameters (sysctl)", become: yes, sysctl: { name: "{{ item.name }}", state: "{{ item.state | default('present') }}", value: "{{ item.value }}", sysctl_file: '/etc/sysctl.d/60-longitude.conf', reload: yes }, tags: [sysctl], with_items: [
       { name: fs.inotify.max_user_watches, value: 524288 },
     ] }
+
+  # 50. Hardware tweaks
+  #
+  # See https://web.archive.org/web/20200331074851/https://www.spinics.net/lists/linux-bluetooth/msg47685.html
+  #
+  - { name: "Bluetooth: Check if service installed", stat: { path: "/etc/bluetooth/input.conf" }, register: bluetooth_input_stat, tags: [bluetooth] }
+  - name: "Bluetooth: Tweak input configuration"
+    become: yes
+    ini_file:
+      path: "/etc/bluetooth/input.conf"
+      no_extra_spaces: true
+      section: "{{ item.option.split('/')[:-1]|join('.') }}"
+      option: "{{ item.option.split('/')[-1] }}"
+      value: "{{ item.value }}"
+      state: present
+    with_items:
+      - { option: "General/UserspaceHID", value: "true" }
+    notify: "bluetooth::restart"
+    when: bluetooth_input_stat.stat.exists
+    tags: [bluetooth]
 
   # 100. Git
   - { name: "Git: Add PPA", become: yes, apt_repository: { repo: "ppa:git-core/ppa", update_cache: yes }, tags: [git] }
