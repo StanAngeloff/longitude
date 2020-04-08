@@ -398,7 +398,9 @@
     become: yes
     when: "git_diff_highlight_install_query.rc > 0"
     shell: |
-      cd /usr/share/doc/git/contrib/diff-highlight/ &&
+      rm -rf /tmp/git-src &&
+      git clone --depth 1 --branch 'v{{ git_installed_version.stdout }}' https://github.com/git/git.git /tmp/git-src &&
+      cd /tmp/git-src/contrib/diff-highlight &&
       make clean diff-highlight &&
       cp diff-highlight /usr/local/bin/diff-highlight-{{ git_installed_version.stdout }}
     tags: [git]
