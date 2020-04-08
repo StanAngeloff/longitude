@@ -1,3 +1,4 @@
+aria2	# High speed download utility.
 exfat-fuse	# read and write exFAT driver for FUSE.
 exfat-utils
 gawk	# a better and more robust AWK.
