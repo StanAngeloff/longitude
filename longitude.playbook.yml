@@ -933,6 +933,10 @@
   # 1700. Wine
   - { name: "Wine: Import GPG key", become: yes, apt_key: { id: "{{ wine_gpg_key_id }}", url: "https://dl.winehq.org/wine-builds/winehq.key" } }
   - { name: "Wine: Add repository", become: yes, apt_repository: { repo: "deb https://dl.winehq.org/wine-builds/ubuntu/ {{ ansible_distribution_release }} main", update_cache: yes } }
+  # Ubuntu 18.04 does not provide FAudio, which is a dependency of current Wine. (FAudio packages for Ubuntu 19.10 and later are in the distro's universe repository)
+  # Following the instructions in https://forum.winehq.org/viewtopic.php?f=8&t=32192 to install FAudio from the OBS…
+  - { name: "Wine: Add openSUSE GPG key", become: yes, apt_key: { id: "5104960E", url: "https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/xUbuntu_18.04/Release.key" }, when: "ansible_distribution_version is version('18.04', '==')", tags: [wine] }
+  - { name: "Wine: Add openSUSE repository", become: yes, apt_repository: { repo: "deb https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/xUbuntu_18.04/ ./", update_cache: yes }, when: "ansible_distribution_version is version('18.04', '==')", tags: [wine] }
   - { name: "Wine: Install packages", become: yes, apt: { pkg: [winehq-stable], state: present } }
   # 1750. PlayOnLinux
   - { name: "PlayOnLinux: Import GPG key", become: yes, apt_key: { id: "{{ playonlinux_gpg_key_id }}", url: "http://deb.playonlinux.com/public.gpg" } }
