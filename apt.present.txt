@@ -12,14 +12,12 @@ mpack	# utilities for encoding and decoding binary files in MIME.
 mysql-client	# for interacting with MySQL servers.
 nmap	# the Network Mapper.
 parcellite	# a clipboard manager from the dark ages, but does its job well.
-pdftk	# tool for manipulating PDF documents.
 pigz	# Parallel Implementation of GZip.
 pv	# a Pipe Viewer which can be used to dislay a progress for long running operatings.
 socat	# TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
 sqlite3	# a command-line interface for SQLite 3.
 sqlitebrowser	# a visual tool used to create, design and edit database files compatible with SQLite.
 synaptic	# graphical package manager.
-tracker-gui	# A GUI to control indexing services of Gnome.
 trash-cli	# a `trash` command-line utility for sending files to the rubbish bin.
 unp	# a small Perl script which makes extraction of any archive files a bit easier.
 v4l2ucp	# a control panel for Video for Linux 2 Universal.
@@ -28,5 +26,9 @@ whois	# a command-line client for the WHOIS (RFC 3912) protocol.
 zbar-tools	# scanning and decoding bar codes from various sources.
 zstd	# fast lossless compression algorithm, CLI tool.
 
+## Deprecated and removed in Ubuntu 18.04:
+##
+#pdftk	# tool for manipulating PDF documents. See https://askubuntu.com/a/1028983
+#tracker-gui	# A GUI to control indexing services of Gnome.
 
 # vim: ft=conf ts=16 :
