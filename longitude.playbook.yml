@@ -356,7 +356,7 @@
   - { name: "System: Install essentials", become: yes, apt: { pkg: [build-essential, unzip], state: present } }
 
   # 30. sysctl
-  - { name: "Tweak kernel parameters (sysctl)", become: yes, sysctl: { name: "{{ item.name }}", state: "{{ item.state | default('present') }}", value: "{{ item.value }}", sysctl_file: '/etc/sysctl.d/60-longitude.conf', reload: yes }, tags: [sysctl], with_items: [
+  - { name: "Tweak kernel parameters (sysctl)", become: yes, sysctl: { name: "{{ item.name }}", state: "{{ item.state | default('present') }}", value: "{{ item.value }}", sysctl_file: '/etc/sysctl.d/60-longitude.conf', reload: yes }, when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", tags: [sysctl], with_items: [
       { name: fs.inotify.max_user_watches, value: 524288 },
     ] }
 
