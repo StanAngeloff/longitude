@@ -10,6 +10,7 @@ kazam	# capturing screencasts and screenshots.
 moreutils	# additional Unix utilities, e.g., sponge.
 mpack	# utilities for encoding and decoding binary files in MIME.
 mysql-client	# for interacting with MySQL servers.
+nmap	# the Network Mapper.
 parcellite	# a clipboard manager from the dark ages, but does its job well.
 pdftk	# tool for manipulating PDF documents.
 pigz	# Parallel Implementation of GZip.
