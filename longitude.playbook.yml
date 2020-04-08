@@ -781,7 +781,7 @@
   - { name: "Install ffsend", get_url: { url: "https://github.com/timvisee/ffsend/releases/download/v{{ ffsend_version }}/ffsend-v{{ ffsend_version }}-{{ ffsend_platform }}-static", dest: "/usr/local/bin/ffsend", mode: "+x", checksum: "{{ ffsend_checksum }}" } }
   # 996. Magic Wormhole
   - { name: "Magic Wormhole: Install prerequisites", become: yes, apt: { pkg: [libffi-dev], state: present }, tags: [wormhole] }
-  - { name: "Magic Wormhole: Install package", pip: { executable: pip3, extra_args: '--user', name: magic-wormhole, state: present }, tags: [wormhole] }
+  - { name: "Magic Wormhole: Install package", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: magic-wormhole, state: present }, tags: [wormhole] }
   # 997. Terraform & plug-ins
   - { name: "Terraform: Check installation", become: yes, command: "ls '/opt/terraform-{{ terraform_version }}/bin/terraform'", register: terraform_install_query, changed_when: no, failed_when: no, tags: [terraform] }
   - { name: "Terraform: Download package", get_url: { url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_{{ terraform_platform }}.zip", dest: "/tmp/terraform.zip", checksum: "{{ terraform_checksum }}" }, when: "terraform_install_query.rc > 0", tags: [terraform] }
@@ -801,7 +801,7 @@
     tags: [terraform]
 
   # 999. AWS CLI
-  - { name: "AWS: Install CLI packages", pip: { executable: pip3, extra_args: '--user', name: awscli, version: "{{ awscli_version }}", state: present }, tags: [aws, awscli] }
+  - { name: "AWS: Install CLI packages", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: awscli, version: "{{ awscli_version }}", state: present }, tags: [aws, awscli] }
 
   # 1000. Dotfiles
   - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no } }
