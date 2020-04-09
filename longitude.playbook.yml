@@ -165,9 +165,9 @@
     youtube_dl_version: 2019.04.30
     youtube_dl_checksum: "sha256:3c7f9192f93405bca7f68fd944a08f3bad5274ac90007cf423edb2fb779d382b"
 
-    fd_version: 7.4.0
+    fd_version: 7.5.0
     fd_platform: amd64
-    fd_checksum: "sha256:e141dbd0066ca75ac2a2d220226587f7ac1731710376300ad7d329c79110f811"
+    fd_checksum: "sha256:0def65ac4a0158209112c3df2522a853b439743740d422af2c16c994398b3cd7"
 
     ripgrep_version: 0.10.0
     ripgrep_platform: amd64
