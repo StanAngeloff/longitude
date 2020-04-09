@@ -251,8 +251,8 @@
       --disable-frills
     ]
 
-    tmux_version: 2.8
-    tmux_checksum: "sha256:7f6bf335634fafecff878d78de389562ea7f73a7367f268b66d37ea13617a2ba"
+    tmux_version: 3.0a
+    tmux_checksum: "sha256:4ad1df28b4afa969e59c08061b45082fdc49ff512f30fc8e43217d7b0e5f8db9"
 
     tig_version: 2.5.0
     tig_checksum: "sha256:ff537c67af9201e7e7276ce8a0ff9961e9d9c6a8a78790f5817124bd7755aef4"
@@ -880,17 +880,17 @@
   - { name: "rxvt-unicode: Set up as default terminal", become: yes, alternatives: { name: "x-terminal-emulator", path: "/usr/local/bin/urxvt-start" }, tags: [rxvt, urxvt] }
 
   # 1300. tmux
-  - { name: "tmux: Install prerequisites", become: yes, apt: { pkg: [libevent-dev], state: present } }
-  - { name: "tmux: Check installation", become: yes, command: "ls /opt/tmux-{{ tmux_version }}", register: tmux_install_query, changed_when: no, failed_when: no }
-  - { name: "tmux: Download source", get_url: { url: "https://github.com/tmux/tmux/releases/download/{{ tmux_version }}/tmux-{{ tmux_version }}.tar.gz", dest: "/tmp/tmux-{{ tmux_version }}.tar.gz", checksum: "{{ tmux_checksum }}" }, when: "tmux_install_query.rc > 0" }
-  - { name: "tmux: Compile & install packages", when: "tmux_install_query.rc > 0",
+  - { name: "tmux: Install prerequisites", become: yes, apt: { pkg: [libevent-dev], state: present }, tags: [tmux] }
+  - { name: "tmux: Check installation", become: yes, command: "ls /opt/tmux-{{ tmux_version }}", register: tmux_install_query, changed_when: no, failed_when: no, tags: [tmux] }
+  - { name: "tmux: Download source", get_url: { url: "https://github.com/tmux/tmux/releases/download/{{ tmux_version }}/tmux-{{ tmux_version }}.tar.gz", dest: "/tmp/tmux-{{ tmux_version }}.tar.gz", checksum: "{{ tmux_checksum }}" }, when: "tmux_install_query.rc > 0", tags: [tmux] }
+  - { name: "tmux: Compile & install packages", when: "tmux_install_query.rc > 0", tags: [tmux],
       shell: "cd /tmp && tar --overwrite -zxf 'tmux-{{ tmux_version }}.tar.gz' && cd 'tmux-{{ tmux_version }}' && ./configure --prefix='/opt/tmux-{{ tmux_version }}' && make -j8 && make install" }
-  - { name: "tmux: Set up alternatives", become: yes, alternatives: { name: "tmux", link: "/usr/local/bin/tmux", path: "/opt/tmux-{{ tmux_version }}/bin/tmux" } }
-  - { name: "tmux: Set up plug-ins directories", file: { path: "{{ item }}", state: directory }, with_items: [
+  - { name: "tmux: Set up alternatives", become: yes, alternatives: { name: "tmux", link: "/usr/local/bin/tmux", path: "/opt/tmux-{{ tmux_version }}/bin/tmux" }, tags: [tmux] }
+  - { name: "tmux: Set up plug-ins directories", file: { path: "{{ item }}", state: directory }, tags: [tmux], with_items: [
       "{{ ansible_env.HOME }}/.tmux",
       "{{ ansible_env.HOME }}/.tmux/plugins",
     ] }
-  - { name: "tmux: Clone Tmux Plugin Manager", git: { repo: "https://github.com/tmux-plugins/tpm", dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm", remote: "github", update: no } }
+  - { name: "tmux: Clone Tmux Plugin Manager", git: { repo: "https://github.com/tmux-plugins/tpm", dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm", remote: "github", update: no }, tags: [tmux] }
 
   # 1400. tig
   - { name: "tig: Install prerequisites", become: yes, apt: { pkg: [libncursesw5-dev], state: present }, tags: [tig] }
