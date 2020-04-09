@@ -115,8 +115,8 @@
     mailspring_platform: amd64
     mailspring_checksum: 'sha256:7c92cdc93151c293fe2e4975be3668c950dbb4dec492f5c955136dccee96a12d'
 
-    neovim_version: 0.4.2
-    neovim_checksum: "sha256:58ef252e4b26b5589d0f5024952004557196dcbe0cec1674985e1ad591d8b5aa"
+    neovim_version: 0.4.3
+    neovim_checksum: "sha256:a3b7ccbde583acdc7f3385025d3c5e386f92aa97e425b311a49402836998b4e0"
     neovim_dictionaries: [bg.utf-8]
 
     git_lfs_gpg_key_id: "DC282033"
