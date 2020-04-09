@@ -4,6 +4,7 @@ exfat-utils
 gawk	# a better and more robust AWK.
 gconf-editor	# a command-line utility for messing with Gnome's settings.
 dconf-editor
+gnome-tweak-tool	# adjust advanced settings for GNOME.
 graphviz	# rich set of graph drawing tools.
 icu-devtools	# development utilities for International Components for Unicode, uconv CLI tool.
 kazam	# capturing screencasts and screenshots.
@@ -31,4 +32,4 @@ zstd	# fast lossless compression algorithm, CLI tool.
 #pdftk	# tool for manipulating PDF documents. See https://askubuntu.com/a/1028983
 #tracker-gui	# A GUI to control indexing services of Gnome.
 
-# vim: ft=conf ts=16 :
+# vim: ft=conf ts=24 :
