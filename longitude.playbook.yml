@@ -159,8 +159,8 @@
 
     tarsnap_version: 1.0.39
 
-    imagemagick_version: 7.0.8-34
-    imagemagick_checksum: "sha256:0456bb9617144619f56103414e13ae0bbfa63af68a60e5967a41fe69e7fb57bf"
+    imagemagick_version: 7.0.10-6
+    imagemagick_checksum: "sha256:30ac7ce423cef9fb7baf0aefc734ae7b2593b9499c3782057ab73b7a360a0ac5"
 
     youtube_dl_version: 2019.04.30
     youtube_dl_checksum: "sha256:3c7f9192f93405bca7f68fd944a08f3bad5274ac90007cf423edb2fb779d382b"
