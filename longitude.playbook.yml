@@ -224,12 +224,15 @@
       { url: "https://gist.githubusercontent.com/StanAngeloff/743c1cbb7566b5f0d84aeb41503bb989/raw/4abf0e47dc1bc4f231c97488893c205e798e3de6/font-width-fix.patch", checksum: "sha256:686770fe4e8d6bb0ba497ad2e1f217d17515f2544d80abe76496c63ead2bfaa4" },
       { url: "https://gist.githubusercontent.com/StanAngeloff/743c1cbb7566b5f0d84aeb41503bb989/raw/4abf0e47dc1bc4f231c97488893c205e798e3de6/line-spacing-fix.patch", checksum: "sha256:546a388d0595404a59c71c3eaeba331031032a75f96c57e9a860f27bbd7ebfcc" },
       { url: "https://gist.githubusercontent.com/StanAngeloff/743c1cbb7566b5f0d84aeb41503bb989/raw/4abf0e47dc1bc4f231c97488893c205e798e3de6/rxvt-unicode-clipboard.patch", checksum: "sha256:fef02e5498d65703910d1205780681a8b828df09e418e676d26192664c91a4d4" },
+      { url: "https://gist.githubusercontent.com/StanAngeloff/743c1cbb7566b5f0d84aeb41503bb989/raw/52f71afa8115c032eae0453da616d8e2213d748f/add-space-to-extent_test_chars.patch", strip: 1, checksum: "sha256:0f010641de2b7f9ce611d7d547ea7f1dae7ca8b2b070c6274e5307e6b8754016" },
+      { url: "https://gist.githubusercontent.com/StanAngeloff/743c1cbb7566b5f0d84aeb41503bb989/raw/52f71afa8115c032eae0453da616d8e2213d748f/enable-wide-glyphs.patch", strip: 1, checksum: "sha256:2cac399b45a9056914a776f3dd8cad86e024300ca7f2bbe528abd8ca10b09ca1" },
     ]
     rxvt_unicode_configure_args: [
       --enable-256-color,
       --enable-combining,
       --enable-fading,
       --enable-font-styles,
+      --enable-wide-glyphs,
       --enable-iso14755,
       --enable-keepscrolling,
       --enable-lastlog,
