@@ -260,8 +260,9 @@
     envchain_version: 1.0.1
     envchain_checksum: "sha256:09af1fe1cfba3719418f90d59c29c081e1f22b38249f0110305b657bd306e9ae"
 
-    pam_google_authenticator_version: 1.06
-    pam_google_authenticator_checksum: "sha256:52f03ec746e8deb1af37911697d096f0fa87583491b7cc460cdf09a6ef0d6b06"
+    pam_google_authenticator_version: 1.08
+    pam_google_authenticator_deb_version: 20191231
+    pam_google_authenticator_checksum: "sha256:6f6d7530261ba9e2ece84214f1445857d488b7851c28a58356b49f2d9fd36290"
 
     sshd_host_keys: [ed25519, rsa, ecdsa]
     sshd_config:
@@ -1121,11 +1122,11 @@
       make && checkinstall -y --install=no \
         --maintainer 'stanimir@angeloff.name' \
         --pkgname 'libpam-google-authenticator' \
-        --pkgversion '{{ pam_google_authenticator_version }}' \
-        --pkgrelease 1 \
+        --pkgversion '{{ pam_google_authenticator_deb_version }}' \
+        --pkgrelease "{{ pam_google_authenticator_version | replace('.', '') }}" \
         --pkglicense 'Apache License, Version 2.0' \
         --requires libqrencode3,libpam0g &&
-      dpkg -i 'libpam-google-authenticator_{{ pam_google_authenticator_version }}-'*.deb
+      dpkg -i 'libpam-google-authenticator_{{ pam_google_authenticator_deb_version }}-'*.deb
     args: { executable: "/bin/bash" }
     tags: [ssh, pam]
   - { name: "PAM: Google Authenticator: Check system installation", become: yes, command: "apt-mark showhold", register: pam_google_authenticator_system_install_query, changed_when: no, failed_when: no, tags: [pam] }
