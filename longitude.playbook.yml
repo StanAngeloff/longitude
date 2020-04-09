@@ -303,7 +303,7 @@
     php_extensions: [bcmath, curl, gd, gmp, intl, json, mbstring, mysql, pgsql, sqlite3, xml, zip]
 
     nodesource_gpg_key_id: "68576280"
-    nodejs_version: 8
+    nodejs_version: 10
 
     wine_gpg_key_id: "F987672F"
     playonlinux_gpg_key_id: "8E3D6C3A"
@@ -926,11 +926,11 @@
     ] }
 
   # 1600. NodeJS
-  - { name: "NodeJS: Import GPG key", become: yes, apt_key: { id: "{{ nodesource_gpg_key_id }}", url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" } }
-  - { name: "NodeJS: Add repository", become: yes, apt_repository: { repo: "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x {{ ansible_distribution_release }} main", update_cache: yes } }
-  - { name: "NodeJS: Install packages", become: yes, apt: { pkg: [nodejs], state: present } }
-  - { name: "NodeJS: Create directories", become: yes, file: { path: "/usr/local/lib/node_modules", state: directory, owner: "{{ ansible_user_id }}" } }
-  - { name: "NodeJS: Install global packages in /usr/local", lineinfile: { create: yes, path: "{{ ansible_env.HOME }}/.npmrc", regexp: "^prefix=", line: "prefix=/usr/local" } }
+  - { name: "NodeJS: Import GPG key", become: yes, apt_key: { id: "{{ nodesource_gpg_key_id }}", url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" }, tags: [node, nodejs] }
+  - { name: "NodeJS: Add repository", become: yes, apt_repository: { repo: "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x {{ ansible_distribution_release }} main", update_cache: yes }, tags: [node, nodejs] }
+  - { name: "NodeJS: Install packages", become: yes, apt: { pkg: [nodejs], state: present }, tags: [node, nodejs] }
+  - { name: "NodeJS: Create directories", become: yes, file: { path: "/usr/local/lib/node_modules", state: directory, owner: "{{ ansible_user_id }}" }, tags: [node, nodejs] }
+  - { name: "NodeJS: Install global packages in /usr/local", lineinfile: { create: yes, path: "{{ ansible_env.HOME }}/.npmrc", regexp: "^prefix=", line: "prefix=/usr/local" }, tags: [node, nodejs] }
 
   # 1700. Wine
   - { name: "Wine: Import GPG key", become: yes, apt_key: { id: "{{ wine_gpg_key_id }}", url: "https://dl.winehq.org/wine-builds/winehq.key" } }
