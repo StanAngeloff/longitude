@@ -191,9 +191,9 @@
     fzf_platform: linux_amd64
     fzf_checksum: "sha256:7d4e796bd46bcdea69e79a8f571be1da65ae9d9cc984b50bc4af5c0b5754fbd5"
 
-    bat_version: 0.10.0
+    bat_version: 0.13.0
     bat_platform: amd64
-    bat_checksum: "md5:7b21d6d7d42493440d0c51d3b64947c8"
+    bat_checksum: "sha256:70aa43695bb0fcf278999838d6b9e37356a170fea1cb866feaa927a1e709f3a0"
 
     xidel_version: 0.9.8-1
     xidel_platform: amd64
@@ -766,9 +766,9 @@
   - { name: "HTTPie: Install packages", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: httpie, version: "{{ httpie_version }}", state: present }, tags: [httpie] }
   - { name: "HTTPie: Install plug-ins", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: "{{ httpie_plugins }}" }
   # 980. bat
-  - { name: "bat: Check installation", become: yes, shell: "{{ dpkg_query | format('bat-musl') }}", register: bat_dpkg_query, changed_when: no, failed_when: no }
-  - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat-musl_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0" }
-  - { name: "bat: Install packages", become: yes, apt: { deb: "/tmp/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0" }
+  - { name: "bat: Check installation", become: yes, shell: "{{ dpkg_query | format('bat') }}", register: bat_dpkg_query, changed_when: no, failed_when: no, tags: [bat] }
+  - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0", tags: [bat] }
+  - { name: "bat: Install packages", become: yes, apt: { deb: "/tmp/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0", tags: [bat] }
   # 985. xidel
   - { name: "Xidel: Check installation", become: yes, shell: "{{ dpkg_query | format('xidel') }}", register: xidel_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Xidel: Download packages", get_url: { url: "https://sourceforge.net/projects/videlibri/files/Xidel/Xidel%20{{ xidel_version.split('-')[0] }}/xidel_{{ xidel_version }}_{{ xidel_platform }}.deb/download", dest: "/tmp/xidel-{{ xidel_version }}.deb", checksum: "{{ xidel_checksum }}" }, when: "xidel_dpkg_query.rc > 0" }
