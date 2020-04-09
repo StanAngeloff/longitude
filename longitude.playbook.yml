@@ -169,9 +169,9 @@
     fd_platform: amd64
     fd_checksum: "sha256:0def65ac4a0158209112c3df2522a853b439743740d422af2c16c994398b3cd7"
 
-    ripgrep_version: 0.10.0
+    ripgrep_version: 12.0.1
     ripgrep_platform: amd64
-    ripgrep_checksum: "sha256:fae8c9dbe17998ce7d426bd3649fe71fd7c9eef0e9c2ac85e5958e2a70f665b8"
+    ripgrep_checksum: "sha256:feebb3484e8f590c6024566b880da38b6c6092344a5cb5118ba6b84ddc03d214"
 
     pup_version: 0.4.0
     pup_platform: linux_amd64
