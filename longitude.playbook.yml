@@ -215,8 +215,8 @@
     terraform_plugins:
       terraform-provider-mailgunv3: { url: "https://github.com/phillbaker/terraform-provider-mailgunv3/releases/download/v%(version)s/%(name)s_v%(version)s_%(platform)s", version: 0.3.2, checksum: "md5:ec780c1c15898253e599fbadfacf17f0" } # See https://github.com/phillbaker/terraform-provider-mailgunv3/releases
 
-    zsh_version: 5.7.1
-    zsh_checksum: "md5:374f9fdd121b5b90e07abfcad7df0627"
+    zsh_version: 5.8
+    zsh_checksum: "sha256:dcc4b54cc5565670a65581760261c163d720991f0d06486da61f8d839b52de27"
 
     rxvt_unicode_version: 9.22
     rxvt_unicode_cvs_date: "2020-04-01"
