@@ -1,5 +1,7 @@
 aisleriot
+brasero
 
+chrome-gnome-shell
 chromium-browser
 chromium-browser-l10n
 chromium-codecs-ffmpeg-extra
