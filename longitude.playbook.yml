@@ -316,9 +316,9 @@
 
     tesseract_languages: [eng, bul]
 
-    rambox_version: 0.7.3
+    rambox_version: 0.7.5
     rambox_platform: linux-x86_64
-    rambox_checksum: "sha256:629c17efe14ee58ccaff80305dbef3a9bb5ceb8c91f36363065b4308fba2183b"
+    rambox_checksum: "sha256:0a486f5b4720af537a2e8d2022209223f45b6627fc72b6c86d3985eba882e1bd"
 
     steam_launcher_version: 1.0.0.61
     steam_launcher_checksum: "sha256:5e7d3f1cb1de847f31152998bdc8137855a1a0f7b0dc099db6a7f4d7e33fd911"
