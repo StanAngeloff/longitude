@@ -1244,6 +1244,22 @@
   #
   - { name: "Post-install: Clean packages", become: yes, apt: { pkg: "{{ lookup('file', 'apt.absent.txt').splitlines() | map('regex_replace', '#.*$', '') | map('trim') | select('regex', '.') | list }}", state: absent, autoremove: yes }, tags: [post-install] }
   - { name: "Post-install: Purge packages", become: yes, apt: { pkg: "{{ lookup('file', 'apt.purge.txt').splitlines() | map('regex_replace', '#.*$', '') | map('trim') | select('regex', '.') | list }}", state: absent, autoremove: yes, purge: true }, tags: [post-install] }
+  - name: "Post-install: Never install snapd again"
+    become: yes
+    copy:
+      dest: '/etc/apt/preferences.d/no-snapd'
+      force: yes
+      content: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        ### See https://github.com/cies/kubuntu-setup/tree/875ae9f39d2#remove-snap
+        ### See https://askubuntu.com/questions/75895/how-to-forbid-a-specific-package-to-be-installed#comment1436692_76075
+
+        Package: snapd
+        Pin: release *
+        Pin-Priority: -1
+    tags: [snapd]
 
   # 5010. Scheduled jobs to tame caches
   - name: "Post-install: Clean up caches daily"
