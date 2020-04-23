@@ -820,9 +820,9 @@
   - { name: "AWS: Install CLI packages", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: awscli, version: "{{ awscli_version }}", state: present }, tags: [aws, awscli] }
 
   # 1000. Dotfiles
-  - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no } }
+  - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no }, tags: [dotfiles] }
   # 1010. Dotfiles linking files
-  - { name: "Dotfiles: Creating directories and linking files", file: "{{ item }}", with_items: [
+  - { name: "Dotfiles: Creating directories and linking files", file: "{{ item }}", tags: [dotfiles], with_items: [
       { path: "{{ ansible_env.HOME }}/.vim", src: "./dotfiles/.vim", state: link, force: yes },
       { path: "{{ ansible_env.HOME }}/.config/nvim", src: "../.vim", state: link, force: yes },
       { path: "{{ ansible_env.HOME }}/.urxvt", src: "./dotfiles/.urxvt", state: link, force: yes },
@@ -835,6 +835,7 @@
       { path: "{{ ansible_env.HOME }}/.local/share/applications", state: directory },
       { path: "{{ ansible_env.HOME }}/.local/share/icons", state: directory },
 
+      { path: "{{ ansible_env.HOME }}/.bat.conf", src: "{{ ansible_env.HOME }}/dotfiles/.bat.conf", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.vimrc", src: "{{ ansible_env.HOME }}/dotfiles/.vimrc", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.config/nvim/init.vim", src: "{{ ansible_env.HOME }}/.vimrc", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.gitconfig", src: "{{ ansible_env.HOME }}/dotfiles/.gitconfig", state: hard, force: yes }, # NOTE: See https://stackoverflow.com/q/11786623
@@ -843,17 +844,17 @@
       { path: "{{ ansible_env.HOME }}/.tigrc.vim", src: "{{ ansible_env.HOME }}/dotfiles/.tigrc.vim", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.tmux.conf", src: "{{ ansible_env.HOME }}/dotfiles/.tmux.conf", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.zshrc", src: "{{ ansible_env.HOME }}/dotfiles/.zshrc", state: hard, force: yes },
-      { path: "{{ ansible_env.HOME }}/.Xresources", src: "{{ ansible_env.HOME }}/dotfiles/.Xresources", state: hard, force: yes }
+      { path: "{{ ansible_env.HOME }}/.Xresources", src: "{{ ansible_env.HOME }}/dotfiles/.Xresources", state: hard, force: yes },
     ] }
   # 1020. Dotfiles install Vim plug-ins
-  - { name: "Dotfiles: Install vim-plug", get_url: { url: "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim", dest: "{{ ansible_env.HOME }}/.vim/autoload/plug.vim" }, register: vim_plug_installed }
-  - { name: "Dotfiles: Disable Git fsckObjects", command: "git config --global fetch.fsckObjects false", changed_when: no }
-  - { name: "Dotfiles: Download Vim dictionaries", get_url: { url: "http://ftp.vim.org/vim/runtime/spell/{{ item[0] }}.{{ item[1] }}", dest: "{{ ansible_env.HOME }}/.config/nvim/spell/{{ item[0] }}.{{ item[1] }}" }, with_nested: [
+  - { name: "Dotfiles: Install vim-plug", get_url: { url: "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim", dest: "{{ ansible_env.HOME }}/.vim/autoload/plug.vim" }, register: vim_plug_installed, tags: [dotfiles] }
+  - { name: "Dotfiles: Disable Git fsckObjects", command: "git config --global fetch.fsckObjects false", changed_when: no, tags: [dotfiles] }
+  - { name: "Dotfiles: Download Vim dictionaries", get_url: { url: "http://ftp.vim.org/vim/runtime/spell/{{ item[0] }}.{{ item[1] }}", dest: "{{ ansible_env.HOME }}/.config/nvim/spell/{{ item[0] }}.{{ item[1] }}" }, tags: [dotfiles], with_nested: [
       ["{{ neovim_dictionaries }}"],
       [spl, sug]
     ] }
-  - { name: "Dotfiles: Install Vim plug-ins", command: "nvim -Es -u {{ ansible_env.HOME }}/.config/nvim/init.vim +PlugInstall +qa", when: vim_plug_installed.changed, failed_when: no }
-  - { name: "Dotfiles: Re-enable Git fsckObjects", command: "git config --global fetch.fsckObjects true", changed_when: no }
+  - { name: "Dotfiles: Install Vim plug-ins", command: "nvim -Es -u {{ ansible_env.HOME }}/.config/nvim/init.vim +PlugInstall +qa", when: vim_plug_installed.changed, failed_when: no, tags: [dotfiles] }
+  - { name: "Dotfiles: Re-enable Git fsckObjects", command: "git config --global fetch.fsckObjects true", changed_when: no, tags: [dotfiles] }
 
   # 1100. Zsh
   - { name: "Zsh: Install prerequisites", become: yes, apt: { pkg: [libncurses-dev], state: present }, tags: [zsh] }
