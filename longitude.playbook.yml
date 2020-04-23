@@ -195,6 +195,10 @@
     bat_platform: amd64
     bat_checksum: "sha256:70aa43695bb0fcf278999838d6b9e37356a170fea1cb866feaa927a1e709f3a0"
 
+    delta_version: 0.0.18
+    delta_platform: amd64
+    delta_checksum: "sha256:7ed5e452b9a07c2311aefc124ef7e6a54efc0dc4f7004a4b7d9e3f3a537abc2e"
+
     xidel_version: 0.9.8-1
     xidel_platform: amd64
     xidel_checksum: "sha256:f6a6e29b77547d5ae38383440bd653b3eaf9eeb470def14cc48154a4f6925f69"
@@ -777,6 +781,10 @@
   - { name: "bat: Check installation", become: yes, shell: "{{ dpkg_query | format('bat') }}", register: bat_dpkg_query, changed_when: no, failed_when: no, tags: [bat] }
   - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0", tags: [bat] }
   - { name: "bat: Install packages", become: yes, apt: { deb: "/tmp/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0", tags: [bat] }
+  # 981. delta
+  - { name: "git-delta: Check installation", become: yes, shell: "{{ dpkg_query | format('git-delta') }}", register: delta_dpkg_query, changed_when: no, failed_when: no, tags: [git, delta, git-delta] }
+  - { name: "git-delta: Download packages", get_url: { url: "https://github.com/dandavison/delta/releases/download/{{ delta_version }}/git-delta_{{ delta_version }}_{{ delta_platform }}.deb", dest: "/tmp/git-delta_{{ delta_version }}.deb", checksum: "{{ delta_checksum }}" }, when: "delta_dpkg_query.rc > 0", tags: [git, delta, git-delta] }
+  - { name: "git-delta: Install packages", become: yes, apt: { deb: "/tmp/git-delta_{{ delta_version }}.deb", state: present }, when: "delta_dpkg_query.rc > 0", tags: [git, delta, git-delta] }
   # 985. xidel
   - { name: "Xidel: Check installation", become: yes, shell: "{{ dpkg_query | format('xidel') }}", register: xidel_dpkg_query, changed_when: no, failed_when: no }
   - { name: "Xidel: Download packages", get_url: { url: "https://sourceforge.net/projects/videlibri/files/Xidel/Xidel%20{{ xidel_version.split('-')[0] }}/xidel_{{ xidel_version }}_{{ xidel_platform }}.deb/download", dest: "/tmp/xidel-{{ xidel_version }}.deb", checksum: "{{ xidel_checksum }}" }, when: "xidel_dpkg_query.rc > 0" }
