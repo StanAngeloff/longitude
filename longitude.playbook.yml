@@ -309,7 +309,7 @@
     mosh_checksum: "sha256:da600573dfa827d88ce114e0fed30210689381bbdcff543c931e4d6a2e851216"
 
     php_versions: [7.1, 7.2, 7.3, 7.4]
-    php_extensions: [bcmath, curl, gd, gmp, intl, json, mbstring, mysql, pgsql, sqlite3, xml, zip]
+    php_extensions: [bcmath, curl, gd, gmp, intl, json, mbstring, mysql, pgsql, soap, sqlite3, xml, zip]
 
     nodesource_gpg_key_id: "68576280"
     nodejs_version: 10
