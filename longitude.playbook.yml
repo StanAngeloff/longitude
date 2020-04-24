@@ -308,7 +308,7 @@
     mosh_version: 1.3.2
     mosh_checksum: "sha256:da600573dfa827d88ce114e0fed30210689381bbdcff543c931e4d6a2e851216"
 
-    php_version: 7.2
+    php_versions: [7.1, 7.2, 7.3, 7.4]
     php_extensions: [bcmath, curl, gd, gmp, intl, json, mbstring, mysql, pgsql, sqlite3, xml, zip]
 
     nodesource_gpg_key_id: "68576280"
@@ -933,12 +933,36 @@
 
   # 1500. PHP & extensions
   - { name: "PHP: Add PPA", become: yes, apt_repository: { repo: "ppa:ondrej/php", update_cache: yes }, tags: [php] }
-  - { name: "PHP: Install packages", become: yes, apt: { pkg: "{{ ('php-pear php' + php_version|string + '-cli php' + php_version|string + '-dev php' + php_version|string + '-' + php_extensions|join(' php' + php_version|string + '-')).split(' ') }}", state: present }, tags: [php] }
+  - name: "PHP: Install packages"
+    become: yes
+    apt:
+      pkg: "{%
+        set packages = [\"php-pear\"]
+      %}{%
+        for version in php_versions
+      %}{%
+          set _ = packages.extend([ \"php\" + version|string + \"-cli\", \"php\" + version|string + \"-dev\" ])
+        %}{%
+          for extension in php_extensions
+        %}{%
+            set _ = packages.extend([ \"php\" + version|string + \"-\" + extension ])
+        %}{%
+          endfor
+      %}{%
+        endfor
+      %}{{ packages }}"
+      state: present
+    tags: [php]
   - { name: "PHP: Check Composer installation", become: yes, command: "ls /usr/local/bin/composer", register: composer_install_query, changed_when: no, failed_when: no, tags: [php, composer] }
   - { name: "PHP: Download Composer setup", get_url: { url: "https://getcomposer.org/installer", dest: "/tmp/composer-setup.php", checksum: "sha384:{{ lookup('url', 'https://composer.github.io/installer.sig', split_lines=false) }}" }, when: "composer_install_query.rc > 0", tags: [php, composer] }
   - { name: "PHP: Install Composer", command: "{{ item }}", when: "composer_install_query.rc > 0", tags: [php, composer], with_items: [
       "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer",
       "php -r \"unlink('/tmp/composer-setup.php');\"",
+    ] }
+  - { name: "PHP: Set default version", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/{{ item }}{{ php_default_version | default(php_versions[0]) }}" }, tags: [php], with_items: [
+      php,
+      php-config,
+      phpize,
     ] }
 
   # 1600. NodeJS
