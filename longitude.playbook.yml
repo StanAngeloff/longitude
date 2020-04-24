@@ -9,6 +9,7 @@
   vars:
 
     dpkg_query: "dpkg-query --show --showformat='${db:Status-Status}\n' '%s' | grep '^installed'"
+    localrc_query: 'echo ".localrc_`uname -n`_`uname -o 2>/dev/null || echo Darwin`" | tr "[A-Z]" "[a-z]" | tr "/" "_"'
 
     firefox_unofficial_extensions:
       bypass-paywalls: # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
@@ -953,9 +954,9 @@
       %}{{ packages }}"
       state: present
     tags: [php]
-  - { name: "PHP: Check Composer installation", become: yes, command: "ls /usr/local/bin/composer", register: composer_install_query, changed_when: no, failed_when: no, tags: [php, composer] }
-  - { name: "PHP: Download Composer setup", get_url: { url: "https://getcomposer.org/installer", dest: "/tmp/composer-setup.php", checksum: "sha384:{{ lookup('url', 'https://composer.github.io/installer.sig', split_lines=false) }}" }, when: "composer_install_query.rc > 0", tags: [php, composer] }
-  - { name: "PHP: Install Composer", command: "{{ item }}", when: "composer_install_query.rc > 0", tags: [php, composer], with_items: [
+  - { name: "PHP: Composer: Check installation", become: yes, command: "ls /usr/local/bin/composer", register: composer_install_query, changed_when: no, failed_when: no, tags: [php, composer] }
+  - { name: "PHP: Composer: Download setup", get_url: { url: "https://getcomposer.org/installer", dest: "/tmp/composer-setup.php", checksum: "sha384:{{ lookup('url', 'https://composer.github.io/installer.sig', split_lines=false) }}" }, when: "composer_install_query.rc > 0", tags: [php, composer] }
+  - { name: "PHP: Composer: Install", command: "{{ item }}", when: "composer_install_query.rc > 0", tags: [php, composer], with_items: [
       "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer",
       "php -r \"unlink('/tmp/composer-setup.php');\"",
     ] }
@@ -964,6 +965,22 @@
       php-config,
       phpize,
     ] }
+  - { name: "PHP: Composer: Capture local Zsh configuration", shell: '{{ localrc_query }}', args: { executable: "/bin/bash" }, register: composer_localrc, changed_when: no, failed_when: no, tags: [php, composer] }
+  - name: "PHP: Composer: Update Zsh configuration with aliases"
+    blockinfile:
+      marker: "### PHP COMPOSER {mark} AUTOMATICALLY GENERATED"
+      block: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        alias composer='/usr/bin/php{{ php_default_version | default(php_versions[0]) }} /usr/local/bin/composer'
+        {% for version in php_versions %}
+        alias composer{{ version }}='/usr/bin/php{{ version }} /usr/local/bin/composer'
+        {% endfor %}
+      create: yes
+      insertafter: EOF
+      path: "{{ ansible_env.HOME }}/{{ composer_localrc.stdout }}"
+    tags: [php, composer]
 
   # 1600. NodeJS
   - { name: "NodeJS: Import GPG key", become: yes, apt_key: { id: "{{ nodesource_gpg_key_id }}", url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" }, tags: [node, nodejs] }
@@ -1101,10 +1118,10 @@
         StartupWMClass=jetbrains-studio
         MimeType=application/x-extension-iml;
     tags: [android]
-  - { name: "Android Studio: Capture local Zsh configuration", shell: 'echo ".localrc_`uname -n`_`uname -o 2>/dev/null || echo Darwin`" | tr "[A-Z]" "[a-z]" | tr "/" "_"', args: { executable: "/bin/bash" }, register: android_studio_localrc, changed_when: no, failed_when: no, tags: [android] }
+  - { name: "Android Studio: Capture local Zsh configuration", shell: '{{ localrc_query }}', args: { executable: "/bin/bash" }, register: android_studio_localrc, changed_when: no, failed_when: no, tags: [android] }
   - name: "Android Studio: Update Zsh configuration"
     blockinfile:
-      marker: "### {mark} AUTOMATICALLY GENERATED"
+      marker: "### ANDROID STUDIO {mark} AUTOMATICALLY GENERATED"
       block: |
         ###
         ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
