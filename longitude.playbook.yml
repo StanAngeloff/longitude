@@ -708,6 +708,9 @@
       # - Position of Compose key: Right Alt (compose:ralt)
       #
       { key: "/org/gnome/desktop/input-sources/xkb-options", value: "['grp:caps_toggle', 'grp_led:caps', 'grp:win_space_toggle', 'compose:ralt']" },
+      # See https://github.com/GNOME/gsettings-desktop-schemas/blob/3.36.0/schemas/org.gnome.desktop.peripherals.gschema.xml.in#L69
+      { key: "/org/gnome/desktop/peripherals/keyboard/repeat-interval", value: "uint32 20" },
+      { key: "/org/gnome/desktop/peripherals/keyboard/delay", value: "uint32 200" },
     ] }
   - { name: "Miscellaneous: Create directories", file: "{{ item }}", with_items: [
       { path: "{{ ansible_env.HOME }}/.config/fontconfig", state: directory },
