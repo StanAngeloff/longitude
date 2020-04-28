@@ -73,6 +73,21 @@ make docker-playbook
 
 This will start a new ephemeral container from a base Ubuntu image and run the playbooks from start to finish. [^3]
 
+Readiness for 20.04
+-------------------
+
+As of April 28, 2020 the following is broken:
+
+- No Ansible for `focal`, the PPA has not been updated
+- No Git LFS for `focal`, the PPA has not been updated. See https://github.com/git-lfs/git-lfs/pull/4080
+- Python2 support has been completely removed (other than compiling from source)
+- Docker is not yet available for `focal`, see https://docs.docker.com/engine/install/ubuntu/
+- No i3 for `focal`, the PPA has not been updated
+- The following packages are no longer available in official repositories: `v4l2ucp` (consider `cheese` instead)
+- No PHP packages for `focal`, the PPA has not been updated. See https://github.com/oerdnj/deb.sury.org/issues/1385#issuecomment-618789612
+- No PlayOnLinux for `focal`, the PPA has not been updated
+- No Tesseract for `focal`, the PPA has not been updated
+
 
   [^1]: My Input font preferences are: `Input-BoldItalic_(InputMonoNarrow-BoldItalic).ttf`, `Input-Bold_(InputMonoNarrow-Bold).ttf`, `Input-Italic_(InputMonoNarrow-Italic).ttf` & `Input-Regular_(InputMonoNarrow-Regular).ttf`. These are [freely available][Input Font].
   [^2]: Noto is only needed for extended character sets, `NotoMono-Regular.ttf` should suffice.
