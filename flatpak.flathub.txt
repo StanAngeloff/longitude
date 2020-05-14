@@ -4,9 +4,6 @@ org.gtk.Gtk3theme.Adwaita-dark
 # Vector Graphics Editor. https://inkscape.org/
 org.inkscape.Inkscape
 
-# Simple remote and virtual machines. https://help.gnome.org/users/gnome-boxes/stable/
-org.gnome.Boxes
-
 # VLC is a free and open source cross-platform multimedia player and framework.
 org.videolan.VLC
 
@@ -21,9 +18,6 @@ io.github.wereturtle.ghostwriter
 
 # Powerful markdown editor. https://github.com/fabiocolacio/Marker
 com.github.fabiocolacio.marker
-
-# Call and message Skype users, with video chat support.
-com.skype.Client
 
 # The LibreOffice productivity suite.
 org.libreoffice.LibreOffice
