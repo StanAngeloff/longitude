@@ -42,7 +42,7 @@ Non-goals
 - Set up a VPN with a dedicated IP (my preferred supplied is, and has always been, [VPNUK]). The dedicated IP will come in handy when setting up firewalls.
 - Oracle Java may still be needed to use government e-services. See [Kamenitza Notepad’s blog post](https://web.archive.org/web/20200514123820/https://kamenitza.org/%D0%BD%D0%B0%D0%BF-vs-%D0%BA%D0%B5%D0%BF-%D0%B2-%D0%BB%D0%B8%D0%BD%D1%83%D0%BA%D1%81/) for more details.
    * Don't run `update-alternatives --set`, instead when prompted to run a `.jnlp` file in a browser, copy the URL to the file and use `javaws` from the Oracle package to launch it instead:
-   
+
       ```sh
       /opt/java/64/jre*/bin/javaws 'https://inetdec.nra.bg/ls/java/stampitls.jnlp'
       ```

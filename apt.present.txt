@@ -7,6 +7,7 @@ dconf-editor
 gnome-tweak-tool	# adjust advanced settings for GNOME.
 graphviz	# rich set of graph drawing tools.
 icu-devtools	# development utilities for International Components for Unicode, uconv CLI tool.
+inotify-tools	# command-line programs providing a simple interface to inotify.
 kazam	# capturing screencasts and screenshots.
 moreutils	# additional Unix utilities, e.g., sponge.
 mpack	# utilities for encoding and decoding binary files in MIME.
