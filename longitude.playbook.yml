@@ -344,8 +344,15 @@
       - { direction: incoming, policy: deny }
       - { direction: outgoing, policy: allow }
 
+    ufw_applications:
+     #LocalService: { title: 'Local Service', description: 'A locally running service, such as a NodeJS process, a PHP development server, etc.', ports: ['3000/tcp', '3030/tcp', '8000/tcp'] }
+      Expo: { title: 'Expo', description: 'The fastest way to build an app.', ports: ['19000:19100/tcp'] }
+      SteamLink: { title: 'Steam Link', description: 'Steam Link game streaming.', ports: ['27037/tcp', '27031/udp', '27036'] }
+
     ufw_rules:
-      - { rule: allow, comment: 'Allow Docker containers to communicate with host services/1.', direction: in, from_ip: '172.16.0.0/12', proto: tcp, to_port: 3030 }
+     #- { rule: allow, app: 'LocalService', direction: in, src: '172.16.0.0/12', comment: 'Allow Docker containers to communicate with local services/1.' }
+      - { rule: allow, app: 'Expo', direction: in, src: '192.168.0.0/23' }
+      - { rule: allow, app: 'SteamLink', direction: in, src: '192.168.0.0/23' }
 
   handlers:
     - { name: "ufw::restart", become: yes, service: { name: ufw, state: restarted } }
@@ -1172,8 +1179,23 @@
   # 2010. ufw
   - { name: "ufw: Install packages", become: yes, apt: { pkg: [ufw], state: present }, tags: [ufw] }
   - { name: "ufw: Configure defaults", become: yes, ufw: { direction: "{{ item.direction }}", policy: "{{ item.policy }}" }, with_items: "{{ ufw_policy }}", notify: "ufw::restart", tags: [ufw] }
+  - name: "ufw: Create applications"
+    become: yes
+    ini_file:
+      path: "/etc/ufw/applications.d/{{ item[0] | regex_replace('([A-Z]+)', '-\\1') | regex_replace('^-+|-+$', '') | lower }}"
+      no_extra_spaces: true
+      section: "{{ item[0] }}"
+      option: "{{ item[2] }}"
+      value: "{{ item[1][item[2]] | join('|') if item[2] == 'ports' else item[1][item[2]] }}"
+      state: present
+    with_nested:
+      - "{{ ufw_applications.items() }}"
+      - [title, description, ports]
+    register: ufw_applications_updated
+    tags: [ufw, applications.d]
+  - { name: "ufw: Update the firewall with updated profile information", become: yes, command: "ufw app update all", notify: "ufw::restart", when: "ufw_applications_updated.changed", tags: [ufw, applications.d] }
   - { name: "ufw: Configure rules", become: yes, ufw: "{{ item }}", with_items: "{{ ufw_rules }}", notify: "ufw::restart", tags: [ufw] }
-  - { name: "ufw: Enable logging", become: yes, ufw: { logging: on }, notify: "ufw::restart", tags: [ufw] }
+  - { name: "ufw: Enable logging", become: yes, ufw: { logging: 'on' }, notify: "ufw::restart", tags: [ufw] }
   - { name: "ufw: Allow VPN PPTP connections", become: yes, lineinfile: { path: "/etc/ufw/before.rules", regexp: "-p\\s+47\\b", line: "-A ufw-before-input -p 47 -j ACCEPT", insertbefore: "drop INVALID packets" }, tags: [ufw] }
   - { name: "ufw: Turn on", become: yes, ufw: { state: enabled }, tags: [ufw] }
 
