@@ -1206,7 +1206,6 @@
     tags: [ssh, pam]
   - { name: "PAM: Google Authenticator: Check system installation", become: yes, command: "apt-mark showhold", register: pam_google_authenticator_system_install_query, changed_when: no, failed_when: no, tags: [pam] }
   - { name: "PAM: Google Authenticator: Hold system packages", become: yes, when: "'libpam-google-authenticator' not in pam_google_authenticator_system_install_query.stdout", command: "apt-mark hold libpam-google-authenticator", tags: [pam] }
-  - { name: "", become: yes, when: "'libpam-google-authenticator' not in pam_google_authenticator_system_install_query.stdout", command: "apt-mark hold libpam-google-authenticator", tags: [pam] }
   - name: "PAM: Notify: Add script"
     tags: [ssh, pam]
     copy:
