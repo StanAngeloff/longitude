@@ -718,6 +718,17 @@
       { key: "/org/gnome/desktop/peripherals/keyboard/repeat-interval", value: "uint32 18" },
       { key: "/org/gnome/desktop/peripherals/keyboard/delay", value: "uint32 200" },
     ] }
+  # When using the Logitech MX Keys keyboard, the key to the left of 'Z' should act as a backslash/bar.
+  - name: "Miscellaneous: Update English (US) keyboard layout"
+    become: yes
+    lineinfile:
+      create: no
+      path: "/usr/share/X11/xkb/symbols/us"
+      regexp: "^\\s*key\\s+<LSGT>.*\\/\\/ Logitech MX Keys$"
+      line: "    key <LSGT> { [ backslash, bar, backslash, bar ] }; // Logitech MX Keys"
+      insertafter: "\"English \\(US\\)\""
+      firstmatch: yes
+    tags: [xkb]
   - { name: "Miscellaneous: Create directories", file: "{{ item }}", with_items: [
       { path: "{{ ansible_env.HOME }}/.config/fontconfig", state: directory },
       { path: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d", state: directory }
