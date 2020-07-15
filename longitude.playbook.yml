@@ -330,10 +330,6 @@
 
     tesseract_languages: [eng, bul]
 
-    rambox_version: 0.7.5
-    rambox_platform: linux-x86_64
-    rambox_checksum: "sha256:0a486f5b4720af537a2e8d2022209223f45b6627fc72b6c86d3985eba882e1bd"
-
     steam_launcher_version: 1.0.0.61
     steam_launcher_checksum: "sha256:5e7d3f1cb1de847f31152998bdc8137855a1a0f7b0dc099db6a7f4d7e33fd911"
 
@@ -554,6 +550,7 @@
   - { name: "Firefox: Create directories", file: "{{ item }}", tags: [firefox], with_items: [
       { path: "{{ ansible_env.HOME }}/bin", state: directory },
       { path: "{{ ansible_env.HOME }}/.mozilla", state: directory },
+      { path: "{{ ansible_env.HOME }}/.mozilla/firefox", state: directory },
       { path: "{{ ansible_env.HOME }}/.mozilla/native-messaging-hosts", state: directory }
     ] }
   - { name: "Firefox: Download unofficial extensions", get_url: { url: "{{ item.value.url | format(version=item.value.version, commit=item.value.commit | default(omit)) }}", dest: "/usr/local/lib/firefox/extensions/{{ item.key }}-{{ item.value.version + (\"-\" + item.value.commit if \"commit\" in item.value else \"\") }}-unofficial.xpi", checksum: "{{ item.value.checksum }}" }, with_dict: "{{ firefox_unofficial_extensions }}", tags: [firefox] }
@@ -1278,23 +1275,23 @@
   - { name: "Mosh: Configure ufw rules", become: yes, ufw: { rule: allow, name: mosh, comment: 'Allow ports used by mosh-server.' }, notify: "ufw::restart", tags: [mosh] }
 
   # 3000. Communications
-  - { name: "Rambox: Install AppImage", get_url: { url: "https://github.com/ramboxapp/community-edition/releases/download/{{ rambox_version }}/Rambox-{{ rambox_version }}-{{ rambox_platform }}.AppImage", dest: "/usr/local/bin/rambox", mode: "+x", checksum: "{{ rambox_checksum }}" }, tags: [rambox] }
-  - { name: "Rambox: Download desktop icon", get_url: { url: "https://github.com/ramboxapp/community-edition/raw/{{ rambox_version }}/resources/logo/512x512.png", dest: "{{ ansible_env.HOME }}/.local/share/icons/appimagekit-rambox.png" }, tags: [rambox] }
-  - name: "Rambox: Add desktop icon"
+  - { name: "Firefox: Create workspace profile directory", file: { path: "{{ ansible_env.HOME }}/.mozilla/firefox/{{ firefox_workspace_profile_name | default('workspace.PSP') }}", state: directory }, tags: [firefox, workspace] }
+  - { name: "Firefox: Copy workspace profile icon", copy: { dest: "{{ ansible_env.HOME }}/.local/share/icons/firefox-workspace.png", src: "assets/icons/bubble-1024.png", force: no }, tags: [firefox, workspace] }
+  - name: "Firefox: Add desktop icon for workspace profile"
     copy:
-      dest: "{{ ansible_env.HOME }}/.local/share/applications/appimagekit-rambox.desktop"
+      dest: "{{ ansible_env.HOME }}/.local/share/applications/firefox-workspace.desktop"
       content: |
         [Desktop Entry]
-        Name=Rambox
-        Exec="/usr/local/bin/rambox" %U
+        Name=Firefox Workspace
+        Exec=sh -c "/usr/bin/firefox -no-remote --class 'firefox-workspace' --profile '{{ ansible_env.HOME }}/.mozilla/firefox/{{ firefox_workspace_profile_name | default('workspace.PSP') }}' {{ firefox_workspace_launch_list | default([]) | join(' ') }}"
         Terminal=false
         Type=Application
-        Icon=appimagekit-rambox
-        StartupWMClass=Rambox
-        X-AppImage-Version={{ rambox_version }}
-        Categories=Network;
-        Comment=Free and Open Source messaging and emailing app that combines common web applications into one.
-    tags: [rambox]
+        X-MultipleArgs=false
+        Icon=firefox-workspace
+        StartupNotify=true
+        StartupWMClass=firefox-workspace
+        Categories=GNOME;GTK;Network;WebBrowser;
+    tags: [firefox, workspace]
 
   # 3100. Steam
   - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
