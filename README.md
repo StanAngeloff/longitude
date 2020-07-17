@@ -61,7 +61,6 @@ Non-goals
     ```
 - **Firefox**:
   * Run [Cloudflare ESNI Checker][esni] and make sure all checks get a pass ✅
-  * In Firefox Workspace, install [Startup Apps add-on](https://addons.mozilla.org/en-GB/firefox/addon/startupapps/) and set the list of pinned apps
 - **Android Studio**:
   * Run Android Studio and complete the installation so the Android SDK is installed & available.
     * When prompted, specify the install path as `/opt/android/sdk` (the directory will be missing, you need to create it first).
