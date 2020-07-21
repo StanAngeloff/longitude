@@ -151,9 +151,9 @@
     authy_desktop_version: 1.8.0
     authy_desktop_checksum: "md5:2612c816ae5ea59ecfbbaef02e26830b"
 
-    android_studio_build: 183.5692245
-    android_studio_version: 3.4.2.0
-    android_studio_checksum: "sha256:35eb8c74837d1aab59229101fc91568a607ac04854a40209f7a0ba7ac0601924"
+    android_studio_build: 193.6626763
+    android_studio_version: 4.0.1.0
+    android_studio_checksum: "sha256:f2f82744e735eae43fa018a77254c398a3bab5371f09973a37483014b73b7597"
     android_home: /opt/android/sdk
 
     dropbox_version: 2019.01.31
