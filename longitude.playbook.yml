@@ -10,6 +10,7 @@
 
     dpkg_query: "dpkg-query --show --showformat='${db:Status-Status}\n' '%s' | grep '^installed'"
     localrc_query: 'echo ".localrc_`uname -n`_`uname -o 2>/dev/null || echo Darwin`" | tr "[A-Z]" "[a-z]" | tr "/" "_"'
+    tmp_path: '/tmp'
 
     firefox_unofficial_extensions:
       bypass-paywalls: # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
@@ -323,8 +324,8 @@
     wine_gpg_key_id: "F987672F"
     playonlinux_gpg_key_id: "8E3D6C3A"
 
-    qemu_version: 4.0.0
-    qemu_checksum: "sha256:13a93dfe75b86734326f8d5b475fde82ec692d5b5a338b4262aeeb6b0fa4e469"
+    qemu_version: 5.0.0
+    qemu_checksum: "sha256:2f13a92a0fa5c8b69ff0796b59b86b080bbb92ebad5d301a7724dd06b5e78cb6"
 
     ffmpeg_version: 4.1.4
     ffmpeg_platform: amd64
@@ -502,7 +503,7 @@
   # 510. Docker Post-installation steps for Linux
   - { name: "Docker: Adding group", become: yes, group: { name: docker, state: present }, tags: [docker] }
   - { name: "Docker: Modifying user", become: yes, register: docker_user_groups, user: { name: "{{ ansible_user_id }}", append: yes, groups: [docker] }, tags: [docker] }
-  - { debug: { msg: "Docker NOTE: You MUST log out and in again for changes to take effect." }, when: docker_user_groups.changed }
+  - { debug: { msg: "*** NOTE: You MUST log out and in again for changes to take effect (needed by Docker). ***" }, when: docker_user_groups.changed, tags: [docker] }
   # 520. Docker Compose
   - { name: "Docker: Install Docker Compose", get_url: { url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_machine }}", dest: "/usr/local/bin/docker-compose-{{ docker_compose_version }}", mode: "+x", checksum: "{{ docker_compose_checksum }}" }, tags: [docker] }
   # 525. Docker Machine
@@ -1059,25 +1060,41 @@
   # 1760. QEMU
   - { name: "QEMU: Install prerequisites", become: yes, apt: { pkg: [bison, flex, libpixman-1-dev, libudev-dev], state: present }, tags: [qemu] }
   - { name: "QEMU: Check installation", become: yes, command: "ls /opt/qemu-{{ qemu_version }}", register: qemu_install_query, changed_when: no, failed_when: no, tags: [qemu] }
-  - { name: "QEMU: Download source", get_url: { url: "https://download.qemu.org/qemu-{{ qemu_version }}.tar.xz", dest: "/tmp/qemu-{{ qemu_version }}.tar.xz", checksum: "{{ qemu_checksum }}" }, when: "qemu_install_query.rc > 0", tags: [qemu] }
+  - { name: "QEMU: Download source", get_url: { url: "https://download.qemu.org/qemu-{{ qemu_version }}.tar.xz", dest: "{{ tmp_path }}/qemu-{{ qemu_version }}.tar.xz", checksum: "{{ qemu_checksum }}" }, when: "qemu_install_query.rc > 0", tags: [qemu] }
   - { name: "QEMU: Compile & install packages", when: "qemu_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -Jxf 'qemu-{{ qemu_version }}.tar.xz' && cd 'qemu-{{ qemu_version }}' && ./configure --prefix='/opt/qemu-{{ qemu_version }}' && make -j8 && make install", tags: [qemu] }
+      shell: "cd {{ tmp_path }} && tar --overwrite -Jxf 'qemu-{{ qemu_version }}.tar.xz' && cd 'qemu-{{ qemu_version }}' && ./configure --prefix='/opt/qemu-{{ qemu_version }}' && make -j8 && make install", tags: [qemu] }
   - { name: "QEMU: Capture available systems", command: "find /opt/qemu-{{ qemu_version }}/bin -type f -perm -u=x -printf '%f\\n'", register: qemu_installed_systems, changed_when: no, tags: [qemu] }
-    # => (for 4.0.0)
+    # => (for 5.0.0)
     # qemu-system-sh4 qemu-aarch64 qemu-system-riscv64 qemu-system-xtensaeb qemu-system-mips qemu-xtensa qemu-xtensaeb
-    # qemu-img qemu-microblaze qemu-system-ppc64 qemu-ppc64 qemu-system-sparc qemu-sparc32plus qemu-system-cris
-    # qemu-system-unicore32 qemu-system-nios2 elf2dmp qemu-system-ppc qemu-system-arm qemu-riscv32 qemu-nbd
-    # ivshmem-server qemu-nios2 qemu-cris qemu-system-sh4eb qemu-system-tricore qemu-ga qemu-or1k qemu-m68k
+    # qemu-img qemu-storage-daemon qemu-microblaze qemu-system-ppc64 qemu-ppc64 qemu-system-sparc qemu-sparc32plus
+    # qemu-system-cris qemu-system-unicore32 qemu-system-nios2 elf2dmp qemu-system-ppc qemu-system-arm qemu-riscv32
+    # qemu-nbd ivshmem-server qemu-nios2 qemu-cris qemu-system-sh4eb qemu-system-tricore qemu-ga qemu-or1k qemu-m68k
     # qemu-system-riscv32 qemu-hppa qemu-riscv64 qemu-system-i386 qemu-mips64el qemu-system-m68k qemu-system-s390x
     # qemu-ppc qemu-x86_64 qemu-system-aarch64 qemu-sparc qemu-s390x qemu-system-hppa qemu-sparc64 qemu-arm
     # qemu-ppc64abi32 qemu-system-microblazeel qemu-sh4 qemu-pr-helper qemu-system-mips64 qemu-system-mips64el
-    # qemu-mipsn32 qemu-system-microblaze qemu-system-alpha qemu-ppc64le qemu-mipsel qemu-system-moxie qemu-aarch64_be
-    # qemu-alpha qemu-io qemu-system-xtensa qemu-tilegx ivshmem-client qemu-mips64 qemu-sh4eb qemu-system-sparc64
-    # qemu-system-mipsel qemu-i386 qemu-mips qemu-microblazeel qemu-system-x86_64 qemu-edid qemu-system-lm32
-    # qemu-system-or1k qemu-armeb qemu-mipsn32el
+    # qemu-mipsn32 qemu-system-microblaze qemu-system-alpha qemu-ppc64le qemu-mipsel qemu-system-moxie qemu-system-rx
+    # qemu-aarch64_be qemu-alpha qemu-io qemu-system-xtensa qemu-tilegx ivshmem-client qemu-mips64 qemu-sh4eb
+    # qemu-system-sparc64 qemu-system-mipsel qemu-i386 qemu-mips qemu-microblazeel qemu-system-x86_64 qemu-edid
+    # qemu-system-lm32 qemu-system-or1k qemu-armeb qemu-mipsn32el
   - { name: "QEMU: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/qemu-{{ qemu_version }}/bin/{{ item }}" }, tags: [qemu], with_items: "{{ qemu_installed_systems.stdout_lines }}" }
   - { name: "QEMU: Set permissions for bridge helper", become: yes, file: { path: "/opt/qemu-{{ qemu_version }}/libexec/qemu-bridge-helper", state: file, owner: "root", group: "{{ ansible_user_gid }}", mode: 'u=srwx,g=rx,o=' }, tags: [qemu] }
   - { name: "QEMU: Set up bridge helper alternative", become: yes, alternatives: { name: "qemu-bridge-helper", link: "/usr/local/bin/qemu-bridge-helper", path: "/opt/qemu-{{ qemu_version }}/libexec/qemu-bridge-helper" }, tags: [qemu] }
+  - { name: "QEMU: KVM: Adding group", become: yes, group: { name: kvm, state: present }, tags: [qemu, kvm] }
+  - name: "QEMU: KVM: Add udev rules"
+    become: yes
+    register: qemu_kvm_udev_rules
+    copy:
+      dest: '/etc/udev/rules.d/65-kvm.rules'
+      content: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        ### See https://unix.stackexchange.com/a/373931
+
+        KERNEL=="kvm", NAME="%k", GROUP="kvm", MODE="0660"
+    tags: [qemu, kvm]
+  - { name: "QEMU: KVM: Modifying user", become: yes, register: qemu_kvm_user_groups, user: { name: "{{ ansible_user_id }}", append: yes, groups: [kvm] }, tags: [qemu, kvm] }
+  - { debug: { msg: "*** NOTE: You MUST log out and in again for changes to take effect (needed by QEMU / KVM). ***" }, when: "(qemu_kvm_user_groups.changed or qemu_kvm_udev_rules.changed)", tags: [qemu, kvm] }
 
   # 1800. ffmpeg
   - { name: "ffmpeg: Check installation", become: yes, command: "ls /opt/ffmpeg-{{ ffmpeg_version }}", register: ffmpeg_install_query, changed_when: no, failed_when: no, tags: [ffmpeg] }
