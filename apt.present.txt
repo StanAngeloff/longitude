@@ -24,6 +24,7 @@ trash-cli	# a `trash` command-line utility for sending files to the rubbish bin.
 unp	# a small Perl script which makes extraction of any archive files a bit easier.
 v4l2ucp	# a control panel for Video for Linux 2 Universal.
 w3m	# a text-based World Wide Web browser, useful for converting HTML to plain text.
+webp	# lossy compression of images.
 whois	# a command-line client for the WHOIS (RFC 3912) protocol.
 zbar-tools	# scanning and decoding bar codes from various sources.
 zstd	# fast lossless compression algorithm, CLI tool.
