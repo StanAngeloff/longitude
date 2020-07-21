@@ -97,8 +97,8 @@
       "browser.cache.disk.enable": false # Don't trash my SSD!
       "browser.cache.disk.parent_directory": "/tmp/.mozilla/cache/firefox" # If we ever re-enable disk caching, use tmpfs.
       "browser.cache.memory.enable": true
-      "browser.cache.memory.capacity": 8192000 # 8GB
-      "browser.cache.memory.max_entry_size": 10240 # 10MB
+      "browser.cache.memory.capacity": 1048576 # 1GB
+      "browser.cache.memory.max_entry_size": 20480 # 20MB
       # Experimental
       #
       "gfx.webrender.all": true
@@ -358,6 +358,7 @@
     - { name: "ufw::restart", become: yes, service: { name: ufw, state: restarted } }
     - { name: "sshd::restart", become: yes, service: { name: ssh, state: restarted } }
     - { name: "bluetooth::restart", become: yes, service: { name: bluetooth, state: restarted } }
+    - { name: "grub::update", become: yes, command: '/usr/sbin/update-grub2 -o /boot/grub/grub.cfg' }
 
   tasks:
 
@@ -380,6 +381,21 @@
   - { name: "Tweak kernel parameters (sysctl)", become: yes, sysctl: { name: "{{ item.name }}", state: "{{ item.state | default('present') }}", value: "{{ item.value }}", sysctl_file: '/etc/sysctl.d/60-longitude.conf', reload: yes }, when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", tags: [sysctl], with_items: [
       { name: fs.inotify.max_user_watches, value: 524288 },
     ] }
+
+  # 40. Kernel
+  - name: "GRUB: Update Linux kernel command-line"
+    become: yes
+    lineinfile:
+      create: yes
+      path: '/etc/default/grub'
+      backrefs: yes
+      regexp: "^#?(GRUB_CMDLINE_LINUX=(?!.*\\s{{ item }}\\b)\"[^\"]*)(\".*)"
+      line: "\\1 {{ item }}\\2"
+      insertafter: 'EOF'
+    with_items:
+      - 'zswap.enabled=1' # See https://wiki.archlinux.org/index.php/Zswap, enabled by default since 5.7 (18.04 comes with a HWE running 5.3).
+    notify: "grub::update"
+    tags: [kernel, grub]
 
   # 50. Hardware tweaks
   #
