@@ -398,6 +398,7 @@
       - 'zswap.enabled=1' # See https://wiki.archlinux.org/index.php/Zswap, enabled by default since 5.7 (18.04 comes with a HWE running 5.3).
     notify: "grub::update"
     tags: [kernel, grub]
+  - { name: "Kernel: Install HWE", become: yes, apt: { pkg: [linux-generic-hwe-18.04, xserver-xorg-hwe-18.04], install_recommends: yes, state: present }, when: "ansible_distribution_version is version('18.04', '==')", tags: [kernel] }
 
   # 50. Hardware tweaks
   #
