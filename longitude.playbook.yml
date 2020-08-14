@@ -190,6 +190,7 @@
       - { name: 'httpie-oauth', version: 1.0.2 }
 
     awscli_version: '>1.16'
+    s3cmd_version: '>=2.1'
 
     fzf_version: 0.21.1
     fzf_platform: linux_amd64
@@ -873,8 +874,9 @@
     with_dict: "{{ terraform_plugins }}"
     tags: [terraform]
 
-  # 999. AWS CLI
+  # 999. AWS CLI, s3cmd, etc.
   - { name: "AWS: Install CLI packages", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: awscli, version: "{{ awscli_version }}", state: present }, tags: [aws, awscli] }
+  - { name: "AWS: Install community s3cmd package", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: s3cmd, version: "{{ s3cmd_version }}", state: present }, tags: [aws, awscli, s3cmd] }
 
   # 1000. Dotfiles
   - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no }, tags: [dotfiles] }
