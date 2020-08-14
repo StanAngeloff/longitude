@@ -192,9 +192,9 @@
     awscli_version: '>1.16'
     s3cmd_version: '>=2.1'
 
-    fzf_version: 0.21.1
+    fzf_version: 0.22.0
     fzf_platform: linux_amd64
-    fzf_checksum: "sha256:7d4e796bd46bcdea69e79a8f571be1da65ae9d9cc984b50bc4af5c0b5754fbd5"
+    fzf_checksum: "sha256:68416bf6467f8f83bbde3d80d9bf46203c40d479ebfaa248dbd33aaaced2aebf"
 
     bat_version: 0.14.0
     bat_platform: amd64
