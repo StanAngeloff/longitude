@@ -196,9 +196,9 @@
     fzf_platform: linux_amd64
     fzf_checksum: "sha256:68416bf6467f8f83bbde3d80d9bf46203c40d479ebfaa248dbd33aaaced2aebf"
 
-    bat_version: 0.14.0
+    bat_version: 0.15.4
     bat_platform: amd64
-    bat_checksum: "sha256:77d1e4600fc93c015ed807bdb0298ccdd1bde80a7ae9da87fd75571289c5b16a"
+    bat_checksum: "sha256:66b5fa31e4946da9331824fba4b6a7076565fe83866f14562450a010a5112857"
 
     delta_version: 0.0.18
     delta_platform: amd64
