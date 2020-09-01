@@ -1410,7 +1410,7 @@
         if which yarn 1>/dev/null 2>&1; then
         {{ indent }}{{ su }} "yarn cache clean" 1>/dev/null
         fi
-        {% for directory in [".cache/bower", ".cache/pip"] %}
+        {% for directory in [".cache/bower", ".cache/pip", ".npm/_npx"] %}
         if [ -d "{{ ansible_env.HOME }}/{{ directory }}" ]; then rm -Rf "{{ ansible_env.HOME }}/{{ directory }}" 1>/dev/null ; fi
         {% endfor %}
 
