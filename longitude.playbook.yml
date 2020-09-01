@@ -1339,6 +1339,7 @@
   - { name: "Ferdi: Check installation", become: yes, shell: "{{ dpkg_query | format('ferdi') }}", register: ferdi_dpkg_query, changed_when: no, failed_when: no, tags: [ferdi] }
   - { name: "Ferdi: Download packages", get_url: { url: "https://github.com/getferdi/ferdi/releases/download/v{{ ferdi_version }}/ferdi_{{ ferdi_version }}_{{ ferdi_platform }}.deb", dest: "/tmp/ferdi-{{ ferdi_version }}.deb", checksum: "{{ ferdi_checksum }}" }, when: "ferdi_dpkg_query.rc > 0", tags: [ferdi] }
   - { name: "Ferdi: Install packages", become: yes, apt: { deb: "/tmp/ferdi-{{ ferdi_version }}.deb", state: present }, when: "ferdi_dpkg_query.rc > 0", tags: [ferdi] }
+  - { name: "Ferdi: Change priority at launch", become: yes, replace: { path: "/usr/share/applications/ferdi.desktop", regexp: "^Exec=(nice\\s+[a-z0-9-]+\\s+)?(/opt/Ferdi/ferdi)", replace: 'Exec=nice -n5 \2' }, tags: [ferdi] }
 
   # 3100. Steam
   - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
