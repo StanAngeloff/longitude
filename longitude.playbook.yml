@@ -155,8 +155,8 @@
       default-cache-ttl: 3600
       max-cache-ttl: 7200
 
-    authy_desktop_version: 1.8.0
-    authy_desktop_checksum: "md5:2612c816ae5ea59ecfbbaef02e26830b"
+    authy_desktop_version: 1.8.3
+    authy_desktop_checksum: "md5:630362cf725391d1fc86c9a4d06f0161"
 
     android_studio_build: 193.6626763
     android_studio_version: 4.0.1.0
@@ -1209,7 +1209,7 @@
       cd /tmp &&
       7z x "AuthyDesktopSetup{{ authy_desktop_version }}.exe" -o"authy-{{ authy_desktop_version }}" -y &&
       cd "authy-{{ authy_desktop_version }}" &&
-      7z x "authy-electron-{{ authy_desktop_version }}-full.nupkg" -y &&
+      7z x "authy-{{ authy_desktop_version }}-full.nupkg" -y &&
       mkdir -p app &&
       npx -q asar@2 e lib/net45/resources/app.asar app &&
       cd app &&
