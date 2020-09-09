@@ -12,6 +12,13 @@
     localrc_query: 'echo ".localrc_`uname -n`_`uname -o 2>/dev/null || echo Darwin`" | tr "[A-Z]" "[a-z]" | tr "/" "_"'
     tmp_path: '/tmp'
 
+    nameservers:
+      # Cloudflare
+      - 1.1.1.1
+      - 1.0.0.1
+      - 2606:4700:4700::1111
+      - 2606:4700:4700::1001
+
     firefox_unofficial_extensions:
       bypass-paywalls: # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
         url: "https://github.com/iamadamdev/bypass-paywalls-firefox/releases/download/v%(version)s/bypass_paywalls-%(version)s-an+fx.xpi"
@@ -367,6 +374,8 @@
     - { name: "sshd::restart", become: yes, service: { name: ssh, state: restarted } }
     - { name: "bluetooth::restart", become: yes, service: { name: bluetooth, state: restarted } }
     - { name: "grub::update", become: yes, command: '/usr/sbin/update-grub2 -o /boot/grub/grub.cfg' }
+    - { name: "systemd::resolved::restart", become: yes, systemd: { name: 'systemd-resolved.service', state: restarted } }
+    - { name: "NetworkManager::reload", become: yes, service: { name: 'NetworkManager', state: reloaded } }
 
   tasks:
 
@@ -425,6 +434,50 @@
     notify: "bluetooth::restart"
     when: bluetooth_input_stat.stat.exists
     tags: [bluetooth]
+
+  # 60. DNS & resolv.conf, argh!
+  #
+  # See https://web.archive.org/web/20200909131222/https://andrea.corbellini.name/2020/04/28/ubuntu-global-dns/
+  #
+  - { name: "DNS: Remove resolveconf", become: yes, apt: { pkg: 'resolveconf', state: absent }, tags: [dns, resolveconf] }
+  - { name: "DNS: Start systemd-resolved.service", become: yes, systemd: { name: 'systemd-resolved.service', enabled: yes, state: started }, tags: [dns, resolveconf] }
+  - { name: "DNS: Create resolved.conf.d directory", become: yes, file: { path: '/etc/systemd/resolved.conf.d/', state: directory }, tags: [dns, resolveconf] }
+  - name: "DNS: Specify systemd-resolved nameservers"
+    become: yes
+    copy:
+      dest: '/etc/systemd/resolved.conf.d/cloudflare_dns.conf'
+      content: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        [Resolve]
+        DNS={{ nameservers | join(' ') }}
+        #FallbackDNS=
+        #Domains=
+        #LLMNR=no
+        #MulticastDNS=no
+        #Cache=yes
+        #DNSStubListener=yes
+        #ReadEtcHosts=yes
+    tags: [dns, resolveconf]
+    notify: "systemd::resolved::restart"
+  - { name: "DNS: Check if NetworkManager is installed", stat: { path: "/etc/NetworkManager" }, register: etc_networkmanager_stat, tags: [dns, resolveconf] }
+  - name: "DNS: Disable DNS handling in NetworkManager"
+    become: yes
+    copy:
+      dest: '/etc/NetworkManager/conf.d/dns.conf'
+      content: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        [main]
+        # Do not use the dhcp-provided DNS servers,
+        # but rather use the global ones specified in /etc/systemd/resolved.conf
+        dns=none
+        systemd-resolved=false
+    notify: "NetworkManager::reload"
+    when: 'etc_networkmanager_stat.stat.isdir is defined and etc_networkmanager_stat.stat.isdir'
+    tags: [dns, resolveconf]
 
   # 100. Git
   - { name: "Git: Add PPA", become: yes, apt_repository: { repo: "ppa:git-core/ppa", update_cache: yes }, tags: [git] }
