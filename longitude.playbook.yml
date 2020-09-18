@@ -221,10 +221,6 @@
     ngrok_stable_channel_id: 8jFoSpgnjgu
     ngrok_checksum: "sha256:3e4f39dd3130b80dd0a736182712952100fcc462a0eb4d9ca15e50668c9d3862"
 
-    ffsend_version: 0.2.37
-    ffsend_platform: linux-x64
-    ffsend_checksum: "sha256:9c6ba0596c0f65d5f70fb96f5a51426ae03f3baa44be803e34fd26755f327d69"
-
     terraform_version: 0.12.9
     terraform_checksum: "sha256:69712c6216cc09b7eca514b9fb137d4b1fead76559c66f338b4185e1c347ace5"
     terraform_platform: linux_amd64
@@ -908,8 +904,6 @@
   - { name: "ngrok: Check installation", become: yes, command: "ls /usr/local/bin/ngrok", register: ngrok_install_query, changed_when: no, failed_when: no }
   - { name: "ngrok: Download ngrok", get_url: { url: "https://bin.equinox.io/a/{{ ngrok_stable_channel_id }}/ngrok-{{ ngrok_version }}-{{ ngrok_platform }}.zip", dest: "/tmp/ngrok.zip", checksum: "{{ ngrok_checksum }}" }, when: "ngrok_install_query.rc > 0" }
   - { name: "ngrok: Install ngrok", shell: "cd /tmp && unzip -o ngrok.zip && mv ./ngrok /usr/local/bin/ngrok", when: "ngrok_install_query.rc > 0" }
-  # 995. ffsend (Firefox Send CLI)
-  - { name: "Install ffsend", get_url: { url: "https://github.com/timvisee/ffsend/releases/download/v{{ ffsend_version }}/ffsend-v{{ ffsend_version }}-{{ ffsend_platform }}-static", dest: "/usr/local/bin/ffsend", mode: "+x", checksum: "{{ ffsend_checksum }}" } }
   # 996. Magic Wormhole
   - { name: "Magic Wormhole: Install prerequisites", become: yes, apt: { pkg: [libffi-dev], state: present }, tags: [wormhole] }
   - { name: "Magic Wormhole: Install package", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: magic-wormhole, state: present }, tags: [wormhole] }
