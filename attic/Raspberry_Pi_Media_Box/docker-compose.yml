@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Sofia
+      - UMASK_SET=022
+    volumes:
+      - /media/carpaccio/attic/radarr/config:/config
+      - /media/carpaccio/movies:/movies
+      - /media/carpaccio/downloads:/downloads
+    ports:
+      - 7878:7878
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Sofia
+      - UMASK_SET=022
+    volumes:
+      - /media/carpaccio/attic/sonarr/config:/config
+      - /media/carpaccio/tvshows:/tv
+      - /media/carpaccio/downloads:/downloads
+    ports:
+      - 8989:8989
+
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Sofia
+      - UMASK_SET=022
+    volumes:
+      - /media/carpaccio/attic/bazarr/config:/config
+      - /media/carpaccio/movies:/movies
+      - /media/carpaccio/tvshows:/tv
+    ports:
+      - 6767:6767
+
+  sabnzbd:
+    image: linuxserver/sabnzbd
+    container_name: sabnzbd
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Sofia
+    volumes:
+      - /media/carpaccio/attic/sabnzbd/config:/config
+      - /media/carpaccio/downloads:/downloads
+      - /media/carpaccio/attic/sabnzbd/downloads:/incomplete-downloads
+    ports:
+      - 8080:8080
+      - 9090:9090
+
+  transmission:
+    image: linuxserver/transmission
+    container_name: transmission
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Sofia
+      - TRANSMISSION_WEB_HOME=/transmission-web-control/
+      #- USER=transmission
+      #- PASS=password
+    volumes:
+      - /media/carpaccio/attic/transmission/config:/config
+      - /media/carpaccio/downloads:/watch
+      - /media/carpaccio/downloads:/downloads
+      - /media/carpaccio/attic/transmission/downloads:/incomplete-downloads
+      - /media/carpaccio/movies:/movies
+      - /media/carpaccio/tvshows:/tv
+    ports:
+      - 9091:9091
+      - 51413:51413
+      - 51413:51413/udp
+
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+      - UMASK_SET=022
+      - PLEX_CLAIM= # optional
+    volumes:
+      - /media/carpaccio/attic/plex/config:/config
+      - /media/carpaccio/movies:/movies
+      - /media/carpaccio/tvshows:/tv
+      - /media/carpaccio/downloads:/downloads
+
+  get_iplayer:
+    image: marginal/get_iplayer:arm64
+    container_name: get_iplayer
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - GETIPLAYER_PROFILE=/opt/get_iplayer
+    volumes:
+      - /media/carpaccio/attic/get_iplayer/config:/opt/get_iplayer
+      - /media/carpaccio/downloads:/output
+    ports:
+      - 1935:1935
+
+
+# vim: set ts=2 sw=2 et :
