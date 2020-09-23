@@ -51,12 +51,21 @@
         Certificates:
           ImportEnterpriseRoots: true
           Install:
+            # InfoNotary
             - InfoNotaryQualifiedLegalPersonSealCA.pem
             - InfoNotaryQualifiedPersonalSignCA.pem
             - InfoNotaryQualifiedTimeStampingServiceCA.pem
             - InfoNotaryQualifiedValidatedDomainCA.pem
             - InfoNotaryQualifiedValidationServicesCA.pem
             - InfoNotaryTSPRoot.pem
+            # B-Trust (Borica)
+            - B-TrustOperationalACA.cer
+            - B-TrustOperationalQCA.cer
+            - B-TrustOperCA5AES_PEM.cer
+            - B-TrustOperCA5QES_PEM.cer
+            - B-TrustRootACA.cer
+            - B-TrustRootCA5_PEM.cer
+            - B-TrustRootQCA.cer
         SecurityDevices:
           Bit4Id: "/usr/lib/libbit4ipki.so"
         Extensions:
@@ -1279,6 +1288,15 @@
       InfoNotaryQualifiedValidatedDomainCA.pem,
       InfoNotaryQualifiedValidationServicesCA.pem,
       InfoNotaryTSPRoot.pem
+    ] }
+  - { name: "B-Trust: Create Firefox certificate", become: yes, copy: { dest: "/usr/lib/mozilla/certificates/{{ item }}", src: "certificates/{{ item }}", owner: "{{ ansible_user_id }}", mode: 0444, force: yes }, tags: [btrust, certificates], with_items: [
+      B-TrustOperationalACA.cer,
+      B-TrustOperationalQCA.cer,
+      B-TrustOperCA5AES_PEM.cer,
+      B-TrustOperCA5QES_PEM.cer,
+      B-TrustRootACA.cer,
+      B-TrustRootCA5_PEM.cer,
+      B-TrustRootQCA.cer
     ] }
 
   # 2010. ufw
