@@ -347,11 +347,19 @@ class JSONPatcher(object):
                 test_result = False if test_result is False else tested  # one false test fails everything
         return modified, test_result
 
+    def _decode(self, path):
+      """Return the decoded path according to RFC 6901 evaluation rules.
+
+      See https://tools.ietf.org/html/rfc6901#section-4
+      """
+      return path.replace('~1', '/').replace('~0', '~')
+
     def _get(self, path, obj, **discard):
         """Return a value at 'path'."""
         elements = path.lstrip('/').split('/')
         next_obj = obj
         for idx, elem in enumerate(elements):
+            elem = self._decode(elem)
             try:
                 next_obj = next_obj[elem]
             except KeyError:
@@ -375,6 +383,7 @@ class JSONPatcher(object):
         chg = False
         path = path.lstrip('/')
         if "/" not in path:  # recursion termination
+            path = self._decode(path)
             if isinstance(obj, dict):
                 old_value = obj.get(path)
                 obj[path] = value
@@ -396,7 +405,7 @@ class JSONPatcher(object):
                 return obj, chg, None
         else:  # traverse obj until last path member
             elements = path.split('/')
-            path, remaining = elements[0], '/'.join(elements[1:])
+            path, remaining = self._decode(elements[0]), '/'.join(elements[1:])
 
             next_obj = None
             if isinstance(obj, dict):
@@ -424,6 +433,7 @@ class JSONPatcher(object):
         removed = None
         path = path.lstrip('/')
         if "/" not in path:  # recursion termination
+            path = self._decode(path)
             try:
                 removed = obj.pop(path)
             except KeyError:
@@ -438,7 +448,7 @@ class JSONPatcher(object):
             return obj, removed, None
         else:  # traverse obj until last path member
             elements = path.split('/')
-            path, remaining = elements[0], '/'.join(elements[1:])
+            path, remaining = self._decode(elements[0]), '/'.join(elements[1:])
 
             next_obj = None
             if isinstance(obj, dict):
@@ -527,6 +537,7 @@ class JSONPatcher(object):
                     if found:
                         return obj, None, found
                 return obj, None, False
+            elem = self._decode(elem)
             try:
                 next_obj = next_obj[elem]
             except KeyError:
