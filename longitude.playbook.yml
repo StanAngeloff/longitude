@@ -131,9 +131,13 @@
     waterfox_locale: en-US
     waterfox_checksum: "sha256:a3b5d62078fad09bd165d54af9c73d6928891aafab65d2cd7916eac19e6d6980"
 
-    mailspring_version: 1.7.6
-    mailspring_platform: amd64
-    mailspring_checksum: 'sha256:176a73fc1f209f01824e9ed1d85c091ff94207c9f5578974e4335f8b8536ca8d'
+    thunderbird_version: 78.2.2
+    thunderbird_locale: en-GB
+    thunderbird_platform: linux-x86_64
+    thunderbird_checksum: 'sha256:ce353fc8e6e8e8d2ec1378f76879c0bebb55f867f39488fe48a1995685c85b00'
+
+    birdtray_version: 1.8.1
+    birdtray_platform: linux-x86_64
 
     neovim_version: 0.4.3
     neovim_checksum: "sha256:a3b7ccbde583acdc7f3385025d3c5e386f92aa97e425b311a49402836998b4e0"
@@ -730,13 +734,74 @@
         Exec=/opt/waterfox-classic-{{ waterfox_version }}/waterfox -private-window
     tags: [waterfox]
 
-  # 660. Mailspring
-  - { name: "Mailspring: Install prerequisites", become: yes, apt: { pkg: [xdg-utils, zenity], state: present }, tags: [mailspring] }
-  - { name: "Mailspring: Check installation", become: yes, shell: "{{ dpkg_query | format('mailspring') }}", register: mailspring_dpkg_query, changed_when: no, failed_when: no, tags: [mailspring] }
-  - { name: "Mailspring: Download packages", get_url: { url: "https://github.com/Foundry376/Mailspring/releases/download/{{ mailspring_version }}/mailspring-{{ mailspring_version }}-{{ mailspring_platform }}.deb", dest: "/tmp/mailspring-{{ mailspring_version }}.deb", checksum: "{{ mailspring_checksum }}" }, when: "mailspring_dpkg_query.rc > 0", tags: [mailspring] }
-  - { name: "Mailspring: Install packages", become: yes, apt: { deb: "/tmp/mailspring-{{ mailspring_version }}.deb", state: present }, when: "mailspring_dpkg_query.rc > 0", tags: [mailspring] }
-  - { name: "Mailspring: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: mailspring_mime_query_1, changed_when: no, failed_when: no, tags: [mailspring] }
-  - { name: "Mailspring: Set as MIME handler", when: "(mailspring_mime_query_1.rc == 0) and ('mailspring.desktop' not in mailspring_mime_query_1.stdout)", command: "xdg-mime default mailspring.desktop x-scheme-handler/mailto", tags: [mailspring] }
+  # 660. Thunderbird
+  - { name: "Thunderbird: Install prerequisites", become: yes, apt: { pkg: [xdg-utils, zenity], state: present }, tags: [thunderbird] }
+  - { name: "Thunderbird: Check installation", become: yes, command: "ls /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}", register: thunderbird_install_query, changed_when: no, failed_when: no, tags: [thunderbird] }
+  - { name: "Thunderbird: Download packages", get_url: { url: "https://download-installer.cdn.mozilla.net/pub/thunderbird/releases/{{ thunderbird_version }}/{{ thunderbird_platform }}/{{ thunderbird_locale }}/thunderbird-{{ thunderbird_version }}.tar.bz2", dest: "/tmp/thunderbird-{{ thunderbird_version }}.tar.bz2", checksum: "{{ thunderbird_checksum }}" }, when: "thunderbird_install_query.rc > 0", tags: [thunderbird] }
+  - { name: "Thunderbird: Unpack & install packages", when: "thunderbird_install_query.rc > 0",
+      shell: "cd /tmp && tar --overwrite -jxf 'thunderbird-{{ thunderbird_version }}.tar.bz2' && mv thunderbird '/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}'", tags: [thunderbird] }
+  - name: "Thunderbird: Add desktop icon"
+    become: yes
+    copy:
+      dest: "/usr/share/applications/thunderbird.desktop"
+      owner: "{{ ansible_user_gid }}"
+      group: "root"
+      content: |
+        [Desktop Entry]
+        Encoding=UTF-8
+        Name=Thunderbird Mail
+        Comment=Send and receive mail with Thunderbird
+        GenericName=Mail Client
+        Keywords=Email;E-mail;Newsgroup;Feed;RSS
+        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird %u
+        Terminal=false
+        X-MultipleArgs=false
+        Type=Application
+        Icon=/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/chrome/icons/default/default256.png
+        Categories=Application;Network;Email;
+        MimeType=x-scheme-handler/mailto;application/x-xpinstall;
+        StartupNotify=true
+        Actions=Compose;Contacts
+
+        [Desktop Action Compose]
+        Name=Compose New Message
+        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird -compose
+        OnlyShowIn=Messaging Menu;Unity;
+
+        [Desktop Action Contacts]
+        Name=Contacts
+        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird -addressbook
+        OnlyShowIn=Messaging Menu;Unity;
+    tags: [thunderbird]
+  - { name: "Thunderbird: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: thunderbird_mime_query_1, changed_when: no, failed_when: no, tags: [thunderbird] }
+  - { name: "Thunderbird: Set as MIME handler", when: "(thunderbird_mime_query_1.rc == 0) and ('thunderbird.desktop' not in thunderbird_mime_query_1.stdout)", command: "xdg-mime default thunderbird.desktop x-scheme-handler/mailto", tags: [thunderbird] }
+  - { name: "Birdtray: Install prerequisites", become: yes, apt: { pkg: [libqt5core5a, libqt5gui5, libqt5widgets5, libqt5network5, libqt5svg5, libqt5x11extras5, qt5-gtk-platformtheme], state: present }, tags: [birdtray, thunderbird] }
+  - { name: "Birdtray: Check installation", become: yes, command: "ls /usr/local/bin/birdtray-{{ birdtray_version }}", register: birdtray_install_query, changed_when: no, failed_when: no, tags: [birdtray, thunderbird] }
+  - { name: "Birdtray: Download package and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "birdtray_install_query.rc > 0", tags: [birdtray, thunderbird], with_items: [
+      "https://dl.bintray.com/stanangeloff/Birdtray/birdtray-{{ birdtray_version }}_{{ birdtray_platform }}.tar.xz",
+      "https://dl.bintray.com/stanangeloff/Birdtray/birdtray-{{ birdtray_version }}_{{ birdtray_platform }}.tar.xz.asc"
+    ] }
+  - { name: "Birdtray: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/bintray-public.key.asc.gpg' --verify /tmp/birdtray-{{ birdtray_version }}_{{ birdtray_platform }}.tar.xz.asc", when: "birdtray_install_query.rc > 0", tags: [birdtray, thunderbird] }
+  - name: "Birdtray: Compile & install packages"
+    when: "birdtray_install_query.rc > 0"
+    shell: |
+      cd /tmp &&
+      tar --overwrite -Jxf 'birdtray-{{ birdtray_version }}_{{ birdtray_platform }}.tar.xz' &&
+      cd 'birdtray-{{ birdtray_version }}' &&
+      cp bin/birdtray /usr/local/bin/birdtray-{{ birdtray_version }} &&
+      cp -R share/* /usr/local/share/
+    args: { executable: "/bin/bash" }
+    tags: [birdtray, thunderbird]
+  - { name: "Birdtray: Set up alternatives", become: yes, alternatives: { name: "birdtray", link: "/usr/local/bin/birdtray", path: "/usr/local/bin/birdtray-{{ birdtray_version }}" }, tags: [birdtray, thunderbird] }
+  - name: "Birdtray: Update settings"
+    json_patch:
+      src: "{{ ansible_env.HOME }}/.config/birdtray-config.json"
+      create: yes
+      pretty: yes
+      operations:
+        # See https://tools.ietf.org/html/rfc6901
+        - { op: replace, path: "advanced~1tbcmdline", value: ["/usr/bin/env", "GTK_THEME=Adwaita", "GDK_DPI_SCALE=1.25", "/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird"] }
+    tags: [birdtray, thunderbird]
 
   # 700. Dropbox
   - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme, python3-gpgme], state: present }, when: "ansible_distribution_version is version('17.10', '<')" }
