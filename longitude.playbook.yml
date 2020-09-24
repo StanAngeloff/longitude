@@ -364,6 +364,9 @@
     fraidycat_version: 1.1.3
     fraidycat_checksum: "sha256:a818f9bd90906bd1491ee14d9f97b6a2977a8b0985ec4b0aef0941310eeca114"
 
+    bingwallpaper_version: '@{2020-09-23}'
+    bingwallpaper_checksum: 'sha256:50a770e1eaff5cb5cd8cb7b7a549347a6d6b01a3ad0399b38ecd65be6d1de2b3'
+
     ufw_policy:
       - { direction: incoming, policy: deny }
       - { direction: outgoing, policy: allow }
@@ -1494,6 +1497,11 @@
         Comment=Follow blogs, wikis, YouTube, Twitter, Reddit, Instagram and the like... from a distance.
         Categories=News;
     tags: [fraidycat]
+
+  # 3500. Nice things…
+  - { name: "Bing Wallpaper: Create script directory", file: { path: "{{ ansible_env.HOME }}/bin", state: directory }, tags: [bing, wallpaper, desktop] }
+  - { name: "Bing Wallpaper: Download script", get_url: { url: "https://github.com/whizzzkid/bing-wallpapers-for-linux/raw/{{ bingwallpaper_version }}/bingwallpaper", dest: "{{ ansible_env.HOME }}/bin/bingwallpaper", mode: "+x", checksum: "{{ bingwallpaper_checksum }}" }, tags: [bing, wallpaper, desktop] }
+  - { name: "Bing Wallpaper: Set up CRON", become: yes, cron: { name: 'Bing Wallpaper', job: '{{ ansible_env.HOME }}/bin/bingwallpaper -1 1>/dev/null 2>&1', hour: '*/6', minute: '0', state: present, user: "{{ ansible_user_id }}" }, tags: [bing, wallpaper, desktop] }
 
   # 5000. Post-install clean up & purging of packages
   #
