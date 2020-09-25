@@ -1501,7 +1501,7 @@
   # 3500. Nice things…
   - { name: "Bing Wallpaper: Create script directory", file: { path: "{{ ansible_env.HOME }}/bin", state: directory }, tags: [bing, wallpaper, desktop] }
   - { name: "Bing Wallpaper: Download script", get_url: { url: "https://github.com/whizzzkid/bing-wallpapers-for-linux/raw/{{ bingwallpaper_version }}/bingwallpaper", dest: "{{ ansible_env.HOME }}/bin/bingwallpaper", mode: "+x", checksum: "{{ bingwallpaper_checksum }}" }, tags: [bing, wallpaper, desktop] }
-  - { name: "Bing Wallpaper: Set up CRON", become: yes, cron: { name: 'Bing Wallpaper', job: 'DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/{{ ansible_user_uid }}/bus" /home/stan/bin/bingwallpaper -1 {{ ansible_env.HOME }}/bin/bingwallpaper -1 1>/dev/null 2>&1', hour: '*/6', minute: '0', state: present, user: "{{ ansible_user_id }}" }, tags: [bing, wallpaper, desktop] }
+  - { name: "Bing Wallpaper: Set up CRON", become: yes, cron: { name: 'Bing Wallpaper', job: 'DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/{{ ansible_user_uid }}/bus" /home/stan/bin/bingwallpaper -1 {{ ansible_env.HOME }}/bin/bingwallpaper -1 1>/dev/null 2>&1', special_time: hourly, state: present, user: "{{ ansible_user_id }}" }, tags: [bing, wallpaper, desktop] }
 
   # 5000. Post-install clean up & purging of packages
   #
