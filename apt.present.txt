@@ -21,6 +21,7 @@ sqlite3	# a command-line interface for SQLite 3.
 sqlitebrowser	# a visual tool used to create, design and edit database files compatible with SQLite.
 synaptic	# graphical package manager.
 trash-cli	# a `trash` command-line utility for sending files to the rubbish bin.
+tree	# displays an indented directory tree.
 unp	# a small Perl script which makes extraction of any archive files a bit easier.
 v4l2ucp	# a control panel for Video for Linux 2 Universal.
 w3m	# a text-based World Wide Web browser, useful for converting HTML to plain text.
