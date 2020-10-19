@@ -404,7 +404,7 @@
   - { name: "System: Update apt cache", become: yes, apt: { update_cache: yes, cache_valid_time: "{{ 24 * 60 * 60 }}" } }
 
   # 20. build-essential & a few more packages are essential
-  - { name: "System: Install essentials", become: yes, apt: { pkg: [build-essential, unzip], state: present } }
+  - { name: "System: Install essentials", become: yes, apt: { pkg: [build-essential, cmake, unzip], state: present } }
 
   # 30. sysctl
   - { name: "Tweak kernel parameters (sysctl)", become: yes, sysctl: { name: "{{ item.name }}", state: "{{ item.state | default('present') }}", value: "{{ item.value }}", sysctl_file: '/etc/sysctl.d/60-longitude.conf', reload: yes }, when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", tags: [sysctl], with_items: [
