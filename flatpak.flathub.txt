@@ -13,12 +13,6 @@ org.remmina.Remmina
 # FileZilla Client is a fast and reliable cross-platform FTP, FTPS and SFTP client. https://filezilla-project.org/
 org.filezillaproject.Filezilla
 
-# Distraction-free text editor for Markdown. https://wereturtle.github.io/ghostwriter/
-io.github.wereturtle.ghostwriter
-
-# Powerful markdown editor. https://github.com/fabiocolacio/Marker
-com.github.fabiocolacio.marker
-
 # The LibreOffice productivity suite.
 org.libreoffice.LibreOffice
 
