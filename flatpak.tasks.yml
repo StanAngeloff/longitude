@@ -33,7 +33,10 @@
       org.libreoffice.LibreOffice,
     ]
   ] }
-- { name: "Flatpak: Configure fonts", copy: { src: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf", dest: "{{ ansible_env.HOME }}/.var/app/{{ item }}/config/fontconfig/conf.d/10-calibri.conf", force: yes }, tags: [flatpak], with_items: [
+- { name: "Flatpak: Clean up legacy fonts configuration", file: { path: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf", state: absent }, tags: [fonts], with_items: [
+    org.libreoffice.LibreOffice,
+  ] }
+- { name: "Flatpak: Configure fonts", file: { src: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-ms-ttf-fonts.conf", dest: "{{ ansible_env.HOME }}/.var/app/{{ item }}/config/fontconfig/conf.d/10-ms-ttf-fonts.conf", state: hard, force: yes }, tags: [flatpak, fonts], with_items: [
     org.libreoffice.LibreOffice,
   ] }
 - { name: "Flatpak: Enable dark theme", ini_file: { create: yes, path: "{{ ansible_env.HOME }}/.var/app/{{ item }}/config/gtk-3.0/settings.ini", section: 'Settings', option: 'gtk-application-prefer-dark-theme', value: '1', no_extra_spaces: yes, state: present }, tags: [flathub, flatpak], with_items: [

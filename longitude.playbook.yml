@@ -890,9 +890,10 @@
       { path: "{{ ansible_env.HOME }}/.config/fontconfig", state: directory },
       { path: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d", state: directory }
     ] }
+  - { name: "Miscellaneous: Clean up legacy configuration", file: { path: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf", state: absent }, tags: [fonts] }
   - name: "Miscellaneous: Configure fonts"
     copy:
-      dest: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-calibri.conf"
+      dest: "{{ ansible_env.HOME }}/.config/fontconfig/conf.d/10-ms-ttf-fonts.conf"
       force: no
       content: |
         <?xml version="1.0"?>
@@ -906,7 +907,16 @@
                     <bool>false</bool>
                 </edit>
             </match>
+            <match target="font">
+                <test name="family" compare="contains">
+                    <string>Cambria</string>
+                </test>
+                <edit name="embeddedbitmap">
+                    <bool>false</bool>
+                </edit>
+            </match>
         </fontconfig>
+    tags: [fonts]
   - { name: "GDM3: Check if service installed", stat: { path: "/etc/gdm3/custom.conf" }, register: gdm_custom_stat, tags: [gdm] }
   - { name: "GDM3: Disable Waywand", become: yes, ini_file: { path: "/etc/gdm3/custom.conf", no_extra_spaces: true, section: "daemon", option: "WaylandEnable", value: "false", state: present }, when: gdm_custom_stat.stat.exists, tags: [gdm] }
 
