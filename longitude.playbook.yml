@@ -119,6 +119,9 @@
       "browser.cache.memory.enable": true
       "browser.cache.memory.capacity": 1048576 # 1GB
       "browser.cache.memory.max_entry_size": 20480 # 20MB
+      # Colour Management
+      "gfx.color_management.mode": 1
+      "gfx.color_management.enablev4": true
       # Experimental
       #
       "gfx.webrender.all": true
