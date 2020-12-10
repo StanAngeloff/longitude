@@ -151,6 +151,12 @@
 
     git_lfs_gpg_key_id: "DC282033"
 
+    asdf_version: '0.8.0'
+    asdf_plugins:
+      - { name: 'golang', url: 'https://github.com/kennyp/asdf-golang.git' }
+    asdf_rc:
+      legacy_version_file: 'yes'
+
     python_version: '3.8.0'
 
     ruby_version: '2.6.5'
@@ -523,7 +529,36 @@
     tags: [git]
   - { name: "diff-highlight: Set up alternatives", become: yes, alternatives: { name: 'diff-highlight', link: '/usr/local/bin/diff-highlight', path: '/usr/local/bin/diff-highlight-{{ git_installed_version.stdout }}' }, tags: [git] }
 
-  # 200. Python
+  # 200. asdf
+  - { name: "asdf: Install prerequisites", become: yes, apt: { pkg: [curl, git], state: present }, tags: [asdf] }
+  - { name: "asdf: Clone the repository", git: { repo: "https://github.com/asdf-vm/asdf.git", dest: "{{ ansible_env.HOME }}/.asdf", remote: "github", version: "v{{ asdf_version }}", update: yes }, tags: [asdf] }
+  - name: "asdf: Install plug-ins"
+    shell: |
+      . "{{ ansible_env.HOME }}"/.asdf/asdf.sh &&
+      asdf plugin list | grep "^{{ item.name }}$" || ( asdf plugin add "{{ item.name }}" "{{ item.url }}" && echo "{{ item.name }} added!" )
+    args: { executable: "/bin/bash" }
+    changed_when: "('added!' in asdf_plugin_cmd.stdout)"
+    register: asdf_plugin_cmd
+    with_items: "{{ asdf_plugins }}"
+    tags: [asdf]
+  - name: "asdf: Set up configuration"
+    tags: [asdf]
+    copy:
+      dest: "{{ ansible_env.HOME }}/.asdfrc"
+      owner: "{{ ansible_user_id }}"
+      mode: 0644
+      force: yes
+      content: |
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        ### This file is managed by Ansible.
+        ###
+
+        {% for name, value in asdf_rc | dictsort %}
+        {{ name }} = {{ value }}
+        {% endfor %}
+
+  # 210. Python
   - { name: "Python: Install pip packages & Python development headers", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present }, tags: [python] }
   - { name: "Python: Install virtualenv", become: yes, pip: { executable: pip3, name: virtualenv, state: present }, tags: [python] }
   - { name: "Python: Install prerequisites", become: yes, apt: { pkg: [zlib1g-dev, libncurses5-dev, libgdbm-dev, libnss3-dev, libssl-dev, libreadline-dev, libffi-dev, libsqlite3-dev, libbz2-dev, liblzma-dev, uuid-dev], state: present }, tags: [python] }
