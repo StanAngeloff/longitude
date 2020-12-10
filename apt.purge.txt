@@ -2,5 +2,40 @@
 # I prefer Flatpak which is decentralized and less intrusive.
 snapd
 
+# Fonts, lots and lots of unwanted, unneeded fonts…
+fonts-beng*
+fonts-deva*
+fonts-gargi*
+fonts-gubbi*
+fonts-gujr*
+fonts-guru*
+fonts-indic*
+fonts-kacst*
+fonts-kalapi*
+fonts-khmeros*
+fonts-knda*
+fonts-lao*
+fonts-lklug*
+fonts-lohit*
+fonts-nakula*
+fonts-nanum*
+fonts-navilu*
+fonts-noto-cjk fonts-noto-mono
+fonts-orya-extra*
+fonts-pagul*
+fonts-sahadeva*
+fonts-samyak*
+fonts-sarai
+fonts-sil*
+fonts-smc*
+fonts-takao*
+fonts-telu*
+fonts-texgyre*
+fonts-tibetan*
+fonts-tlwg-*
+fonts-yrsa-*
+fonts-emojione
+fonts-noto-color-emoji
+ttf-bitstream-vera
 
 # vim: ft=conf :
