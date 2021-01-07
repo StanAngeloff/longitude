@@ -46,7 +46,7 @@
         DisablePocket: true
         DNSOverHTTPS:
           Enabled: true
-          ProviderURL: "https://mozilla.cloudflare-dns.com/dns-query"
+          ProviderURL: "https://1.1.1.1/dns-query"
           Locked: true
         Certificates:
           ImportEnterpriseRoots: true
