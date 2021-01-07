@@ -366,9 +366,9 @@
 
     tesseract_languages: [eng, bul]
 
-    ferdi_version: 5.5.0
+    ferdi_version: 5.6.0-beta.5
     ferdi_platform: amd64
-    ferdi_checksum: "sha256:7338753c75ac6e3dcd1b0c4af4dcf1a927e7449acf095b7155e547822ddb4444"
+    ferdi_checksum: "sha256:7c3533622af9dce4373b8a3d786ef4b060fe149d3fe120cdb137e1f7b5854674"
 
     steam_launcher_version: 1.0.0.61
     steam_launcher_checksum: "sha256:5e7d3f1cb1de847f31152998bdc8137855a1a0f7b0dc099db6a7f4d7e33fd911"
