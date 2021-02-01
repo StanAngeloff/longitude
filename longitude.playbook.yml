@@ -198,8 +198,8 @@
     imagemagick_version: 7.0.10-6
     imagemagick_checksum: "sha256:30ac7ce423cef9fb7baf0aefc734ae7b2593b9499c3782057ab73b7a360a0ac5"
 
-    youtube_dl_version: 2019.04.30
-    youtube_dl_checksum: "sha256:3c7f9192f93405bca7f68fd944a08f3bad5274ac90007cf423edb2fb779d382b"
+    youtube_dl_version: 2021.01.24.1
+    youtube_dl_checksum: "sha512:0e2db11c78256bcf12122655817820fc37bcbb83b1ef283861d1641962fd9acec8b97c96c6462fe07bbe73a86054c0fd4fad7a55d9c5a6211e35c4a4a07f73d3"
 
     fd_version: 7.5.0
     fd_platform: amd64
@@ -988,7 +988,7 @@
   - { name: "ImageMagick: Allow manipulation of PDF files", lineinfile: { path: "/opt/ImageMagick-{{ imagemagick_version }}/etc/ImageMagick-{{ imagemagick_version.split('.')[0] }}/policy.xml", regexp: "PDF", line: '  <policy domain="module" rights="read|write" pattern="{PS,PDF,XPS}" />' } }
 
   # 920. youtube-dl
-  - { name: "youtube-dl: Install script", get_url: { url: "https://github.com/ytdl-org/youtube-dl/releases/download/{{ youtube_dl_version }}/youtube-dl", dest: "/usr/local/bin/youtube-dl", mode: "+x", checksum: "{{ youtube_dl_checksum }}" } }
+  - { name: "youtube-dl: Install script", get_url: { url: "https://github.com/ytdl-org/youtube-dl/releases/download/{{ youtube_dl_version }}/youtube-dl", dest: "/usr/local/bin/youtube-dl", mode: "+x", checksum: "{{ youtube_dl_checksum }}" }, tags: [youtube, youtube-dl] }
 
   # 940. fd
   - { name: "fd: Check installation", become: yes, shell: "{{ dpkg_query | format('fd') }}", register: fd_dpkg_query, changed_when: no, failed_when: no, tags: [fd] }
