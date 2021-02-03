@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   radarr:
-    image: linuxserver/radarr
+    image: ghcr.io/linuxserver/radarr
     container_name: radarr
     restart: unless-stopped
     environment:
@@ -18,7 +18,7 @@ services:
       - 7878:7878
 
   sonarr:
-    image: linuxserver/sonarr
+    image: ghcr.io/linuxserver/sonarr
     container_name: sonarr
     restart: unless-stopped
     environment:
@@ -34,7 +34,7 @@ services:
       - 8989:8989
 
   bazarr:
-    image: linuxserver/bazarr
+    image: ghcr.io/linuxserver/bazarr
     container_name: bazarr
     restart: unless-stopped
     environment:
@@ -50,7 +50,7 @@ services:
       - 6767:6767
 
   sabnzbd:
-    image: linuxserver/sabnzbd
+    image: ghcr.io/linuxserver/sabnzbd
     container_name: sabnzbd
     restart: unless-stopped
     environment:
@@ -66,7 +66,7 @@ services:
       - 9090:9090
 
   transmission:
-    image: linuxserver/transmission
+    image: ghcr.io/linuxserver/transmission
     container_name: transmission
     restart: unless-stopped
     environment:
@@ -89,7 +89,7 @@ services:
       - 51413:51413/udp
 
   plex:
-    image: linuxserver/plex
+    image: ghcr.io/linuxserver/plex
     container_name: plex
     restart: unless-stopped
     network_mode: host
