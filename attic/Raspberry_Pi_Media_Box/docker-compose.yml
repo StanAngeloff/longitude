@@ -105,6 +105,20 @@ services:
       - /media/carpaccio/tvshows:/tv
       - /media/carpaccio/downloads:/downloads
 
+  jackett:
+    image: ghcr.io/linuxserver/jackett
+    container_name: jackett
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - AUTO_UPDATE=true
+    volumes:
+      - /media/carpaccio/attic/jackett/config:/config
+      - /media/carpaccio/downloads:/downloads
+
   get_iplayer:
     image: marginal/get_iplayer:arm64
     container_name: get_iplayer
