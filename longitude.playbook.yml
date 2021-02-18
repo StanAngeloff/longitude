@@ -145,8 +145,8 @@
     birdtray_version: 1.8.1
     birdtray_platform: linux-x86_64
 
-    neovim_version: 0.4.3
-    neovim_checksum: "sha256:a3b7ccbde583acdc7f3385025d3c5e386f92aa97e425b311a49402836998b4e0"
+    neovim_version: 0.4.4
+    neovim_checksum: "sha256:1eea3d44f55bab0856d08737c0c50ead7645ae3afd6352a252bc403b9843ec95"
     neovim_dictionaries: [bg.utf-8]
 
     git_lfs_gpg_key_id: "DC282033"
@@ -217,16 +217,16 @@
     jq_platform: linux64
     jq_checksum: "sha256:af986793a515d500ab2d35f8d2aecd656e764504b789b66d7e1a0b727a124c44"
 
-    httpie_version: 2.0.0
+    httpie_version: 2.4.0
     httpie_plugins:
       - { name: 'httpie-oauth', version: 1.0.2 }
 
     awscli_version: '>1.16'
     s3cmd_version: '>=2.1'
 
-    fzf_version: 0.23.1
+    fzf_version: 0.25.1
     fzf_platform: linux_amd64
-    fzf_checksum: "sha256:60085e86e65cd0ccfafbf3af1f9cf19a8379ec5ef9e5e5322c7b265079a6617c"
+    fzf_checksum: "sha256:8bbb11b14351b95e7ea79600d285301eff12aa0942ce97442d3570d59bca0242"
 
     bat_version: 0.15.4
     bat_platform: amd64
@@ -246,11 +246,10 @@
     ngrok_stable_channel_id: 8jFoSpgnjgu
     ngrok_checksum: "sha256:3e4f39dd3130b80dd0a736182712952100fcc462a0eb4d9ca15e50668c9d3862"
 
-    terraform_version: 0.12.9
-    terraform_checksum: "sha256:69712c6216cc09b7eca514b9fb137d4b1fead76559c66f338b4185e1c347ace5"
+    terraform_version: 0.14.7
+    terraform_checksum: "sha256:6b66e1faf0ad4ece28c42a1877e95bbb1355396231d161d78b8ca8a99accc2d7"
     terraform_platform: linux_amd64
-    terraform_plugins:
-      terraform-provider-mailgunv3: { url: "https://github.com/phillbaker/terraform-provider-mailgunv3/releases/download/v%(version)s/%(name)s_v%(version)s_%(platform)s", version: 0.3.2, checksum: "md5:ec780c1c15898253e599fbadfacf17f0" } # See https://github.com/phillbaker/terraform-provider-mailgunv3/releases
+    terraform_plugins: { }
 
     zsh_version: 5.8
     zsh_checksum: "sha256:dcc4b54cc5565670a65581760261c163d720991f0d06486da61f8d839b52de27"
@@ -293,8 +292,8 @@
       --disable-frills
     ]
 
-    tmux_version: 3.0a
-    tmux_checksum: "sha256:4ad1df28b4afa969e59c08061b45082fdc49ff512f30fc8e43217d7b0e5f8db9"
+    tmux_version: 3.1c
+    tmux_checksum: "sha256:918f7220447bef33a1902d4faff05317afd9db4ae1c9971bef5c787ac6c88386"
 
     tig_version: 2.5.2
     tig_checksum: "sha256:1e5a8175627231ba619686ec338b4ad2843a6526122ea4e9fde1739dd2b4830b"
@@ -1000,8 +999,8 @@
   - { name: "ripgrep: Install packages", become: yes, apt: { deb: "/tmp/ripgrep-{{ ripgrep_version }}.deb", state: present }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
   # 955. fzf
   - { name: "fzf: Check installation", become: yes, command: "ls /usr/local/bin/fzf-{{ fzf_version }}", register: fzf_install_query, changed_when: no, failed_when: no, tags: [fzf] }
-  - { name: "fzf: Download fzf", get_url: { url: "https://github.com/junegunn/fzf-bin/releases/download/{{ fzf_version }}/fzf-{{ fzf_version }}-{{ fzf_platform }}.tgz", dest: "/tmp/fzf-{{ fzf_version }}.tgz", checksum: "{{ fzf_checksum }}" }, when: "fzf_install_query.rc > 0", tags: [fzf] }
-  - { name: "fzf: Install fzf", shell: "cd /tmp && tar --overwrite -zxf 'fzf-{{ fzf_version }}.tgz' && mv ./fzf '/usr/local/bin/fzf-{{ fzf_version }}'", when: "fzf_install_query.rc > 0", tags: [fzf] }
+  - { name: "fzf: Download fzf", get_url: { url: "https://github.com/junegunn/fzf/releases/download/{{ fzf_version }}/fzf-{{ fzf_version }}-{{ fzf_platform }}.tar.gz", dest: "/tmp/fzf-{{ fzf_version }}.tar.gz", checksum: "{{ fzf_checksum }}" }, when: "fzf_install_query.rc > 0", tags: [fzf] }
+  - { name: "fzf: Install fzf", shell: "cd /tmp && tar --overwrite -zxf 'fzf-{{ fzf_version }}.tar.gz' && mv ./fzf '/usr/local/bin/fzf-{{ fzf_version }}'", when: "fzf_install_query.rc > 0", tags: [fzf] }
   - { name: "fzf: Set up alternatives", become: yes, alternatives: { name: "fzf", link: "/usr/local/bin/fzf", path: "/usr/local/bin/fzf-{{ fzf_version }}" }, tags: [fzf] }
   - { name: "fzf: Create empty Zsh configuration", copy: { content: "", dest: "{{ ansible_env.HOME }}/.fzf.zsh", force: no }, tags: [fzf] }
   # 960. pup
