@@ -95,6 +95,11 @@
       "browser.urlbar.update1.view.stripHttps": false # Don't strip https:// from URL suggestions (Firefox 75+).
       "browser.urlbar.openViewOnFocus": false # Don't open the URL bar drop-down immediately on focus (Firefox 75+).
       "browser.urlbar.trimURLs": false # Force Firefox to always show https:// and www. terms for URLs in address bar.
+      # Forms and Autofill
+      "extensions.formautofill.available": "on"
+      "extensions.formautofill.creditCards.available": true
+      "extensions.formautofill.creditCards.enabled": true
+      "extensions.formautofill.supportedCountries": "US,CA,BG"
       # Development
       #
       "devtools.chrome.enabled": true # This enables Ctrl+Alt+Shift+J as well as the command entry in Ctrl+Shift+J.
