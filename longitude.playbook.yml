@@ -606,6 +606,32 @@
   - { name: "Ruby: Compile & install local package", command: "{{ ansible_env.HOME }}/.rbenv/bin/rbenv install '{{ ruby_version }}'", when: "ruby_install_query.rc > 0", tags: [ruby] }
   - { name: "Ruby: Set default version", command: "{{ ansible_env.HOME }}/.rbenv/bin/rbenv global '{{ ruby_version }}'", changed_when: no, tags: [ruby] }
 
+  # 270. Rust
+  - { name: "Rust: Check installation", command: "ls {{ ansible_env.HOME }}/.cargo/bin/rustup", register: rust_install_query, changed_when: no, failed_when: no, tags: [rust] }
+  - name: "Rust: Install rustup"
+    when: "rust_install_query.rc > 0"
+    shell: |
+      cd /tmp &&
+      curl --proto '=https' --tlsv1.2 -sSf -o rustup.sh https://sh.rustup.rs &&
+      /bin/bash rustup.sh -y --no-modify-path
+    args: { executable: "/bin/bash" }
+    tags: [rust]
+  - { name: "Rust: Capture local Zsh configuration", shell: '{{ localrc_query }}', args: { executable: "/bin/bash" }, register: rust_studio_localrc, changed_when: no, failed_when: no, tags: [rust] }
+  - name: "Rust: Update Zsh configuration"
+    blockinfile:
+      marker: "### RUST {mark} AUTOMATICALLY GENERATED"
+      block: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        export CARGO_HOME="${HOME}/.cargo"
+        export RUSTUP_HOME="${HOME}/.rustup"
+        export PATH="${PATH}:${CARGO_HOME}/bin"
+      create: yes
+      insertafter: EOF
+      path: "{{ ansible_env.HOME }}/{{ rust_studio_localrc.stdout }}"
+    tags: [rust]
+
   # 300. etkkeeper
   - { name: "etckeeper: Install packages", become: yes, apt: { pkg: [etckeeper], state: present } }
   - { name: "etckeeper: Turn off Git signing", become: yes, lineinfile: { path: "/etc/etckeeper/etckeeper.conf", regexp: "^GIT_COMMIT_OPTIONS=", line: "GIT_COMMIT_OPTIONS=\"--no-gpg-sign\"" } }
