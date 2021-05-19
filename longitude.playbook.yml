@@ -156,8 +156,8 @@
     birdtray_version: 1.8.1
     birdtray_platform: linux-x86_64
 
-    neovim_version: 0.4.4
-    neovim_checksum: "sha256:1eea3d44f55bab0856d08737c0c50ead7645ae3afd6352a252bc403b9843ec95"
+    neovim_version: nightly
+    neovim_checksum: "sha256:"
     neovim_dictionaries: [bg.utf-8]
 
     git_lfs_gpg_key_id: "DC282033"
@@ -636,7 +636,7 @@
   - { name: "etckeeper: Turn off Git signing", become: yes, lineinfile: { path: "/etc/etckeeper/etckeeper.conf", regexp: "^GIT_COMMIT_OPTIONS=", line: "GIT_COMMIT_OPTIONS=\"--no-gpg-sign\"" } }
 
   # 400. Neovim
-  - { name: "Neovim: Install AppImage", get_url: { url: "https://github.com/neovim/neovim/releases/download/v{{ neovim_version }}/nvim.appimage", dest: "/usr/local/bin/nvim-{{ neovim_version }}", mode: "+x", checksum: "{{ neovim_checksum }}" }, tags: [vim, neovim] }
+  - { name: "Neovim: Install AppImage", get_url: { url: "https://github.com/neovim/neovim/releases/download/{{ ('' if neovim_version == 'nightly' else 'v') }}{{ neovim_version }}/nvim.appimage", dest: "/usr/local/bin/nvim-{{ neovim_version }}", mode: "+x", checksum: "{{ (omit if neovim_version == 'nightly' else neovim_checksum) }}" }, tags: [vim, neovim] }
   # 410. Neovim Python support
   - { name: "Neovim: Add Python support", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip2, pip3], tags: [vim, neovim] }
   # 420. Neovim alternatives
