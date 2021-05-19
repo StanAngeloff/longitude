@@ -1170,8 +1170,31 @@
       urxvtc,
       urxvtd
     ] }
-  - { name: "rxvt-unicode: Create desktop entry", copy: { content: "[Desktop Entry]\nVersion=1.0\nName=urxvt\nComment=An unicode capable rxvt clone\nExec=urxvt\nIcon=utilities-terminal\nTerminal=false\nType=Application\nCategories=System;TerminalEmulator;", dest: "{{ ansible_env.HOME }}/.local/share/applications/urxvt.desktop", force: no }, tags: [rxvt, urxvt] }
-  - { name: "rxvt-unicode: Create launch script", copy: { content: "#!/bin/sh\n\nxdotool search --class urxvt windowactivate || urxvt -e /bin/zsh -c 'tmux attach-session -t default 2>/dev/null || tmux new-session -s default -n default'", dest: "/usr/local/bin/urxvt-start", force: no, mode: "+x" }, tags: [rxvt, urxvt] }
+  - name: "rxvt-unicode: Create desktop entry"
+    copy:
+      content: |
+        [Desktop Entry]
+        Version=1.0
+        Name=urxvt
+        Comment=An unicode capable rxvt clone
+        Exec=urxvt
+        Icon=utilities-terminal
+        Terminal=false
+        Type=Application
+        Categories=System;TerminalEmulator;
+      dest: "{{ ansible_env.HOME }}/.local/share/applications/urxvt.desktop"
+      force: no
+    tags: [rxvt, urxvt]
+  - name: "rxvt-unicode: Create launch script"
+    copy:
+      content: |
+        #!/bin/sh
+
+        xdotool search --class urxvt windowactivate || urxvt -e /bin/zsh -c 'tmux attach-session -t default 2>/dev/null || tmux new-session -s default -n default'
+      dest: "/usr/local/bin/urxvt-start"
+      force: no
+      mode: "+x"
+    tags: [rxvt, urxvt]
   - { name: "rxvt-unicode: Set up as default terminal", become: yes, alternatives: { name: "x-terminal-emulator", path: "/usr/local/bin/urxvt-start" }, tags: [rxvt, urxvt] }
 
   # 1300. tmux
