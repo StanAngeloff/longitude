@@ -161,6 +161,7 @@
     neovim_dictionaries: [bg.utf-8]
 
     git_lfs_gpg_key_id: "DC282033"
+    git_subrepo_tag: 0.4.3
 
     asdf_version: '0.8.0'
     asdf_plugins:
@@ -538,6 +539,7 @@
       cp diff-highlight /usr/local/bin/diff-highlight-{{ git_installed_version.stdout }}
     tags: [git]
   - { name: "diff-highlight: Set up alternatives", become: yes, alternatives: { name: 'diff-highlight', link: '/usr/local/bin/diff-highlight', path: '/usr/local/bin/diff-highlight-{{ git_installed_version.stdout }}' }, tags: [git] }
+  - { name: "Git: Add git-subrepo", git: { repo: "https://github.com/ingydotnet/git-subrepo.git", dest: "{{ ansible_env.HOME }}/bin/git-subrepo", remote: "github", version: "{{ git_subrepo_tag }}", update: yes }, tags: [git] }
 
   # 200. asdf
   - { name: "asdf: Install prerequisites", become: yes, apt: { pkg: [curl, git], state: present }, tags: [asdf] }
