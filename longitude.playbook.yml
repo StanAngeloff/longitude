@@ -143,11 +143,8 @@
 
     firefox_locales: [en, bg]
 
-    waterfox_version: 2020.02
-    waterfox_release: linux64
-    waterfox_platform: linux-x86_64
-    waterfox_locale: en-US
-    waterfox_checksum: "sha256:a3b5d62078fad09bd165d54af9c73d6928891aafab65d2cd7916eac19e6d6980"
+    palemoon_version: 28.17.0
+    palemoon_platform: linux-x86_64-gtk2
 
     thunderbird_version: 78.2.2
     thunderbird_locale: en-GB
@@ -777,30 +774,34 @@
         lockPref({{ name | to_json }}, {{ value | to_json }});
         {% endfor %}
 
-  # 650. Waterfox
-  - { name: "Waterfox: Check installation", become: yes, command: "ls /opt/waterfox-classic-{{ waterfox_version }}", register: waterfox_install_query, changed_when: no, failed_when: no, tags: [waterfox] }
-  - { name: "Waterfox: Download classic build", get_url: { url: "https://storage-waterfox.netdna-ssl.com/releases/{{ waterfox_release }}/installer/waterfox-classic-{{ waterfox_version }}.{{ waterfox_locale }}.{{ waterfox_platform }}.tar.bz2", dest: "/tmp/waterfox-classic-{{ waterfox_version }}.tar.bz2", checksum: "{{ waterfox_checksum }}" }, when: "waterfox_install_query.rc > 0", tags: [waterfox] }
-  - { name: "Waterfox: Unpack & install packages", when: "waterfox_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -jxf 'waterfox-classic-{{ waterfox_version }}.tar.bz2' && mv waterfox-classic '/opt/waterfox-classic-{{ waterfox_version }}'", tags: [waterfox] }
-  - { name: "Waterfox: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/waterfox-classic-{{ waterfox_version }}/{{ item }}" }, tags: [waterfox], with_items: [
-      waterfox,
+  # 650. Palemoon
+  - { name: "Palemoon: Check installation", become: yes, command: "ls /opt/palemoon-{{ palemoon_version.split('.')[0] }}", register: palemoon_install_query, changed_when: no, failed_when: no, tags: [palemoon] }
+  - { name: "Palemoon: Download build and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "palemoon_install_query.rc > 0", tags: [palemoon], with_items: [
+      "https://mirror.sobukus.de/files/grimoire/bin-http/palemoon-{{ palemoon_version }}.{{ palemoon_platform }}.tar.xz",
+      "https://mirror.sobukus.de/files/grimoire/bin-http/palemoon-{{ palemoon_version }}.{{ palemoon_platform }}.tar.xz.sig"
     ] }
-  - name: "Waterfox: Add desktop icon"
+  - { name: "Palemoon: Check build signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/trava90.asc.gpg' --verify /tmp/palemoon-{{ palemoon_version }}.{{ palemoon_platform }}.tar.xz.sig", when: "palemoon_install_query.rc > 0", tags: [palemoon] }
+  - { name: "Palemoon: Unpack & install packages", when: "palemoon_install_query.rc > 0",
+      shell: "cd /tmp && tar --overwrite -Jxf /tmp/palemoon-{{ palemoon_version }}.{{ palemoon_platform }}.tar.xz && mv palemoon /opt/palemoon-{{ palemoon_version.split('.')[0] }}", tags: [palemoon] }
+  - { name: "Palemoon: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/palemoon-{{ palemoon_version.split('.')[0] }}/{{ item }}" }, tags: [palemoon], with_items: [
+      palemoon,
+    ] }
+  - name: "Palemoon: Add desktop icon"
     become: yes
     copy:
-      dest: "/usr/share/applications/waterfox.desktop"
+      dest: "/usr/share/applications/palemoon.desktop"
       content: |
         [Desktop Entry]
-        Version={{ waterfox_version }}
-        Name=Waterfox Web Browser
+        Version={{ palemoon_version }}
+        Name=Pale Moon
         Comment=Browse the World Wide Web
         GenericName=Web Browser
         Keywords=Internet;WWW;Browser;Web;Explorer
-        Exec=/opt/waterfox-classic-{{ waterfox_version }}/waterfox %u
+        Exec=/usr/local/bin/palemoon %u
         Terminal=false
         X-MultipleArgs=false
         Type=Application
-        Icon=/opt/waterfox-classic-{{ waterfox_version }}/browser/chrome/icons/default/default256.png
+        Icon=/opt/palemoon-{{ palemoon_version.split('.')[0] }}/browser/icons/mozicon128.png
         Categories=GNOME;GTK;Network;WebBrowser;
         MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;video/webm;application/x-xpinstall;
         StartupNotify=true
@@ -808,12 +809,12 @@
 
         [Desktop Action new-window]
         Name=Open a New Window
-        Exec=/opt/waterfox-classic-{{ waterfox_version }}/waterfox -new-window
+        Exec=/usr/local/bin/palemoon -new-window
 
         [Desktop Action new-private-window]
         Name=Open a New Private Window
-        Exec=/opt/waterfox-classic-{{ waterfox_version }}/waterfox -private-window
-    tags: [waterfox]
+        Exec=/usr/local/bin/palemoon -private-window
+    tags: [palemoon]
 
   # 660. Thunderbird
   - { name: "Thunderbird: Install prerequisites", become: yes, apt: { pkg: [xdg-utils, zenity], state: present }, tags: [thunderbird] }
