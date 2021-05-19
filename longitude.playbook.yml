@@ -118,6 +118,8 @@
       "network.dns.use_https_rr_as_altsvc": true
       # }}}1
       "privacy.firstparty.isolate": true
+      # See https://blog.mozilla.org/security/2021/05/18/introducing-site-isolation-in-firefox/
+      "fission.autostart": true
       # See https://web.archive.org/web/20201118141821/https://blog.mozilla.org/security/2020/11/17/firefox-83-introduces-https-only-mode/
       "dom.security.https_only_mode": true
       "dom.security.https_only_mode_ever_enabled": true
