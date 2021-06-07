@@ -109,6 +109,21 @@ make docker-playbook
 
 This will start a new ephemeral container from a base Ubuntu image and run the playbooks from start to finish. [^3]
 
+### Experimental
+
+The following additions and modules are still experimental and haven't been added to the playbook.
+
+#### Alacritty
+
+```bash
+sudo apt install libxcb-shape0-dev libxcb-xfixes0-dev
+cargo install alacritty
+cd /tmp && git clone https://github.com/alacritty/alacritty.git && cd alacritty && tic -xe alacritty,alacritty-direct extra/alacritty.info
+tic -xe alacritty,alacritty-direct extra/alacritty.info
+```
+
+You may want to modify urxvt launhc files, too.
+
 Readiness for 20.04
 -------------------
 
