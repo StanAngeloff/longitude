@@ -8,7 +8,7 @@ Usage
 
 **This repository is tailor-made for my needs, be warned:**
 
-```shell
+```bash
 make playbook
 ```
 
@@ -43,7 +43,7 @@ Non-goals
 - [Oracle Java] may still be needed to use government e-services. See [Kamenitza Notepad’s blog post](https://web.archive.org/web/20200514123820/https://kamenitza.org/%D0%BD%D0%B0%D0%BF-vs-%D0%BA%D0%B5%D0%BF-%D0%B2-%D0%BB%D0%B8%D0%BD%D1%83%D0%BA%D1%81/) for more details.
    * Don't run `update-alternatives --set`, instead when prompted to run a `.jnlp` file in a browser, copy the URL to the file and use `javaws` from the Oracle package to launch it instead:
 
-      ```sh
+      ```bash
       /opt/java/64/jre*/bin/javaws 'https://inetdec.nra.bg/ls/java/stampitls.jnlp'
       ```
 
@@ -55,7 +55,7 @@ Non-goals
   * To hide the annoying bottom-left corner icon, change the startup script to include `--no-icon`
 - **Keybase**:
   * Complete the installation by running `run_keybase` and import public/private keys:
-    ```shell
+    ```bash
     $ keybase pgp export | gpg --import
     $ keybase pgp export -s | gpg --allow-secret-key-import --import
     ```
@@ -71,7 +71,7 @@ Non-goals
 
 You'll need to download and unpack [Oracle Java], then:
 
-```shell
+```bash
 sudo ln -s /opt/java/64/jre1.8.0_251/lib/amd64/libnpjp2.so /usr/lib/mozilla/plugins/libnpjp2.so
 mkdir -p /usr/local/lib64 && ln -s /usr/lib/x86_64-linux-gnu/libpcsclite.so.1.0.0 /usr/local/lib64/libpcsclite.so
 ```
@@ -80,7 +80,7 @@ You may now make use of **severely** outdated government websites.
 
 #### tessdata_best – Best (most accurate) trained models for Tesseract
 
-```shell
+```bash
 mkdir -p ~/.local/share/tesseract-ocr/4.00/tessdata
 cd ~/.local/share/tesseract-ocr/4.00/tessdata
 wget https://github.com/tesseract-ocr/tessdata_best/raw/master/bul.traineddata
@@ -93,7 +93,7 @@ echo 'export TESSDATA_PREFIX="${HOME}/.local/share/tesseract-ocr/4.00/tessdata"'
 
 ##### `ocrmypdf`
 
-```shell
+```bash
 sudo apt install unpaper
 pip3.8 install --user ocrmypdf
 ```
@@ -103,7 +103,7 @@ Development
 
 As the playbooks grows, the system will inevitably accumulate cruft; as a result, installing/compiling a package may succeed with all dependencies having been met. This shall not necessarily be true when starting from scratch. To verify the playbooks' correctness on a vanilla Ubuntu system, use the provided Docker task:
 
-```shell
+```bash
 make docker-playbook
 ```
 
