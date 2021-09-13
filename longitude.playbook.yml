@@ -149,10 +149,10 @@
     palemoon_version: 28.17.0
     palemoon_platform: linux-x86_64-gtk2
 
-    thunderbird_version: 78.2.2
+    thunderbird_version: '91.0'
     thunderbird_locale: en-GB
     thunderbird_platform: linux-x86_64
-    thunderbird_checksum: 'sha256:ce353fc8e6e8e8d2ec1378f76879c0bebb55f867f39488fe48a1995685c85b00'
+    thunderbird_checksum: 'sha256:b76b69cd6d10ff0140da9c53b35842f04b798235427f5a058d9911e111e1c73c'
 
     birdtray_version: 1.8.1
     birdtray_platform: linux-x86_64
