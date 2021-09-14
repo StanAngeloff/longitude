@@ -358,11 +358,15 @@
     mosh_version: 1.3.2
     mosh_checksum: "sha256:da600573dfa827d88ce114e0fed30210689381bbdcff543c931e4d6a2e851216"
 
-    php_default_version: 7.2
-    php_versions: [5.6, 7.1, 7.2, 7.3, 7.4]
+    php_default_version: 8.0
+    php_versions: [5.6, 7.1, 7.2, 7.3, 7.4, 8.0]
     php_extensions:
-      '*': [apcu, bcmath, curl, gd, gmp, intl, json, mbstring, mysql, pgsql, soap, sqlite3, xml, zip]
+      '*': [apcu, bcmath, curl, gd, gmp, intl, mbstring, mysql, pgsql, soap, sqlite3, xml, zip]
       '5.6': [mcrypt]
+      '7.1': [json]
+      '7.2': [json]
+      '7.3': [json]
+      '7.4': [json]
 
     nodesource_gpg_key_id: "68576280"
     nodejs_version: 12
@@ -1263,12 +1267,13 @@
       %}{{ packages }}"
       state: present
     tags: [php]
-  - { name: "PHP: Composer: Check installation", become: yes, command: "ls /usr/local/bin/composer", register: composer_install_query, changed_when: no, failed_when: no, tags: [php, composer] }
-  - { name: "PHP: Composer: Download setup", get_url: { url: "https://getcomposer.org/installer", dest: "/tmp/composer-setup.php", checksum: "sha384:{{ lookup('url', 'https://composer.github.io/installer.sig', split_lines=false) }}" }, when: "composer_install_query.rc > 0", tags: [php, composer] }
-  - { name: "PHP: Composer: Install", command: "{{ item }}", when: "composer_install_query.rc > 0", tags: [php, composer], with_items: [
-      "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer",
-      "php -r \"unlink('/tmp/composer-setup.php');\"",
-    ] }
+  - { name: "PHP: Composer 1.x: Check installation", become: yes, command: "ls /usr/local/bin/composer1", register: composer_v1_install_query, changed_when: no, failed_when: no, tags: [php, composer] }
+  - { name: "PHP: Composer 2.x: Check installation", become: yes, command: "ls /usr/local/bin/composer2", register: composer_v2_install_query, changed_when: no, failed_when: no, tags: [php, composer] }
+  - { name: "PHP: Composer: Download setup", get_url: { url: "https://getcomposer.org/installer", dest: "/tmp/composer-setup.php", checksum: "sha384:{{ lookup('url', 'https://composer.github.io/installer.sig', split_lines=false) }}" }, when: "composer_v1_install_query.rc > 0 or composer_v2_install_query.rc > 0", tags: [php, composer] }
+  - { name: "PHP: Composer 1.x: Install", command: "php /tmp/composer-setup.php --1 --install-dir=/usr/local/bin --filename=composer1", when: "composer_v1_install_query.rc > 0", tags: [php, composer] }
+  - { name: "PHP: Composer 2.x: Install", command: "php /tmp/composer-setup.php --2 --install-dir=/usr/local/bin --filename=composer2", when: "composer_v2_install_query.rc > 0", tags: [php, composer] }
+  - { name: "PHP: Composer: Clean up setup", file: { path: "/tmp/composer-setup.php", state: absent }, tags: [php, composer] }
+  - { name: "PHP: Composer: Set up alternatives", become: yes, alternatives: { name: 'composer', link: '/usr/local/bin/composer', path: '/usr/local/bin/composer2' }, tags: [php, composer] }
   - { name: "PHP: Set default version", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/{{ item }}{{ php_default_version | default(php_versions[0]) }}" }, tags: [php], with_items: [
       php,
       php-config,
