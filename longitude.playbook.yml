@@ -158,8 +158,8 @@
     birdtray_version: 1.8.1
     birdtray_platform: linux-x86_64
 
-    neovim_version: 0.5.0
-    neovim_checksum: "sha256:6305a1cab22433bf7871cbfcdb76f0013314f4a6c04e56e1547a6925df17240b"
+    neovim_version: 0.5.1
+    neovim_checksum: "sha256:1cfbc587ea5598545ac045ee776965a005b1f0c26d5daf5479b859b092697439"
     neovim_dictionaries: [bg.utf-8]
 
     git_lfs_gpg_key_id: "DC282033"
