@@ -178,8 +178,8 @@
 
     docker_gpg_key_id: "0EBFCD88"
     docker_platform: amd64
-    docker_compose_version: 1.25.4
-    docker_compose_checksum: "sha256:542e93b1d5106d2769b325f60ba9a0ba087bb96e30dc2c1cb026f0cb642e9aed"
+    docker_compose_version: 1.29.2
+    docker_compose_checksum: "sha256:f3f10cf3dbb8107e9ba2ea5f23c1d2159ff7321d16f0a23051d68d8e2547b323"
     docker_machine_version: 0.16.1
     docker_machine_checksum: "sha256:44a008c14549156222b314b1448c22ef255b446419fcf96570f3f288dff318a9"
     docker_machine_drivers:
