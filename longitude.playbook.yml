@@ -385,9 +385,10 @@
 
     tesseract_languages: [eng, bul]
 
-    ferdi_version: 5.6.0-beta.5
-    ferdi_platform: amd64
-    ferdi_checksum: "sha256:7c3533622af9dce4373b8a3d786ef4b060fe149d3fe120cdb137e1f7b5854674"
+    slack_version: 4.22.0
+    slack_platform: amd64
+    slack_bucket_path: /prod/x64/
+    slack_checksum: "sha256:d12026d979673aa5cdc14f6a484776a72bedf7fec5acb2ddeb7414733b7d044d"
 
     steam_launcher_version: 1.0.0.61
     steam_launcher_checksum: "sha256:5e7d3f1cb1de847f31152998bdc8137855a1a0f7b0dc099db6a7f4d7e33fd911"
@@ -1600,10 +1601,25 @@
   - { name: "Mosh: Configure ufw rules", become: yes, ufw: { rule: allow, name: mosh, comment: 'Allow ports used by mosh-server.' }, notify: "ufw::restart", tags: [mosh] }
 
   # 3000. Communications
-  - { name: "Ferdi: Check installation", become: yes, shell: "{{ dpkg_query | format('ferdi') }}", register: ferdi_dpkg_query, changed_when: no, failed_when: no, tags: [ferdi] }
-  - { name: "Ferdi: Download packages", get_url: { url: "https://github.com/getferdi/ferdi/releases/download/v{{ ferdi_version }}/ferdi_{{ ferdi_version }}_{{ ferdi_platform }}.deb", dest: "/tmp/ferdi-{{ ferdi_version }}.deb", checksum: "{{ ferdi_checksum }}" }, when: "ferdi_dpkg_query.rc > 0", tags: [ferdi] }
-  - { name: "Ferdi: Install packages", become: yes, apt: { deb: "/tmp/ferdi-{{ ferdi_version }}.deb", state: present }, when: "ferdi_dpkg_query.rc > 0", tags: [ferdi] }
-  - { name: "Ferdi: Change priority at launch", become: yes, replace: { path: "/usr/share/applications/ferdi.desktop", regexp: "^Exec=(nice\\s+[a-z0-9-]+\\s+)?(/opt/Ferdi/ferdi)", replace: 'Exec=nice -n5 \2' }, tags: [ferdi] }
+  - { name: "Slack: Check installation", become: yes, shell: "{{ dpkg_query | format('slack-desktop') }}", register: slack_dpkg_query, changed_when: no, failed_when: no, tags: [slack] }
+  - { name: "Slack: Download packages", get_url: { url: "https://downloads.slack-edge.com/releases/linux/{{ slack_version }}{{ slack_bucket_path }}slack-desktop-{{ slack_version }}-{{ slack_platform }}.deb", dest: "/tmp/slack-{{ slack_version }}.deb", checksum: "{{ slack_checksum }}" }, when: "slack_dpkg_query.rc > 0", tags: [slack] }
+  - { name: "Slack: Install packages", become: yes, apt: { deb: "/tmp/slack-{{ slack_version }}.deb", state: present }, when: "slack_dpkg_query.rc > 0", tags: [slack] }
+  - name: "Slack: Update desktop icon"
+    copy:
+      dest: "{{ ansible_env.HOME }}/.local/share/applications/slack.desktop"
+      content: |
+        [Desktop Entry]
+        Name=Slack
+        StartupWMClass=Slack
+        Comment=Slack Desktop
+        GenericName=Slack Client for Linux
+        Exec=nice -n5 /usr/bin/slack %U
+        Icon=/usr/share/pixmaps/slack.png
+        Type=Application
+        StartupNotify=true
+        Categories=GNOME;GTK;Network;InstantMessaging;
+        MimeType=x-scheme-handler/slack;
+    tags: [slack]
 
   # 3100. Steam
   - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
