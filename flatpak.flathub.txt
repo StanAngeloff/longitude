@@ -22,8 +22,5 @@ net.poedit.Poedit
 # Community-driven port of the Windows application “KeePass Password Safe”. https://keepassxc.org/
 org.keepassxc.KeePassXC
 
-# Send free messages and make free calls to other Viber users.
-com.viber.Viber
-
 
 # vim: ft=conf :

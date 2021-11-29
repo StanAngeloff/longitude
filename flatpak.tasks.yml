@@ -21,7 +21,6 @@
 - { name: "Flatpak: Poedit: Allow broader filesystem access", command: "flatpak override --user net.poedit.Poedit --filesystem=/data", tags: [flatpak, poedit] }
   # See https://github.com/flathub/org.keepassxc.KeePassXC/commit/362a037832c2e653eb2bf98d75eaf352c17ca3c3
 - { name: "Flatpak: KeePassXC: Fix system tray icon", replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/org.keepassxc.KeePassXC.desktop", regexp: "^(Exec=/usr/bin/flatpak run)( --own-name=\"org.kde.*\")?", replace: '\1 --own-name="org.kde.StatusNotifierItem-3-2"' }, tags: [flatpak, keepassxc] }
-- { name: "Flatpak: Viber: Increase UI scale", become: yes, replace: { path: "{{ ansible_env.HOME }}/.local/share/flatpak/exports/share/applications/com.viber.Viber.desktop", regexp: "^Exec=(env .*\\s)?(/usr/bin/flatpak run)", replace: 'Exec=env QT_SCALE_FACTOR=1.5 \2' }, tags: [flatpak, viber] }
 
 # 6999. Flatpak
 - { name: "Flatpak: Create font directories", file: { path: "{{ item[0] | format(name=item[1], HOME=ansible_env.HOME) }}", state: directory }, tags: [flatpak], with_nested: [
