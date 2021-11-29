@@ -102,6 +102,7 @@
       "extensions.formautofill.creditCards.available": true
       "extensions.formautofill.creditCards.enabled": true
       "extensions.formautofill.supportedCountries": "US,CA,BG"
+      "dom.forms.selectSearch": true # Search <select> drop-downs when they contain 41 or more items, see https://wiki.mozilla.org/QA/Dom_Forms_Select_Search
       # Development
       #
       "devtools.chrome.enabled": true # This enables Ctrl+Alt+Shift+J as well as the command entry in Ctrl+Shift+J.
