@@ -20,6 +20,7 @@ nmap	# the Network Mapper.
 parcellite	# a clipboard manager from the dark ages, but does its job well.
 pigz	# Parallel Implementation of GZip.
 pngquant	# PNG image optimising utility.
+postgresql-client	# front-end programs for PostgreSQL
 pv	# a Pipe Viewer which can be used to dislay a progress for long running operatings.
 socat	# TCP relay, shell interface to Unix sockets, SSL tunnelling, etc. Example: $ cat http-request.raw | socat - openssl:localhost:443,verify=0
 sqlite3	# a command-line interface for SQLite 3.
