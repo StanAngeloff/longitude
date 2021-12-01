@@ -159,8 +159,8 @@
     birdtray_version: 1.8.1
     birdtray_platform: linux-x86_64
 
-    neovim_version: 0.5.1
-    neovim_checksum: "sha256:1cfbc587ea5598545ac045ee776965a005b1f0c26d5daf5479b859b092697439"
+    neovim_version: 0.6.0
+    neovim_checksum: "sha256:8a2b8bb009f5a10f2908c6806c4745e064a6032db89de7895805fb979c90a08e"
     neovim_dictionaries: [bg.utf-8]
 
     git_lfs_gpg_key_id: "DC282033"
@@ -221,9 +221,9 @@
     fd_platform: amd64
     fd_checksum: "sha256:0def65ac4a0158209112c3df2522a853b439743740d422af2c16c994398b3cd7"
 
-    ripgrep_version: 12.0.1
+    ripgrep_version: 13.0.0
     ripgrep_platform: amd64
-    ripgrep_checksum: "sha256:feebb3484e8f590c6024566b880da38b6c6092344a5cb5118ba6b84ddc03d214"
+    ripgrep_checksum: "sha256:6d78bed13722019cb4f9d0cf366715e2dcd589f4cf91897efb28216a6bb319f1"
 
     pup_version: 0.4.0
     pup_platform: linux_amd64
@@ -240,17 +240,17 @@
     awscli_version: '>1.16'
     s3cmd_version: '>=2.1'
 
-    fzf_version: 0.25.1
+    fzf_version: 0.28.0
     fzf_platform: linux_amd64
-    fzf_checksum: "sha256:8bbb11b14351b95e7ea79600d285301eff12aa0942ce97442d3570d59bca0242"
+    fzf_checksum: "sha256:baad6f1bbc29f26e5a526de8246d04a7cef67480a2fe67debfc659d901f93619"
 
-    bat_version: 0.15.4
+    bat_version: 0.18.3
     bat_platform: amd64
-    bat_checksum: "sha256:66b5fa31e4946da9331824fba4b6a7076565fe83866f14562450a010a5112857"
+    bat_checksum: "sha256:3e85d15e5757d9f56af8f15bb99a56aaaab33ed541fa3ff1e1c585f5733845c3"
 
-    delta_version: 0.0.18
+    delta_version: 0.10.2
     delta_platform: amd64
-    delta_checksum: "sha256:7ed5e452b9a07c2311aefc124ef7e6a54efc0dc4f7004a4b7d9e3f3a537abc2e"
+    delta_checksum: "sha256:7b9079c15b8f749f397a98478a666445e822f2bb0076c407537a8cd162f16db0"
 
     xidel_version: 0.9.8-1
     xidel_platform: amd64
@@ -437,7 +437,7 @@
   - { name: "System: Update apt cache", become: yes, apt: { update_cache: yes, cache_valid_time: "{{ 24 * 60 * 60 }}" } }
 
   # 20. build-essential & a few more packages are essential
-  - { name: "System: Install essentials", become: yes, apt: { pkg: [build-essential, cmake, unzip], state: present } }
+  - { name: "System: Install essentials", become: yes, apt: { pkg: [build-essential, cmake, unzip], state: present }, tags: [toolchain] }
 
   # 30. sysctl
   - { name: "Tweak kernel parameters (sysctl)", become: yes, sysctl: { name: "{{ item.name }}", state: "{{ item.state | default('present') }}", value: "{{ item.value }}", sysctl_file: '/etc/sysctl.d/60-longitude.conf', reload: yes }, when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", tags: [sysctl], with_items: [
@@ -523,6 +523,11 @@
     notify: "NetworkManager::reload"
     when: 'etc_networkmanager_stat.stat.isdir is defined and etc_networkmanager_stat.stat.isdir'
     tags: [dns, resolveconf]
+
+  # 70. Toolchain test builds
+  #
+  # See https://wiki.ubuntu.com/ToolChain
+  - { name: "Toolchain: Add PPA for test builds", become: yes, apt_repository: { repo: "ppa:ubuntu-toolchain-r/test", update_cache: yes }, tags: [toolchain] }
 
   # 100. Git
   - { name: "Git: Add PPA", become: yes, apt_repository: { repo: "ppa:git-core/ppa", update_cache: yes }, tags: [git] }
