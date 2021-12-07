@@ -638,7 +638,7 @@
       /bin/bash rustup.sh -y --no-modify-path
     args: { executable: "/bin/bash" }
     tags: [rust]
-  - { name: "Rust: Capture local Zsh configuration", shell: '{{ localrc_query }}', args: { executable: "/bin/bash" }, register: rust_studio_localrc, changed_when: no, failed_when: no, tags: [rust] }
+  - { name: "Rust: Capture local Zsh configuration", shell: '{{ localrc_query }}', args: { executable: "/bin/bash" }, register: rust_localrc, changed_when: no, failed_when: no, tags: [rust] }
   - name: "Rust: Update Zsh configuration"
     blockinfile:
       marker: "### RUST {mark} AUTOMATICALLY GENERATED"
@@ -651,8 +651,32 @@
         export PATH="${PATH}:${CARGO_HOME}/bin"
       create: yes
       insertafter: EOF
-      path: "{{ ansible_env.HOME }}/{{ rust_studio_localrc.stdout }}"
+      path: "{{ ansible_env.HOME }}/{{ rust_localrc.stdout }}"
     tags: [rust]
+  # 280. Wasmtime
+  - { name: "Wasmtime: Check installation", command: "ls {{ ansible_env.HOME }}/.wasmtime/bin/wasmtime", register: wasmtime_install_query, changed_when: no, failed_when: no, tags: [wasmtime] }
+  - name: "Wasmtime: Install release"
+    when: "wasmtime_install_query.rc > 0"
+    shell: |
+      cd /tmp &&
+      curl -sSf -o wasmtime-install.sh https://wasmtime.dev/install.sh &&
+      /bin/bash wasmtime-install.sh
+    args: { executable: "/bin/bash" }
+    tags: [wasmtime]
+  - { name: "Wasmtime: Capture local Zsh configuration", shell: '{{ localrc_query }}', args: { executable: "/bin/bash" }, register: wasmtime_localrc, changed_when: no, failed_when: no, tags: [wasmtime] }
+  - name: "Wasmtime: Update Zsh configuration"
+    blockinfile:
+      marker: "### WASMTIME {mark} AUTOMATICALLY GENERATED"
+      block: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        export WASMTIME_HOME="${HOME}/.wasmtime"
+        export PATH="${PATH}:${WASMTIME_HOME}/bin"
+      create: yes
+      insertafter: EOF
+      path: "{{ ansible_env.HOME }}/{{ wasmtime_localrc.stdout }}"
+    tags: [wasmtime]
 
   # 300. etkkeeper
   - { name: "etckeeper: Install packages", become: yes, apt: { pkg: [etckeeper], state: present } }
