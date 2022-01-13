@@ -20,18 +20,6 @@ $ sudo apt remove 'evince*'
 $ flatpak install --user flathub org.gnome.Evince
 ```
 
-## Firefox
-
-Restore drag and drop functionality on Linux running X11:
-
-```bash
-$ sudo vim /usr/share/applications/firefox.desktop
--Exec=firefox
-+Exec=env MOZ_USE_XINPUT2 firefox
-```
-
-…or perhaps in `rc.defaults` somewhere?
-
 ## Perl – `unifont` command
 
 ```bash
