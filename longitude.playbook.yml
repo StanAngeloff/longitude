@@ -129,6 +129,7 @@
       # Network
       #
       "network.dns.disableIPv6": true # We don't use or need IPv6.
+      "network.http.http3.enabled": false # See https://news.ycombinator.com/item?id=29918121
       # Caching
       #
       "browser.cache.disk.enable": false # Don't trash my SSD!
@@ -142,6 +143,7 @@
       # Experimental
       #
       "gfx.webrender.all": true
+      "gfx.x11-egl.force-enabled": true # https://web.archive.org/web/20211112033042/https://mastransky.wordpress.com/2021/10/30/firefox-94-comes-with-egl-on-x11/#:~:text=Faster%20WebGL%20rendering
       "media.videocontrols.picture-in-picture.enabled": true # https://web.archive.org/web/20191203233905/https://css-tricks.com/an-introduction-to-the-picture-in-picture-web-api/#article-header-id-0
       "media.hardwaremediakeys.enabled": true # https://web.archive.org/web/20200324112855/https://www.ghacks.net/2020/03/23/firefox-will-soon-support-hardware-media-controls/
       "dom.media.mediasession.enabled": true  #
