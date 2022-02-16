@@ -85,6 +85,7 @@
     #     https://hg.mozilla.org/mozilla-central/file/6663d3dc883b6ad0d0dfa9346f9ceabf2b2c7967/browser/app/profile/firefox.js (April 2020)
     #
     firefox_about_config:
+      "browser.tabs.unloadOnLowMemory": false # See https://support.mozilla.org/en-US/kb/unload-inactive-tabs-save-system-memory-firefox
       # Usability & quality of life improvements
       #
       #"mousewheel.acceleration.start": 10 # Wait for two mouse wheel scrolls before enabling acceleration,
