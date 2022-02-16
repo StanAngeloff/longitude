@@ -172,13 +172,14 @@
     asdf_version: '0.8.1'
     asdf_plugins:
       - { name: 'golang', url: 'https://github.com/kennyp/asdf-golang.git' }
-      - { name: 'nodejs', url: 'https://github.com/asdf-vm/asdf-nodejs' }
+      - { name: 'nodejs', url: 'https://github.com/asdf-vm/asdf-nodejs.git' }
+      - { name: 'ruby', url: 'https://github.com/asdf-vm/asdf-ruby.git' }
     asdf_rc:
       legacy_version_file: 'yes'
 
     python_version: '3.8.0'
 
-    ruby_version: '2.6.5'
+    ruby_version: '3.0.3' # NOTE: this is managed by asdf
 
     docker_gpg_key_id: "0EBFCD88"
     docker_platform: amd64
@@ -593,7 +594,19 @@
         {{ name }} = {{ value }}
         {% endfor %}
   - { name: "asdf: Create empty .tool-versions", copy: { content: "", dest: "{{ ansible_env.HOME }}/.tool-versions", force: no }, tags: [asdf] }
-  - { name: "asdf: Set up default tools", lineinfile: { path: "{{ ansible_env.HOME }}/.tool-versions", regexp: "^nodejs\\b", line: "node system", insertafter: EOF }, tags: [asdf] }
+  - { name: "asdf: Set up default tools", lineinfile: { path: "{{ ansible_env.HOME }}/.tool-versions", regexp: "{{ item.regexp }}", line: "{{ item.line }}", insertafter: EOF }, tags: [asdf], with_items: [
+      { line: "nodejs system", regexp: "^nodejs\\b" },
+      { line: "ruby {{ ruby_version }}", regexp: "^ruby\\b" },
+    ] }
+  - name: "asdf: Install programs"
+    shell: |
+      . "{{ ansible_env.HOME }}"/.asdf/asdf.sh && asdf install {{ item }}
+    args: { executable: "/bin/bash" }
+    changed_when: "('is already installed' not in asdf_install_cmd.stdout)"
+    register: asdf_install_cmd
+    with_items:
+      - "ruby {{ ruby_version }}"
+    tags: [asdf]
 
   # 210. Python
   - { name: "Python: Install pip packages & Python development headers", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present }, tags: [python] }
@@ -623,14 +636,6 @@
       'python%(version)s-config'
     ] }
   - { name: "Python: Install local virtualenv", pip: { executable: "/opt/python{{ python_version.split('.')[:2]|join('.') }}/bin/pip3", name: virtualenv, state: present }, tags: [python] }
-
-  # 250. Ruby
-  - { name: "Ruby: Create directories", file: { path: "/opt/rubies", state: directory }, tags: [ruby] }
-  - { name: "Ruby: rbenv: Check installation", command: "ls {{ ansible_env.HOME }}/.rbenv/bin/rbenv", register: ruby_rbenv_install_query, changed_when: no, failed_when: no, tags: [ruby] }
-  - { name: "Ruby: rbenv: Run installer", command: "bin/rbenv-installer", when: "ruby_rbenv_install_query.rc > 0", tags: [ruby] }
-  - { name: "Ruby: Check local installation", shell: "{{ ansible_env.HOME }}/.rbenv/bin/rbenv versions --bare | grep '^{{ ruby_version }}$'", register: ruby_install_query, changed_when: no, failed_when: no, tags: [ruby] }
-  - { name: "Ruby: Compile & install local package", command: "{{ ansible_env.HOME }}/.rbenv/bin/rbenv install '{{ ruby_version }}'", when: "ruby_install_query.rc > 0", tags: [ruby] }
-  - { name: "Ruby: Set default version", command: "{{ ansible_env.HOME }}/.rbenv/bin/rbenv global '{{ ruby_version }}'", changed_when: no, tags: [ruby] }
 
   # 270. Rust
   - { name: "Rust: Check installation", command: "ls {{ ansible_env.HOME }}/.cargo/bin/rustup", register: rust_install_query, changed_when: no, failed_when: no, tags: [rust] }
