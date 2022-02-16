@@ -97,7 +97,7 @@ Download https://github.com/eosrei/twemoji-color-font/releases/download/v13.0.1/
 ```bash
 $ mkdir -p ~/.local/share/fonts
 $ cp TwitterColorEmoji-SVGinOT.ttf ~/.local/share/fonts
-$ cp fontconfig/46-twemoji-color.conf ~/.config/fontconfig/conf.d/
+$ cp fontconfig/46-system-ui.conf ~/.config/fontconfig/conf.d/
 ```
 
 ```xml
@@ -111,26 +111,60 @@ $ cp fontconfig/46-twemoji-color.conf ~/.config/fontconfig/conf.d/
     <edit name="family" mode="append_last"><string>monospace</string></edit>
   </match>
   -->
+  <!--
   <match target="pattern">
     <test qual="any" name="family"><string>monospace</string></test>
     <edit name="family" mode="prepend_first"><string>Input</string></edit>
     <edit name="family" mode="prepend_first"><string>Twitter Color Emoji</string></edit>
   </match>
-  <alias binding="strong">
+  -->
+
+  <alias>
+    <family>monospace</family>
+    <prefer>
+      <family>Input</family>
+      <family>Twitter Color Emoji</family>
+    </prefer>
+  </alias>
+  <alias>
+    <family>ui-monospace</family>
+    <prefer>
+      <family>Input</family>
+      <family>Twitter Color Emoji</family>
+    </prefer>
+  </alias>
+  <alias>
+    <family>system-ui</family>
+    <prefer>
+      <family>Cantarell</family>
+      <family>Ubuntu</family>
+      <family>Twitter Color Emoji</family>
+    </prefer>
+  </alias>
+
+  <alias>
+    <family>Menlo</family>
+    <prefer>
+      <family>Input</family>
+      <family>Twitter Color Emoji</family>
+    </prefer>
+  </alias>
+
+  <alias>
     <family>emoji</family>
     <default><family>Twitter Color Emoji</family></default>
   </alias>
-  <alias binding="strong">
+  <alias>
     <family>Apple Color Emoji</family>
     <prefer><family>Twitter Color Emoji</family></prefer>
     <default><family>sans-serif</family></default>
   </alias>
-  <alias binding="strong">
+  <alias>
     <family>Segoe UI Emoji</family>
     <prefer><family>Twitter Color Emoji</family></prefer>
     <default><family>sans-serif</family></default>
   </alias>
-  <alias binding="strong">
+  <alias>
     <family>Noto Color Emoji</family>
     <prefer><family>Twitter Color Emoji</family></prefer>
     <default><family>sans-serif</family></default>
