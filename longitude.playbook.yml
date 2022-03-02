@@ -668,7 +668,7 @@
     shell: |
       cd /tmp &&
       curl -sSf -o wasmtime-install.sh https://wasmtime.dev/install.sh &&
-      /bin/bash wasmtime-install.sh
+      env PROFILE=/tmp/.bashrc /bin/bash wasmtime-install.sh
     args: { executable: "/bin/bash" }
     tags: [wasmtime]
   - { name: "Wasmtime: Capture local Zsh configuration", shell: '{{ localrc_query }}', args: { executable: "/bin/bash" }, register: wasmtime_localrc, changed_when: no, failed_when: no, tags: [wasmtime] }
