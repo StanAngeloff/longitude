@@ -159,8 +159,9 @@
     thunderbird_platform: linux-x86_64
     thunderbird_checksum: 'sha256:b76b69cd6d10ff0140da9c53b35842f04b798235427f5a058d9911e111e1c73c'
 
-    birdtray_version: 1.8.1
+    birdtray_version: 1.9.0
     birdtray_platform: linux-x86_64
+    birdtray_checksum: 'sha256:d486f9d73fb0af589d39a6aa35f29ddfbf705bb57527bf184e3abce8f9ace534'
 
     neovim_version: 0.6.1
     neovim_checksum: "sha256:ef9056e05ef6a4c1d0cdb8b21f79261703122c0fd31f23f782158d326fdadbf5"
@@ -962,22 +963,21 @@
   - { name: "Thunderbird: Set as MIME handler", when: "(thunderbird_mime_query_1.rc == 0) and ('thunderbird.desktop' not in thunderbird_mime_query_1.stdout)", command: "xdg-mime default thunderbird.desktop x-scheme-handler/mailto", tags: [thunderbird] }
   - { name: "Birdtray: Install prerequisites", become: yes, apt: { pkg: [libqt5core5a, libqt5gui5, libqt5widgets5, libqt5network5, libqt5svg5, libqt5x11extras5, qt5-gtk-platformtheme], state: present }, tags: [birdtray, thunderbird] }
   - { name: "Birdtray: Check installation", become: yes, command: "ls /usr/local/bin/birdtray-{{ birdtray_version }}", register: birdtray_install_query, changed_when: no, failed_when: no, tags: [birdtray, thunderbird] }
-  - { name: "Birdtray: Download package and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "birdtray_install_query.rc > 0", tags: [birdtray, thunderbird], with_items: [
-      "https://dl.bintray.com/stanangeloff/Birdtray/birdtray-{{ birdtray_version }}_{{ birdtray_platform }}.tar.xz",
-      "https://dl.bintray.com/stanangeloff/Birdtray/birdtray-{{ birdtray_version }}_{{ birdtray_platform }}.tar.xz.asc"
-    ] }
-  - { name: "Birdtray: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/bintray-public.key.asc.gpg' --verify /tmp/birdtray-{{ birdtray_version }}_{{ birdtray_platform }}.tar.xz.asc", when: "birdtray_install_query.rc > 0", tags: [birdtray, thunderbird] }
+  - { name: "Birdtray: Download pre-built package", get_url: { url: "https://github.com/StanAngeloff/birdtray/releases/download/v{{ birdtray_version }}/birdtray-{{ birdtray_version }}_{{ birdtray_platform }}.tar.xz", dest: "/tmp/birdtray-{{ birdtray_version }}.tar.xz", checksum: "{{ birdtray_checksum }}" }, when: "birdtray_install_query.rc > 0", tags: [birdtray, thunderbird] }
   - name: "Birdtray: Compile & install packages"
     when: "birdtray_install_query.rc > 0"
     shell: |
       cd /tmp &&
-      tar --overwrite -Jxf 'birdtray-{{ birdtray_version }}_{{ birdtray_platform }}.tar.xz' &&
+      tar --overwrite -Jxf 'birdtray-{{ birdtray_version }}.tar.xz' &&
       cd 'birdtray-{{ birdtray_version }}' &&
       cp bin/birdtray /usr/local/bin/birdtray-{{ birdtray_version }} &&
       cp -R share/* /usr/local/share/
     args: { executable: "/bin/bash" }
     tags: [birdtray, thunderbird]
   - { name: "Birdtray: Set up alternatives", become: yes, alternatives: { name: "birdtray", link: "/usr/local/bin/birdtray", path: "/usr/local/bin/birdtray-{{ birdtray_version }}" }, tags: [birdtray, thunderbird] }
+  - { name: "Birdtray: Create directories", file: "{{ item }}", with_items: [
+      { path: "{{ ansible_env.HOME }}/.config", state: directory },
+    ] }
   - name: "Birdtray: Update settings"
     json_patch:
       src: "{{ ansible_env.HOME }}/.config/birdtray-config.json"
@@ -985,7 +985,7 @@
       pretty: yes
       operations:
         # See https://tools.ietf.org/html/rfc6901
-        - { op: replace, path: "advanced~1tbcmdline", value: ["/usr/bin/env", "GTK_THEME=Adwaita", "GDK_DPI_SCALE=1.25", "/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird"] }
+        - { op: add, path: "advanced~1tbcmdline", value: ["/usr/bin/env", "GTK_THEME=Adwaita", "GDK_DPI_SCALE=1.25", "/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird"] }
     tags: [birdtray, thunderbird]
 
   # 700. Dropbox

@@ -15,8 +15,8 @@ RUN apt-get -yy update && \
         build-essential cmake \
         qt5-default libqt5x11extras5-dev qttools5-dev libqt5svg5-dev libx11-xcb-dev
 
-RUN wget https://github.com/gyunaev/birdtray/archive/${version}.tar.gz && \
-    tar -xzf ${version}.tar.gz
+RUN wget https://github.com/gyunaev/birdtray/archive/v${version}.tar.gz && \
+    tar -xzf v${version}.tar.gz
 
 WORKDIR birdtray-${version}
 
