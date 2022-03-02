@@ -681,6 +681,7 @@
     shell: |
       cd /tmp &&
       curl -sSf -o wasmtime-install.sh https://wasmtime.dev/install.sh &&
+      touch /tmp/.bashrc &&
       env PROFILE=/tmp/.bashrc /bin/bash wasmtime-install.sh
     args: { executable: "/bin/bash" }
     tags: [wasmtime]
