@@ -215,8 +215,7 @@
 
     tarsnap_version: 1.0.39
 
-    imagemagick_version: 7.0.10-6
-    imagemagick_checksum: "sha256:30ac7ce423cef9fb7baf0aefc734ae7b2593b9499c3782057ab73b7a360a0ac5"
+    imagemagick_version: 7.1.0-26
 
     youtube_dl_version: 2021.01.24.1
     youtube_dl_checksum: "sha512:0e2db11c78256bcf12122655817820fc37bcbb83b1ef283861d1641962fd9acec8b97c96c6462fe07bbe73a86054c0fd4fad7a55d9c5a6211e35c4a4a07f73d3"
@@ -1083,12 +1082,24 @@
   - { name: "GDM3: Disable Waywand", become: yes, ini_file: { path: "/etc/gdm3/custom.conf", no_extra_spaces: true, section: "daemon", option: "WaylandEnable", value: "false", state: present }, when: gdm_custom_stat.stat.exists, tags: [gdm] }
 
   # 910. ImageMagick
-  - { name: "ImageMagick: Install prerequisites", become: yes, apt: { pkg: [graphviz-dev, libpng-dev, libjpeg-dev, libgs-dev], state: present } }
-  - { name: "ImageMagick: Check installation", become: yes, command: "ls /opt/ImageMagick-{{ imagemagick_version }}", register: imagemagick_install_query, changed_when: no, failed_when: no }
-  - { name: "ImageMagick: Download source", get_url: { url: "http://download.ubk.hu/src/imagemagick/ImageMagick-{{ imagemagick_version }}.tar.xz", dest: "/tmp/ImageMagick-{{ imagemagick_version }}.tar.xz", checksum: "{{ imagemagick_checksum }}" }, when: "imagemagick_install_query.rc > 0" }
-  - { name: "ImageMagick: Compile & install packages", when: "imagemagick_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -Jxf 'ImageMagick-{{ imagemagick_version }}.tar.xz' && cd 'ImageMagick-{{ imagemagick_version }}' && ./configure --prefix='/opt/ImageMagick-{{ imagemagick_version }}' && make -j8 && make install" }
-  - { name: "ImageMagick: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/ImageMagick-{{ imagemagick_version }}/bin/{{ item }}" }, with_items: [
+  - { name: "ImageMagick: Install prerequisites", become: yes, apt: { pkg: [graphviz-dev, libpng-dev, libjpeg-dev, libgs-dev], state: present }, tags: [imagemagick, magick] }
+  - { name: "ImageMagick: Check installation", become: yes, command: "ls /opt/ImageMagick-{{ imagemagick_version }}", register: imagemagick_install_query, changed_when: no, failed_when: no, tags: [imagemagick, magick] }
+  - { name: "ImageMagick: Download source and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "imagemagick_install_query.rc > 0", tags: [imagemagick, magick], with_items: [
+      "https://download.imagemagick.org/ImageMagick/download/ImageMagick-{{ imagemagick_version }}.tar.xz",
+      "https://download.imagemagick.org/ImageMagick/download/ImageMagick-{{ imagemagick_version }}.tar.xz.asc",
+    ] }
+  - { name: "ImageMagick: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/ImageMagick-public.key.asc.gpg' --verify /tmp/ImageMagick-{{ imagemagick_version }}.tar.xz.asc", when: "imagemagick_install_query.rc > 0", tags: [imagemagick, magick] }
+  - name: "ImageMagick: Compile & install packages"
+    when: "imagemagick_install_query.rc > 0"
+    shell: |
+      cd /tmp &&
+      tar --overwrite -Jxf 'ImageMagick-{{ imagemagick_version }}.tar.xz' &&
+      cd 'ImageMagick-{{ imagemagick_version }}' &&
+      ./configure --prefix='/opt/ImageMagick-{{ imagemagick_version }}' &&
+      make -j8 &&
+      make install
+    tags: [imagemagick, magick]
+  - { name: "ImageMagick: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/ImageMagick-{{ imagemagick_version }}/bin/{{ item }}" }, tags: [imagemagick, magick], with_items: [
       animate,
       compare,
       composite,
@@ -1107,9 +1118,9 @@
       MagickCore-config,
       MagickWand-config
     ] }
-  - { name: "ImageMagick: Check system installation", become: yes, command: "apt-mark showhold", register: imagemagick_system_install_query, changed_when: no, failed_when: no }
-  - { name: "ImageMagick: Hold system packages", become: yes, when: "'imagemagick' not in imagemagick_system_install_query.stdout", command: "apt-mark hold imagemagick" }
-  - { name: "ImageMagick: Allow manipulation of PDF files", lineinfile: { path: "/opt/ImageMagick-{{ imagemagick_version }}/etc/ImageMagick-{{ imagemagick_version.split('.')[0] }}/policy.xml", regexp: "PDF", line: '  <policy domain="module" rights="read|write" pattern="{PS,PDF,XPS}" />' } }
+  - { name: "ImageMagick: Check system installation", become: yes, command: "apt-mark showhold", register: imagemagick_system_install_query, changed_when: no, failed_when: no, tags: [imagemagick, magick] }
+  - { name: "ImageMagick: Hold system packages", become: yes, when: "'imagemagick' not in imagemagick_system_install_query.stdout", command: "apt-mark hold imagemagick", tags: [imagemagick, magick] }
+  - { name: "ImageMagick: Allow manipulation of PDF files", lineinfile: { path: "/opt/ImageMagick-{{ imagemagick_version }}/etc/ImageMagick-{{ imagemagick_version.split('.')[0] }}/policy.xml", regexp: "PDF", line: '  <policy domain="module" rights="read|write" pattern="{PS,PDF,XPS}" />' }, tags: [imagemagick, magick] }
 
   # 920. youtube-dl
   - { name: "youtube-dl: Install script", get_url: { url: "https://github.com/ytdl-org/youtube-dl/releases/download/{{ youtube_dl_version }}/youtube-dl", dest: "/usr/local/bin/youtube-dl", mode: "+x", checksum: "{{ youtube_dl_checksum }}" }, tags: [youtube, youtube-dl] }
