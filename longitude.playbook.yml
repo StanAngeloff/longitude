@@ -161,7 +161,7 @@
 
     birdtray_version: 1.9.0
     birdtray_platform: linux-x86_64
-    birdtray_checksum: 'sha256:d486f9d73fb0af589d39a6aa35f29ddfbf705bb57527bf184e3abce8f9ace534'
+    birdtray_checksum: 'sha256:8cb3a1ba8cfbae74a6c7a1043a3a50c3248f4db519f8c141720dbbbc4ec8d4ca'
 
     neovim_version: 0.6.1
     neovim_checksum: "sha256:ef9056e05ef6a4c1d0cdb8b21f79261703122c0fd31f23f782158d326fdadbf5"
