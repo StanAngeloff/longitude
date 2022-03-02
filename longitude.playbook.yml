@@ -311,6 +311,7 @@
       --disable-pixbuf,
       --disable-frills
     ]
+    libptytty_commit: b9694ea18e0dbd78213f55233a430325c13ad63e
 
     tmux_version: 3.1c
     tmux_checksum: "sha256:918f7220447bef33a1902d4faff05317afd9db4ae1c9971bef5c787ac6c88386"
@@ -1283,6 +1284,9 @@
         echo "Patching {{ patch.url | basename }}…"  &&
         patch --quiet --forward -p{{ patch.strip | default(0) }} < "/tmp/rxvt-unicode-{{ loop.index0 }}.patch" &&
       {% endfor %}
+      curl -sSLf -o libptytty.zip "https://github.com/yusiwen/libptytty/archive/{{ libptytty_commit }}.zip" &&
+      unzip libptytty.zip &&
+      mv "libptytty-{{ libptytty_commit }}" libptytty &&
       ./configure {{ rxvt_unicode_configure_args | join(" ") }} --prefix="/opt/rxvt-unicode-{{ rxvt_unicode_version }}" &&
       make -j8 &&
       make install
