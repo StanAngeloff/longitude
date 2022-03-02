@@ -1,1 +1,4 @@
 *.gpg	binary
+fonts/*	filter=lfs diff=lfs merge=lfs -text
+
+# vim: ts=16 sw=16 :
