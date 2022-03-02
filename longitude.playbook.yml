@@ -597,6 +597,7 @@
       { line: "nodejs system", regexp: "^nodejs\\b" },
       { line: "ruby {{ ruby_version }}", regexp: "^ruby\\b" },
     ] }
+  - { name: "asdf: Ruby: Install prerequisites", become: yes, apt: { pkg: [zlib1g-dev, libssl-dev], state: present }, tags: [python] }
   - name: "asdf: Install programs"
     shell: |
       . "{{ ansible_env.HOME }}"/.asdf/asdf.sh && asdf install {{ item }}
