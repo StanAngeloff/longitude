@@ -25,7 +25,7 @@ dearmor: \
 	keys/ImageMagick-public.key.asc.gpg \
 	keys/keybase-20190624.asc.gpg \
 	keys/python-Lukasz-Langa-keybase.asc.gpg \
-	keys/tarsnap-signing-key-2021.asc.gpg \
+	keys/tarsnap-signing-key-2022.asc.gpg \
 	keys/trava90.asc.gpg
 keys/%.asc.gpg: keys/%.asc
 	gpg2 --yes -o "$@" --dearmor "$?"
