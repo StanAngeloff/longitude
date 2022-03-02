@@ -22,7 +22,7 @@ docker-playbook:
 	@docker run --rm --tty --volume `pwd`:/home/maximus/longitude --cap-add=NET_ADMIN stanangeloff/longitude:$(DOCKER_IMAGE_TAG)
 
 dearmor: \
-	keys/ImageMagick.key.asc.gpg \
+	keys/ImageMagick-public.key.asc.gpg \
 	keys/keybase-20190624.asc.gpg \
 	keys/python-Lukasz-Langa-keybase.asc.gpg \
 	keys/tarsnap-signing-key-2021.asc.gpg \
