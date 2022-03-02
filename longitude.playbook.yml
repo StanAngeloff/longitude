@@ -532,6 +532,18 @@
   #
   # See https://wiki.ubuntu.com/ToolChain
   - { name: "Toolchain: Add PPA for test builds", become: yes, apt_repository: { repo: "ppa:ubuntu-toolchain-r/test", update_cache: yes }, tags: [toolchain] }
+  - { name: "Toolchain: Install GCC 11", become: yes, apt: { pkg: [gcc-11, g++-11], state: present }, tags: [toolchain] }
+  - name: "Toolchain: Install GCC alternatives"
+    become: yes
+    shell: |
+      update-alternatives \
+        --install /usr/bin/gcc  gcc  /usr/bin/gcc-11 90 \
+        --slave   /usr/bin/g++  g++  /usr/bin/g++-11    \
+        --slave   /usr/bin/gcov gcov /usr/bin/gcov-11
+    changed_when: "toolchain_install_alternatives_cmd.stdout != ''"
+    register: toolchain_install_alternatives_cmd
+    tags: [toolchain]
+  - { name: "Toolchain: Set up alternatives", become: yes, alternatives: { link: "/usr/bin/gcc", name: "gcc", path: "/usr/bin/gcc-11" }, tags: [toolchain] }
 
   # 100. Git
   - { name: "Git: Add PPA", become: yes, apt_repository: { repo: "ppa:git-core/ppa", update_cache: yes }, tags: [git] }
