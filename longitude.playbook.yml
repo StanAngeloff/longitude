@@ -429,7 +429,17 @@
 
   tasks:
 
-  - { name: "Prerequisites: Paths writeable by the user", become: yes, file: { path: "{{ item }}", owner: "{{ ansible_user_id }}" }, with_items: ["/usr/local/bin", "/opt"] }
+  - name: "Prerequisites: Paths writeable by the user"
+    become: yes
+    file:
+      path: "{{ item }}"
+      state: directory
+      owner: "{{ ansible_user_id }}"
+    with_items:
+      - "/usr/local"
+      - "/usr/local/bin"
+      - "/usr/local/share"
+      - "/opt"
 
   # 9. sudo password is required each time
   - { name: "System: sudo timeout", become: yes, copy: { content: "# Prompt for a password on every escalation.\nDefaults timestamp_timeout=0\n", dest: "/etc/sudoers.d/timeout", force: no, validate: "visudo -cf %s" } }
