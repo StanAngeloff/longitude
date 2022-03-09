@@ -107,15 +107,15 @@ $ cp fontconfig/46-system-ui.conf ~/.config/fontconfig/conf.d/
 <fontconfig>
   <!--
   <match target="font">
-    <test name="family" compare="eq"><string>Input</string></test>
-    <edit name="family" mode="assign_replace"><string>Input</string></edit>
+    <test name="family" compare="eq"><string>Berkeley Mono</string></test>
+    <edit name="family" mode="assign_replace"><string>Berkeley Mono</string></edit>
     <edit name="family" mode="append_last"><string>monospace</string></edit>
   </match>
   -->
   <!--
   <match target="pattern">
     <test qual="any" name="family"><string>monospace</string></test>
-    <edit name="family" mode="prepend_first"><string>Input</string></edit>
+    <edit name="family" mode="prepend_first"><string>Berkeley Mono</string></edit>
     <edit name="family" mode="prepend_first"><string>Twitter Color Emoji</string></edit>
   </match>
   -->
@@ -123,14 +123,14 @@ $ cp fontconfig/46-system-ui.conf ~/.config/fontconfig/conf.d/
   <alias>
     <family>monospace</family>
     <prefer>
-      <family>Input</family>
+      <family>Berkeley Mono</family>
       <family>Twitter Color Emoji</family>
     </prefer>
   </alias>
   <alias>
     <family>ui-monospace</family>
     <prefer>
-      <family>Input</family>
+      <family>Berkeley Mono</family>
       <family>Twitter Color Emoji</family>
     </prefer>
   </alias>
@@ -146,7 +146,7 @@ $ cp fontconfig/46-system-ui.conf ~/.config/fontconfig/conf.d/
   <alias>
     <family>Menlo</family>
     <prefer>
-      <family>Input</family>
+      <family>Berkeley Mono</family>
       <family>Twitter Color Emoji</family>
     </prefer>
   </alias>
