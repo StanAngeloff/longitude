@@ -64,6 +64,7 @@ $ sudo debconf-show postfix
 ## Viber
 
 ```bash
+$ sudo apt install libxcb-xinput0
 $ wget https://download.cdn.viber.com/desktop/Linux/viber.AppImage
 $ sha256sum viber.AppImage
 276a8ec3fee332b3f9480c6a2a53828b2518bc5fa54b7c3face8758c43d06327  viber.AppImage
