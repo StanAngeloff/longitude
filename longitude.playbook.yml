@@ -316,8 +316,8 @@
     tmux_version: 3.1c
     tmux_checksum: "sha256:918f7220447bef33a1902d4faff05317afd9db4ae1c9971bef5c787ac6c88386"
 
-    tig_version: 2.5.2
-    tig_checksum: "sha256:1e5a8175627231ba619686ec338b4ad2843a6526122ea4e9fde1739dd2b4830b"
+    tig_version: 2.5.5
+    tig_checksum: "sha256:24ba2c8beae889e6002ea7ced0e29851dee57c27fde8480fb9c64d5eb8765313"
 
     envchain_version: 1.0.1
     envchain_checksum: "sha256:09af1fe1cfba3719418f90d59c29c081e1f22b38249f0110305b657bd306e9ae"
