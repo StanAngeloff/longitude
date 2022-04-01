@@ -170,10 +170,13 @@
     git_lfs_gpg_key_id: "DC282033"
     git_subrepo_tag: 0.4.3
 
+    direnv_version: '2.31.0'
+
     asdf_version: '0.8.1'
     asdf_plugins:
+      - { name: 'direnv', url: 'https://github.com/asdf-community/asdf-direnv.git', on_install: ['asdf direnv setup --shell zsh --version {{ direnv_version }}'] }
       - { name: 'golang', url: 'https://github.com/kennyp/asdf-golang.git' }
-      - { name: 'nodejs', url: 'https://github.com/asdf-vm/asdf-nodejs.git' }
+      - { name: 'nodejs', url: 'https://github.com/asdf-vm/asdf-nodejs.git', pkg: [dirmngr, gawk, gpg] }
       - { name: 'ruby', url: 'https://github.com/asdf-vm/asdf-ruby.git' }
     asdf_rc:
       legacy_version_file: 'yes'
@@ -586,15 +589,22 @@
 
   # 200. asdf
   #
-  # - 'curl', 'git' - asdf itself
-  # - 'dirmngr', 'gawk', 'gpg' - Node.js plug-in
-  #
   - { name: "asdf: Install prerequisites", become: yes, apt: { pkg: [curl, git, dirmngr, gpg, gawk], state: present }, tags: [asdf] }
+  - name: "asdf: Install plug-ins prerequisites"
+    become: yes
+    apt:
+      pkg: "{{ item.1 }}"
+      state: present
+    with_subelements:
+      - "{{ asdf_plugins }}"
+      - pkg
+      - skip_missing: yes
+    tags: [asdf]
   - { name: "asdf: Clone the repository", git: { repo: "https://github.com/asdf-vm/asdf.git", dest: "{{ ansible_env.HOME }}/.asdf", remote: "github", version: "v{{ asdf_version }}", update: yes }, tags: [asdf] }
   - name: "asdf: Install plug-ins"
     shell: |
       . "{{ ansible_env.HOME }}"/.asdf/asdf.sh &&
-      asdf plugin list | grep "^{{ item.name }}$" || ( asdf plugin add "{{ item.name }}" "{{ item.url }}" && echo "{{ item.name }} added!" )
+      asdf plugin list | grep "^{{ item.name }}$" || ( asdf plugin add "{{ item.name }}" "{{ item.url }}" && {{ item.on_install | default(["true"]) | join(' && ') }} && echo "{{ item.name }} added!" )
     args: { executable: "/bin/bash" }
     changed_when: "('added!' in asdf_plugin_cmd.stdout)"
     register: asdf_plugin_cmd
@@ -620,6 +630,7 @@
   - { name: "asdf: Set up default tools", lineinfile: { path: "{{ ansible_env.HOME }}/.tool-versions", regexp: "{{ item.regexp }}", line: "{{ item.line }}", insertafter: EOF }, tags: [asdf], with_items: [
       { line: "nodejs system", regexp: "^nodejs\\b" },
       { line: "ruby {{ ruby_version }}", regexp: "^ruby\\b" },
+      { line: "direnv {{ direnv_version }}", regexp: "^direnv\\b" },
     ] }
   - { name: "asdf: Ruby: Install prerequisites", become: yes, apt: { pkg: [zlib1g-dev, libssl-dev], state: present }, tags: [python] }
   - name: "asdf: Install programs"
