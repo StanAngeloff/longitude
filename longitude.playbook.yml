@@ -103,6 +103,8 @@
       "extensions.formautofill.creditCards.available": true
       "extensions.formautofill.creditCards.enabled": true
       "extensions.formautofill.supportedCountries": "US,CA,BG"
+      "extensions.formautofill.creditCards.supported": "on" # See https://hg.mozilla.org/mozilla-central/rev/229e5309bc92113ea8c696f40db0fbb56c3a33b6#l3.1
+      "extensions.formautofill.creditCards.supportedCountries": "US,CA,UK,FR,DE,BG"
       "dom.forms.selectSearch": true # Search <select> drop-downs when they contain 41 or more items, see https://wiki.mozilla.org/QA/Dom_Forms_Select_Search
       # Development
       #
