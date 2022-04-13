@@ -479,7 +479,8 @@
       - 'zswap.enabled=1' # See https://wiki.archlinux.org/index.php/Zswap, enabled by default since 5.7 (18.04 comes with a HWE running 5.3).
     notify: "grub::update"
     tags: [kernel, grub]
-  - { name: "Kernel: Install HWE", become: yes, apt: { pkg: [linux-generic-hwe-18.04, xserver-xorg-hwe-18.04], install_recommends: yes, state: present }, when: "ansible_distribution_version is version('18.04', '==')", tags: [kernel] }
+  - { name: "Kernel: Install HWE (bionic)", become: yes, apt: { pkg: [linux-generic-hwe-18.04, xserver-xorg-hwe-18.04], install_recommends: yes, state: present }, when: "ansible_distribution_version is version('18.04', '==')", tags: [kernel] }
+  - { name: "Kernel: Install HWE (focal)", become: yes, apt: { pkg: [linux-generic-hwe-20.04], install_recommends: yes, state: present }, when: "ansible_distribution_version is version('20.04', '==')", tags: [kernel] }
 
   # 50. Hardware tweaks
   #
@@ -647,7 +648,8 @@
     tags: [asdf]
 
   # 210. Python
-  - { name: "Python: Install pip packages & Python development headers", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present }, tags: [python] }
+  - { name: "Python: Install pip packages & Python development headers (bionic)", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present }, tags: [python], when: "ansible_distribution_version is version('20.04', '<')" }
+  - { name: "Python: Install pip packages & Python development headers (focal)", become: yes, apt: { pkg: [python-dev, python3-dev, python3-pip], state: present }, tags: [python], when: "ansible_distribution_version is version('20.04', '>=')" }
   - { name: "Python: Install virtualenv", become: yes, pip: { executable: pip3, name: virtualenv, state: present }, tags: [python] }
   - { name: "Python: Install prerequisites", become: yes, apt: { pkg: [zlib1g-dev, libncurses5-dev, libgdbm-dev, libnss3-dev, libssl-dev, libreadline-dev, libffi-dev, libsqlite3-dev, libbz2-dev, liblzma-dev, uuid-dev], state: present }, tags: [python] }
   - { name: "Python: Check local installation", become: yes, command: "ls /opt/python{{ python_version.split('.')[:2]|join('.') }}", register: python_install_query, changed_when: no, failed_when: no, tags: [python] }
@@ -733,7 +735,8 @@
   # 400. Neovim
   - { name: "Neovim: Install AppImage", get_url: { url: "https://github.com/neovim/neovim/releases/download/{{ ('' if neovim_version == 'nightly' else 'v') }}{{ neovim_version }}/nvim.appimage", dest: "/usr/local/bin/nvim-{{ neovim_version }}", mode: "+x", checksum: "{{ (omit if neovim_version == 'nightly' else neovim_checksum) }}" }, tags: [vim, neovim] }
   # 410. Neovim Python support
-  - { name: "Neovim: Add Python support", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip2, pip3], tags: [vim, neovim] }
+  - { name: "Neovim: Add Python support (bionic)", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip2, pip3], tags: [vim, neovim], when: "ansible_distribution_version is version('20.04', '<')" }
+  - { name: "Neovim: Add Python support (focal)", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip3], tags: [vim, neovim], when: "ansible_distribution_version is version('20.04', '>=')" }
   # 420. Neovim alternatives
   - { name: "Neovim: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/usr/local/bin/nvim-{{ neovim_version }}" }, with_items: [vi, vim, nvim, editor], tags: [vim, neovim] }
 
@@ -795,11 +798,6 @@
       line: "{{ ( item.key | string + ' ' + item.value | default('') | string ) | trim }}"
       insertafter: 'EOF'
     with_dict: "{{ gnupg_agent_conf }}"
-
-  # 590. i3wm
-  - { name: "i3: Add APT key", become: yes, apt_key: { file: "{{ ansible_env.PWD }}/keys/sur5r-keyring.gpg", id: 'E3CA1A89941C42E6', state: present }, tags: [i3] }
-  - { name: "i3: Add repository", become: yes, apt_repository: { repo: "deb https://debian.sur5r.net/i3/ {{ ansible_distribution_release }} universe", update_cache: yes }, tags: [i3] }
-  - { name: "i3: Install packages", become: yes, apt: { pkg: [i3], state: present }, tags: [i3] }
 
   # 600. Firefox
   - { name: "Firefox: Install packages", become: yes, apt: { pkg: "{{ ('firefox firefox-locale-' + firefox_locales|join(' firefox-locale-')).split(' ') }}", state: present }, tags: [firefox] }
@@ -1014,8 +1012,8 @@
     tags: [birdtray, thunderbird]
 
   # 700. Dropbox
-  - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme, python3-gpgme], state: present }, when: "ansible_distribution_version is version('17.10', '<')" }
-  - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpg, python3-gpg], state: present }, when: "ansible_distribution_version is version('17.10', '>=')" }
+  - { name: "Dropbox: Install prerequisites (bionic)", become: yes, apt: { pkg: [python-gpg, python3-gpg], state: present }, when: "ansible_distribution_version is version('20.04', '<')" }
+  - { name: "Dropbox: Install prerequisites (focal)", become: yes, apt: { pkg: [python3-gpg], state: present }, when: "ansible_distribution_version is version('20.04', '>=')" }
   - { name: "Dropbox: Check installation", become: yes, shell: "{{ dpkg_query | format('dropbox') }}", register: dropbox_dpkg_query, changed_when: no, failed_when: no }
     # NOTE: I don't know of a way to verify the .deb Dropbox package, is there an alternative way to install, perhaps via an APT repository?
   - { name: "Dropbox: Install packages", become: yes, when: "dropbox_dpkg_query.rc > 0", apt: { deb: "https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_{{ dropbox_version }}_{{ dropbox_platform }}.deb", state: present } }
