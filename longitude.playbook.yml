@@ -165,8 +165,8 @@
     birdtray_platform: linux-x86_64
     birdtray_checksum: 'sha256:8cb3a1ba8cfbae74a6c7a1043a3a50c3248f4db519f8c141720dbbbc4ec8d4ca'
 
-    neovim_version: 0.6.1
-    neovim_checksum: "sha256:ef9056e05ef6a4c1d0cdb8b21f79261703122c0fd31f23f782158d326fdadbf5"
+    neovim_version: 0.7.0
+    neovim_checksum: "sha256:ac1caae4f1c54e0ce126b9313d993cb0d1cc4a81ef3e09dd26772be37aaa61db"
     neovim_dictionaries: [en.utf-8, bg.utf-8]
 
     git_lfs_gpg_key_id: "DC282033"
@@ -175,6 +175,7 @@
     asdf_version: '0.8.1'
     direnv_version: '2.31.0'
     deno_version: '1.20.4'
+    golang_version: '1.18.2'
     ruby_version: '3.0.3'
     asdf_plugins:
       - { name: 'direnv', url: 'https://github.com/asdf-community/asdf-direnv.git', on_install: ['asdf direnv setup --shell zsh --version {{ direnv_version }}'] }
@@ -405,9 +406,6 @@
     steam_launcher_version: 1.0.0.61
     steam_launcher_checksum: "sha256:5e7d3f1cb1de847f31152998bdc8137855a1a0f7b0dc099db6a7f4d7e33fd911"
 
-    fraidycat_version: 1.1.3
-    fraidycat_checksum: "sha256:a818f9bd90906bd1491ee14d9f97b6a2977a8b0985ec4b0aef0941310eeca114"
-
     bingwallpaper_version: '@{2020-09-23}'
     bingwallpaper_checksum: 'sha256:50a770e1eaff5cb5cd8cb7b7a549347a6d6b01a3ad0399b38ecd65be6d1de2b3'
 
@@ -456,6 +454,16 @@
   # 15. i386 is needed for Wine.
   - { name: "System: Add dpkg architectures", become: yes, lineinfile: { dest: "/var/lib/dpkg/arch", line: "{{ item }}", create: yes }, with_items: [amd64, i386] }
   - { name: "System: Update apt cache", become: yes, apt: { update_cache: yes, cache_valid_time: "{{ 24 * 60 * 60 }}" } }
+  # 19. Additional official Ubuntu repositories
+  - name: "Add additional Ubuntu repositories"
+    become: yes
+    apt_repository:
+      repo: "{{ item.repo }}"
+      filename: "{{ item.filename }}"
+      update_cache: true
+    with_items:
+      - { repo: "deb http://archive.ubuntu.com/ubuntu {{ansible_distribution_release}}-updates main universe restricted multiverse", filename: "{{ansible_distribution_release}}-updates" }
+      - { repo: "deb http://security.ubuntu.com/ubuntu {{ansible_distribution_release}}-security main universe restricted multiverse", filename: "{{ansible_distribution_release}}-security" }
 
   # 20. build-essential & a few more packages are essential
   - { name: "System: Install essentials", become: yes, apt: { pkg: [build-essential, cmake, unzip, ca-certificates], state: present }, tags: [toolchain] }
@@ -479,7 +487,8 @@
       - 'zswap.enabled=1' # See https://wiki.archlinux.org/index.php/Zswap, enabled by default since 5.7 (18.04 comes with a HWE running 5.3).
     notify: "grub::update"
     tags: [kernel, grub]
-  - { name: "Kernel: Install HWE", become: yes, apt: { pkg: [linux-generic-hwe-18.04, xserver-xorg-hwe-18.04], install_recommends: yes, state: present }, when: "ansible_distribution_version is version('18.04', '==')", tags: [kernel] }
+  - { name: "Kernel: Install HWE (bionic)", become: yes, apt: { pkg: [linux-generic-hwe-18.04, xserver-xorg-hwe-18.04], install_recommends: yes, state: present }, when: "ansible_distribution_version is version('18.04', '==')", tags: [kernel] }
+  - { name: "Kernel: Install HWE (focal)", become: yes, apt: { pkg: [linux-generic-hwe-20.04], install_recommends: yes, state: present }, when: "ansible_distribution_version is version('20.04', '==')", tags: [kernel] }
 
   # 50. Hardware tweaks
   #
@@ -631,6 +640,7 @@
   - { name: "asdf: Create empty .tool-versions", copy: { content: "", dest: "{{ ansible_env.HOME }}/.tool-versions", force: no }, tags: [asdf] }
   - { name: "asdf: Set up default tools", lineinfile: { path: "{{ ansible_env.HOME }}/.tool-versions", regexp: "{{ item.regexp }}", line: "{{ item.line }}", insertafter: EOF }, tags: [asdf], with_items: [
       { line: "deno {{ deno_version }}", regexp: "^deno\\b" },
+      { line: "golang {{ golang_version }}", regexp: "^golang\\b" },
       { line: "direnv {{ direnv_version }}", regexp: "^direnv\\b" },
       { line: "nodejs system", regexp: "^nodejs\\b" },
       { line: "ruby {{ ruby_version }}", regexp: "^ruby\\b" },
@@ -643,11 +653,13 @@
     register: asdf_install_cmd
     with_items:
       - "deno {{ deno_version }}"
+      - "golang {{ golang_version }}"
       - "ruby {{ ruby_version }}"
     tags: [asdf]
 
   # 210. Python
-  - { name: "Python: Install pip packages & Python development headers", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present }, tags: [python] }
+  - { name: "Python: Install pip packages & Python development headers (bionic)", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present }, tags: [python], when: "ansible_distribution_version is version('20.04', '<')" }
+  - { name: "Python: Install pip packages & Python development headers (focal)", become: yes, apt: { pkg: [python-dev, python3-dev, python3-pip], state: present }, tags: [python], when: "ansible_distribution_version is version('20.04', '>=')" }
   - { name: "Python: Install virtualenv", become: yes, pip: { executable: pip3, name: virtualenv, state: present }, tags: [python] }
   - { name: "Python: Install prerequisites", become: yes, apt: { pkg: [zlib1g-dev, libncurses5-dev, libgdbm-dev, libnss3-dev, libssl-dev, libreadline-dev, libffi-dev, libsqlite3-dev, libbz2-dev, liblzma-dev, uuid-dev], state: present }, tags: [python] }
   - { name: "Python: Check local installation", become: yes, command: "ls /opt/python{{ python_version.split('.')[:2]|join('.') }}", register: python_install_query, changed_when: no, failed_when: no, tags: [python] }
@@ -733,7 +745,8 @@
   # 400. Neovim
   - { name: "Neovim: Install AppImage", get_url: { url: "https://github.com/neovim/neovim/releases/download/{{ ('' if neovim_version == 'nightly' else 'v') }}{{ neovim_version }}/nvim.appimage", dest: "/usr/local/bin/nvim-{{ neovim_version }}", mode: "+x", checksum: "{{ (omit if neovim_version == 'nightly' else neovim_checksum) }}" }, tags: [vim, neovim] }
   # 410. Neovim Python support
-  - { name: "Neovim: Add Python support", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip2, pip3], tags: [vim, neovim] }
+  - { name: "Neovim: Add Python support (bionic)", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip2, pip3], tags: [vim, neovim], when: "ansible_distribution_version is version('20.04', '<')" }
+  - { name: "Neovim: Add Python support (focal)", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip3], tags: [vim, neovim], when: "ansible_distribution_version is version('20.04', '>=')" }
   # 420. Neovim alternatives
   - { name: "Neovim: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/usr/local/bin/nvim-{{ neovim_version }}" }, with_items: [vi, vim, nvim, editor], tags: [vim, neovim] }
 
@@ -795,11 +808,6 @@
       line: "{{ ( item.key | string + ' ' + item.value | default('') | string ) | trim }}"
       insertafter: 'EOF'
     with_dict: "{{ gnupg_agent_conf }}"
-
-  # 590. i3wm
-  - { name: "i3: Add APT key", become: yes, apt_key: { file: "{{ ansible_env.PWD }}/keys/sur5r-keyring.gpg", id: 'E3CA1A89941C42E6', state: present }, tags: [i3] }
-  - { name: "i3: Add repository", become: yes, apt_repository: { repo: "deb https://debian.sur5r.net/i3/ {{ ansible_distribution_release }} universe", update_cache: yes }, tags: [i3] }
-  - { name: "i3: Install packages", become: yes, apt: { pkg: [i3], state: present }, tags: [i3] }
 
   # 600. Firefox
   - { name: "Firefox: Install packages", become: yes, apt: { pkg: "{{ ('firefox firefox-locale-' + firefox_locales|join(' firefox-locale-')).split(' ') }}", state: present }, tags: [firefox] }
@@ -1014,8 +1022,8 @@
     tags: [birdtray, thunderbird]
 
   # 700. Dropbox
-  - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpgme, python3-gpgme], state: present }, when: "ansible_distribution_version is version('17.10', '<')" }
-  - { name: "Dropbox: Install prerequisites", become: yes, apt: { pkg: [python-gpg, python3-gpg], state: present }, when: "ansible_distribution_version is version('17.10', '>=')" }
+  - { name: "Dropbox: Install prerequisites (bionic)", become: yes, apt: { pkg: [python-gpg, python3-gpg], state: present }, when: "ansible_distribution_version is version('20.04', '<')" }
+  - { name: "Dropbox: Install prerequisites (focal)", become: yes, apt: { pkg: [python3-gpg], state: present }, when: "ansible_distribution_version is version('20.04', '>=')" }
   - { name: "Dropbox: Check installation", become: yes, shell: "{{ dpkg_query | format('dropbox') }}", register: dropbox_dpkg_query, changed_when: no, failed_when: no }
     # NOTE: I don't know of a way to verify the .deb Dropbox package, is there an alternative way to install, perhaps via an APT repository?
   - { name: "Dropbox: Install packages", become: yes, when: "dropbox_dpkg_query.rc > 0", apt: { deb: "https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_{{ dropbox_version }}_{{ dropbox_platform }}.deb", state: present } }
@@ -1059,7 +1067,7 @@
   # 900. Tools and miscellaneous
   #
   - { name: "Miscellaneous: Install packages", become: yes, apt: { pkg: "{{ lookup('file', 'apt.present.txt').splitlines() | map('regex_replace', '#.*$', '') | map('trim') | select('regex', '.') | list }}", state: present } }
-  - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: pip2, name: psutil, state: present } }
+  - { name: "Miscellaneous: Add Python support for dconf", become: yes, pip: { executable: "{{ 'pip2' if ansible_distribution_version is version('20.04', '<') else 'pip3' }}", name: psutil, state: present } }
   - { name: "Miscellaneous: Configure the system", dconf: "{{ item }}", when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", tags: [dconf], with_items: [
       # Disable the Meta (Win) key from opening the Activities overview in Gnome Shell:
       { key: "/org/gnome/mutter/overlay-key", value: "''" },
@@ -1128,8 +1136,8 @@
   - { name: "ImageMagick: Install prerequisites", become: yes, apt: { pkg: [graphviz-dev, libpng-dev, libjpeg-dev, libgs-dev], state: present }, tags: [imagemagick, magick] }
   - { name: "ImageMagick: Check installation", become: yes, command: "ls /opt/ImageMagick-{{ imagemagick_version }}", register: imagemagick_install_query, changed_when: no, failed_when: no, tags: [imagemagick, magick] }
   - { name: "ImageMagick: Download source and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "imagemagick_install_query.rc > 0", tags: [imagemagick, magick], with_items: [
-      "https://download.imagemagick.org/ImageMagick/download/ImageMagick-{{ imagemagick_version }}.tar.xz",
-      "https://download.imagemagick.org/ImageMagick/download/ImageMagick-{{ imagemagick_version }}.tar.xz.asc",
+      "https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-{{ imagemagick_version }}.tar.xz",
+      "https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-{{ imagemagick_version }}.tar.xz.asc",
     ] }
   - { name: "ImageMagick: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/ImageMagick-public.key.asc.gpg' --verify /tmp/ImageMagick-{{ imagemagick_version }}.tar.xz.asc", when: "imagemagick_install_query.rc > 0", tags: [imagemagick, magick] }
   - name: "ImageMagick: Compile & install packages"
@@ -1443,10 +1451,14 @@
   # Following the instructions in https://forum.winehq.org/viewtopic.php?f=8&t=32192 to install FAudio from the OBS…
   - { name: "Wine: Add openSUSE GPG key", become: yes, apt_key: { id: "5104960E", url: "https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/xUbuntu_18.04/Release.key" }, when: "ansible_distribution_version is version('18.04', '==')", tags: [wine] }
   - { name: "Wine: Add openSUSE repository", become: yes, apt_repository: { repo: "deb https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/xUbuntu_18.04/ ./", update_cache: yes }, when: "ansible_distribution_version is version('18.04', '==')", tags: [wine] }
-  - { name: "Wine: Install packages", become: yes, apt: { pkg: [winehq-stable], state: present } }
+  ## FIXME: As of April 14, 2022 `winehq-stable` conflicts with `ppa:ondrej/php`.
+  ## The package `wine-stable-i386` requires `libpcre2-8-0` which is updated in PHP's repository causing the requirements to mismatch.
+  ## We therefore defer to the `wine` package from the official Ubuntu repositories.
+  #- { name: "Wine: Install packages", become: yes, apt: { pkg: [winehq-stable], state: present } }
+  - { name: "Wine: Install packages", become: yes, apt: { pkg: [wine], state: present } }
   # 1750. PlayOnLinux
   - { name: "PlayOnLinux: Import GPG key", become: yes, apt_key: { id: "{{ playonlinux_gpg_key_id }}", url: "http://deb.playonlinux.com/public.gpg" } }
-  - { name: "PlayOnLinux: Add repository", become: yes, apt_repository: { repo: "deb http://deb.playonlinux.com/ {{ ansible_distribution_release }} main", update_cache: yes } }
+  - { name: "PlayOnLinux: Add repository", become: yes, apt_repository: { repo: "deb http://deb.playonlinux.com/ {{ ansible_distribution_release }} main", update_cache: yes }, when: "ansible_distribution_version is version('20.04', '<')" }
   - { name: "PlayOnLinux: Install packages", become: yes, apt: { pkg: [playonlinux], state: present } }
   # 1760. QEMU
   #
@@ -1653,7 +1665,7 @@
   - { name: "SSH: Configure daemon", become: yes, lineinfile: { dest: /etc/ssh/sshd_config, regexp: "^[#\\s]*{{ item.key }}(?!\\.)\\b", line: "{{ item.key }}	{{ item.value }}", insertafter: EOF, state: present }, with_dict: "{{ sshd_config }}", notify: "sshd::restart", tags: [ssh] }
   - { name: "SSH: Prune host keys", become: yes, lineinfile: { dest: /etc/ssh/sshd_config, regexp: "^[#\\s]*HostKey\\s+(?!(\\/etc\\/ssh\\/ssh_host_{{ sshd_host_keys | join('_key|\\/etc\\/ssh\\/ssh_host_') }}_key))", state: absent }, notify: "sshd::restart", tags: [ssh] }
   - { name: "SSH: Configure host keys", become: yes, lineinfile: { dest: /etc/ssh/sshd_config, regexp: "^[#\\s]*HostKey\\s+/etc/ssh/ssh_host_{{ item }}_key", line: "HostKey	/etc/ssh/ssh_host_{{ item }}_key", state: present, insertafter: "^(Port|HostKey)\\b" }, with_items: "{{ sshd_host_keys }}", notify: "sshd::restart", tags: [ssh] }
-  - { name: "PAM: Google Authenticator: Install prerequisites", become: yes, apt: { pkg: [checkinstall, libqrencode3, libpam0g-dev], state: present }, tags: [ssh, pam] }
+  - { name: "PAM: Google Authenticator: Install prerequisites", become: yes, apt: { pkg: [checkinstall, libpam0g-dev, "{{ 'libqrencode3' if ansible_distribution_version is version('20.04', '<') else 'libqrencode4' }}"], state: present }, tags: [ssh, pam] }
   - { name: "PAM: Google Authenticator: Check installation", become: yes, shell: "{{ dpkg_query | format('libpam-google-authenticator') }}", register: pam_google_authenticator_dpkg_query, changed_when: no, failed_when: no, tags: [ssh, pam] }
   - { name: "PAM: Google Authenticator: Download", get_url: { url: "https://github.com/google/google-authenticator-libpam/archive/{{ pam_google_authenticator_version }}.tar.gz", dest: "/tmp/google-authenticator-libpam-{{ pam_google_authenticator_version }}.tar.gz", checksum: "{{ pam_google_authenticator_checksum }}" }, when: "pam_google_authenticator_dpkg_query.rc > 0", tags: [ssh, pam] }
   - name: "PAM: Google Authenticator: Compile & install package"
@@ -1671,7 +1683,7 @@
         --pkgversion '{{ pam_google_authenticator_deb_version }}' \
         --pkgrelease "{{ pam_google_authenticator_version | replace('.', '') }}" \
         --pkglicense 'Apache License, Version 2.0' \
-        --requires libqrencode3,libpam0g &&
+        --requires libpam0g,{{ 'libqrencode3' if ansible_distribution_version is version('20.04', '<') else 'libqrencode4' }} &&
       dpkg -i 'libpam-google-authenticator_{{ pam_google_authenticator_deb_version }}-'*.deb
     args: { executable: "/bin/bash" }
     tags: [ssh, pam]
@@ -1751,25 +1763,6 @@
   - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
   - { name: "Steam: Download packages", get_url: { url: "http://repo.steampowered.com/steam/archive/precise/steam-launcher_{{ steam_launcher_version }}_all.deb", dest: "/tmp/steam-launcher-{{ steam_launcher_version }}.deb", checksum: "{{ steam_launcher_checksum }}" }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
   - { name: "Steam: Install packages", become: yes, apt: { deb: "/tmp/steam-launcher-{{ steam_launcher_version }}.deb", state: present }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
-
-  # 3200. Fraidycat
-  - { name: "Fraidycat: Install AppImage", get_url: { url: "https://github.com/kickscondor/fraidycat/releases/download/v{{ fraidycat_version }}/Fraidycat-{{ fraidycat_version }}.AppImage", dest: "/usr/local/bin/Fraidycat", mode: "+x", checksum: "{{ fraidycat_checksum }}" }, tags: [fraidycat] }
-  - { name: "Fraidycat: Download desktop icon", get_url: { url: "https://github.com/kickscondor/fraidycat/raw/v{{ fraidycat_version }}/src/images/flatcat-512.png", dest: "{{ ansible_env.HOME }}/.local/share/icons/appimagekit-fraidycat.png" }, tags: [fraidycat] }
-  - name: "Fraidycat: Add desktop icon"
-    copy:
-      dest: "{{ ansible_env.HOME }}/.local/share/applications/appimagekit-fraidycat.desktop"
-      content: |
-        [Desktop Entry]
-        Name=Fraidycat
-        Exec="/usr/local/bin/Fraidycat" %U
-        Terminal=false
-        Type=Application
-        Icon=appimagekit-fraidycat
-        StartupWMClass=Fraidycat
-        X-AppImage-Version={{ fraidycat_version }}
-        Comment=Follow blogs, wikis, YouTube, Twitter, Reddit, Instagram and the like... from a distance.
-        Categories=News;
-    tags: [fraidycat]
 
   # 3500. Nice things…
   - { name: "Bing Wallpaper: Create script directory", file: { path: "{{ ansible_env.HOME }}/bin", state: directory }, tags: [bing, wallpaper, desktop] }
