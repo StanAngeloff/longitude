@@ -175,6 +175,7 @@
     asdf_version: '0.8.1'
     direnv_version: '2.31.0'
     deno_version: '1.20.4'
+    golang_version: '1.18.2'
     ruby_version: '3.0.3'
     asdf_plugins:
       - { name: 'direnv', url: 'https://github.com/asdf-community/asdf-direnv.git', on_install: ['asdf direnv setup --shell zsh --version {{ direnv_version }}'] }
@@ -639,6 +640,7 @@
   - { name: "asdf: Create empty .tool-versions", copy: { content: "", dest: "{{ ansible_env.HOME }}/.tool-versions", force: no }, tags: [asdf] }
   - { name: "asdf: Set up default tools", lineinfile: { path: "{{ ansible_env.HOME }}/.tool-versions", regexp: "{{ item.regexp }}", line: "{{ item.line }}", insertafter: EOF }, tags: [asdf], with_items: [
       { line: "deno {{ deno_version }}", regexp: "^deno\\b" },
+      { line: "golang {{ golang_version }}", regexp: "^golang\\b" },
       { line: "direnv {{ direnv_version }}", regexp: "^direnv\\b" },
       { line: "nodejs system", regexp: "^nodejs\\b" },
       { line: "ruby {{ ruby_version }}", regexp: "^ruby\\b" },
@@ -651,6 +653,7 @@
     register: asdf_install_cmd
     with_items:
       - "deno {{ deno_version }}"
+      - "golang {{ golang_version }}"
       - "ruby {{ ruby_version }}"
     tags: [asdf]
 
