@@ -116,9 +116,13 @@ The following additions and modules are still experimental and haven't been adde
 #### Alacritty
 
 ```bash
-sudo apt install libxcb-shape0-dev libxcb-xfixes0-dev
-cargo install alacritty
-cd /tmp && git clone https://github.com/alacritty/alacritty.git && cd alacritty && tic -xe alacritty,alacritty-direct extra/alacritty.info
+sudo apt install libxcb-shape0-dev libxcb-xfixes0-dev libegl1-mesa-dev
+cd /data/public
+git clone https://github.com/alacritty/alacritty.git
+cd alacritty
+git checkout v0.10.1
+cargo build --release
+cp -r target/release/ /opt/alacritty-0.10.1
 tic -xe alacritty,alacritty-direct extra/alacritty.info
 ```
 
