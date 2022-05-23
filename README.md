@@ -120,9 +120,9 @@ sudo apt install libxcb-shape0-dev libxcb-xfixes0-dev libegl1-mesa-dev
 cd /data/public
 git clone https://github.com/alacritty/alacritty.git
 cd alacritty
-git checkout v0.10.1
+git checkout 3bfc4c2808d7e3ea50fb84780b4c30140114b3b1
 cargo build --release
-cp -r target/release/ /opt/alacritty-0.10.1
+cp -r target/release/ /opt/alacritty-0.11.0-3bfc4c2808
 tic -xe alacritty,alacritty-direct extra/alacritty.info
 ```
 
