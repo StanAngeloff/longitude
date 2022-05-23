@@ -1131,8 +1131,6 @@
             </match>
         </fontconfig>
     tags: [fonts]
-  - { name: "GDM3: Check if service installed", stat: { path: "/etc/gdm3/custom.conf" }, register: gdm_custom_stat, tags: [gdm] }
-  - { name: "GDM3: Disable Waywand", become: yes, ini_file: { path: "/etc/gdm3/custom.conf", no_extra_spaces: true, section: "daemon", option: "WaylandEnable", value: "false", state: present }, when: gdm_custom_stat.stat.exists, tags: [gdm] }
 
   # 910. ImageMagick
   - { name: "ImageMagick: Install prerequisites", become: yes, apt: { pkg: [graphviz-dev, libpng-dev, libjpeg-dev, libgs-dev], state: present }, tags: [imagemagick, magick] }
