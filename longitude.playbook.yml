@@ -471,6 +471,8 @@
   # 30. sysctl
   - { name: "Tweak kernel parameters (sysctl)", become: yes, sysctl: { name: "{{ item.name }}", state: "{{ item.state | default('present') }}", value: "{{ item.value }}", sysctl_file: '/etc/sysctl.d/60-longitude.conf', reload: yes }, when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", tags: [sysctl], with_items: [
       { name: fs.inotify.max_user_watches, value: 524288 },
+      { name: net.ipv6.conf.all.disable_ipv6, value: 1 },
+      { name: net.ipv6.conf.default.disable_ipv6, value: 1 },
     ] }
 
   # 40. Kernel
