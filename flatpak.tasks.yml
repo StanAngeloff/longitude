@@ -5,7 +5,7 @@
 # NOTE: Package 'gnome-software-plugin-flatpak' is not available on Ubuntu 16.04.
 #
 - { name: "Flatpak: Add PPA", become: yes, apt_repository: { repo: "ppa:alexlarsson/flatpak", update_cache: yes }, tags: [flatpak] }
-- { name: "Flatpak: Install packages", become: yes, apt: { pkg: [flatpak], state: present }, register: flatpak_installed, tags: [flatpak] }
+- { name: "Flatpak: Install packages", become: yes, apt: { pkg: [flatpak, xdg-desktop-portal, gnome-software-plugin-flatpak], state: present }, register: flatpak_installed, tags: [flatpak] }
 - block:
     - { debug: { msg: 'Flatpak NOTE: You MUST reboot the system for changes to take effect. Please re-run the playbook to finish the installations.' } }
     - { meta: end_play }
