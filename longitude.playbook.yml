@@ -1020,7 +1020,8 @@
       pretty: yes
       operations:
         # See https://tools.ietf.org/html/rfc6901
-        - { op: add, path: "advanced~1tbcmdline", value: ["/usr/bin/env", "GTK_THEME=Adwaita", "GDK_DPI_SCALE=1.25", "/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird"] }
+        # See https://github.com/gyunaev/birdtray/issues/426 for Wayland support
+        - { op: add, path: "advanced~1tbcmdline", value: ["/usr/bin/env", "GTK_THEME=Adwaita", "GDK_DPI_SCALE=1.25", "UNSUPPORTED_MOZ_ENABLE_WAYLAND=1", "/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird"] }
     tags: [birdtray, thunderbird]
 
   # 700. Dropbox
