@@ -137,6 +137,7 @@ $ cp fontconfig/46-system-ui.conf ~/.config/fontconfig/conf.d/
   <alias>
     <family>system-ui</family>
     <prefer>
+      <family>IBM Plex Sans</family>
       <family>Cantarell</family>
       <family>Ubuntu</family>
       <family>Twitter Color Emoji</family>
