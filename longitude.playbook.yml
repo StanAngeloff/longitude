@@ -974,7 +974,7 @@
         Comment=Send and receive mail with Thunderbird
         GenericName=Mail Client
         Keywords=Email;E-mail;Newsgroup;Feed;RSS
-        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird %u
+        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 MOZ_ENABLE_WAYLAND=1 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird %u
         Terminal=false
         X-MultipleArgs=false
         Type=Application
@@ -986,12 +986,12 @@
 
         [Desktop Action Compose]
         Name=Compose New Message
-        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird -compose
+        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 MOZ_ENABLE_WAYLAND=1 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird -compose
         OnlyShowIn=Messaging Menu;Unity;
 
         [Desktop Action Contacts]
         Name=Contacts
-        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird -addressbook
+        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 MOZ_ENABLE_WAYLAND=1 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird -addressbook
         OnlyShowIn=Messaging Menu;Unity;
     tags: [thunderbird]
   - { name: "Thunderbird: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: thunderbird_mime_query_1, changed_when: no, failed_when: no, tags: [thunderbird] }
@@ -1021,7 +1021,7 @@
       operations:
         # See https://tools.ietf.org/html/rfc6901
         # See https://github.com/gyunaev/birdtray/issues/426 for Wayland support
-        - { op: add, path: "advanced~1tbcmdline", value: ["/usr/bin/env", "GTK_THEME=Adwaita", "GDK_DPI_SCALE=1.25", "UNSUPPORTED_MOZ_ENABLE_WAYLAND=1", "/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird"] }
+        - { op: add, path: "advanced~1tbcmdline", value: ["/usr/bin/env", "GTK_THEME=Adwaita", "GDK_DPI_SCALE=1.25", "MOZ_ENABLE_WAYLAND=1", "/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird"] }
     tags: [birdtray, thunderbird]
 
   # 700. Dropbox
