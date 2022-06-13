@@ -894,7 +894,7 @@
         Comment=Browse the World Wide Web
         GenericName=Web Browser
         Keywords=Internet;WWW;Browser;Web;Explorer
-        Exec=env MOZ_USE_XINPUT2=1 MOZ_ENABLE_WAYLAND=1 firefox %u
+        Exec=/usr/bin/env MOZ_USE_XINPUT2=1 MOZ_ENABLE_WAYLAND=1 firefox %u
         Terminal=false
         X-MultipleArgs=false
         Type=Application
@@ -906,11 +906,11 @@
 
         [Desktop Action new-window]
         Name=Open a New Window
-        Exec=env MOZ_USE_XINPUT2=1 firefox -new-window
+        Exec=/usr/bin/env MOZ_USE_XINPUT2=1 firefox -new-window
 
         [Desktop Action new-private-window]
         Name=Open a New Private Window
-        Exec=env MOZ_USE_XINPUT2=1 firefox -private-window
+        Exec=/usr/bin/env MOZ_USE_XINPUT2=1 firefox -private-window
     tags: [firefox]
 
   # 650. Palemoon
