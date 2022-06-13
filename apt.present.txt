@@ -13,6 +13,7 @@ inotify-tools	# command-line programs providing a simple interface to inotify.
 kazam	# capturing screencasts and screenshots.
 libvulkan1	# Vulkan loader library.
 mesa-vulkan-drivers	# Mesa Vulkan graphics drivers.
+meson	# high-productivity build system
 moreutils	# additional Unix utilities, e.g., sponge.
 mpack	# utilities for encoding and decoding binary files in MIME.
 mysql-client	# for interacting with MySQL servers.
