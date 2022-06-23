@@ -384,7 +384,7 @@
       '8.1': [redis]
 
     nodesource_gpg_key_id: "68576280"
-    nodejs_version: 12
+    nodejs_version: 16
 
     wine_gpg_key_id: "F987672F"
     playonlinux_gpg_key_id: "8E3D6C3A"
