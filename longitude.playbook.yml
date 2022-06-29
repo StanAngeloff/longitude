@@ -661,7 +661,7 @@
 
   # 210. Python
   - { name: "Python: Install pip packages & Python development headers (bionic)", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present }, tags: [python], when: "ansible_distribution_version is version('20.04', '<')" }
-  - { name: "Python: Install pip packages & Python development headers (focal)", become: yes, apt: { pkg: [python-dev, python3-dev, python3-pip, python3-venv], state: present }, tags: [python], when: "ansible_distribution_version is version('20.04', '>=')" }
+  - { name: "Python: Install pip packages & Python development headers (focal)", become: yes, apt: { pkg: [python3-dev, python3-pip, python3-venv, python-is-python3, python-dev-is-python3], state: present }, tags: [python], when: "ansible_distribution_version is version('20.04', '>=')" }
   - { name: "Python: Install virtualenv", become: yes, pip: { executable: pip3, name: virtualenv, state: present }, tags: [python] }
   - { name: "Python: Install prerequisites", become: yes, apt: { pkg: [zlib1g-dev, libncurses5-dev, libgdbm-dev, libnss3-dev, libssl-dev, libreadline-dev, libffi-dev, libsqlite3-dev, libbz2-dev, liblzma-dev, uuid-dev], state: present }, tags: [python] }
   - { name: "Python: Check local installation", become: yes, command: "ls /opt/python{{ python_version.split('.')[:2]|join('.') }}", register: python_install_query, changed_when: no, failed_when: no, tags: [python] }
