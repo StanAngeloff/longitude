@@ -404,9 +404,6 @@
     steam_launcher_version: 1.0.0.61
     steam_launcher_checksum: "sha256:5e7d3f1cb1de847f31152998bdc8137855a1a0f7b0dc099db6a7f4d7e33fd911"
 
-    bingwallpaper_version: '@{2020-09-23}'
-    bingwallpaper_checksum: 'sha256:50a770e1eaff5cb5cd8cb7b7a549347a6d6b01a3ad0399b38ecd65be6d1de2b3'
-
     ufw_policy:
       - { direction: incoming, policy: deny }
       - { direction: outgoing, policy: allow }
@@ -1745,12 +1742,6 @@
   - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
   - { name: "Steam: Download packages", get_url: { url: "http://repo.steampowered.com/steam/archive/precise/steam-launcher_{{ steam_launcher_version }}_all.deb", dest: "/tmp/steam-launcher-{{ steam_launcher_version }}.deb", checksum: "{{ steam_launcher_checksum }}" }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
   - { name: "Steam: Install packages", become: yes, apt: { deb: "/tmp/steam-launcher-{{ steam_launcher_version }}.deb", state: present }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
-
-  # 3500. Nice things…
-  - { name: "Bing Wallpaper: Create script directory", file: { path: "{{ ansible_env.HOME }}/bin", state: directory }, tags: [bing, wallpaper, desktop] }
-  - { name: "Bing Wallpaper: Download script", get_url: { url: "https://github.com/whizzzkid/bing-wallpapers-for-linux/raw/{{ bingwallpaper_version }}/bingwallpaper", dest: "{{ ansible_env.HOME }}/bin/bingwallpaper", mode: "+x", checksum: "{{ bingwallpaper_checksum }}" }, tags: [bing, wallpaper, desktop] }
-  - { name: "Bing Wallpaper: Set UHD size/resolution", lineinfile: { dest: "{{ ansible_env.HOME }}/bin/bingwallpaper", regexp: "^[#\\s]*size=", line: "size=UHD", state: present }, tags: [bing, wallpaper, desktop] }
-  - { name: "Bing Wallpaper: Set up CRON", become: yes, cron: { name: 'Bing Wallpaper', job: 'DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/{{ ansible_user_uid }}/bus" /home/stan/bin/bingwallpaper -1 {{ ansible_env.HOME }}/bin/bingwallpaper -1 1>/tmp/bingwallpaper.log 2>&1', special_time: hourly, state: present, user: "{{ ansible_user_id }}" }, tags: [bing, wallpaper, desktop] }
 
   # 5000. Post-install clean up & purging of packages
   #
