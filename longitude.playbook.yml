@@ -186,8 +186,6 @@
     asdf_rc:
       legacy_version_file: 'yes'
 
-    python_version: '3.8.0'
-
     docker_gpg_key_id: "0EBFCD88"
     docker_platform: amd64
     docker_compose_version: 1.29.2
@@ -663,31 +661,6 @@
   - { name: "Python: Install pip packages & Python development headers (bionic)", become: yes, apt: { pkg: [python-dev, python-pip, python3-dev, python3-pip], state: present }, tags: [python], when: "ansible_distribution_version is version('20.04', '<')" }
   - { name: "Python: Install pip packages & Python development headers (focal)", become: yes, apt: { pkg: [python3-dev, python3-pip, python3-venv, python-is-python3, python-dev-is-python3], state: present }, tags: [python], when: "ansible_distribution_version is version('20.04', '>=')" }
   - { name: "Python: Install virtualenv", become: yes, pip: { executable: pip3, name: virtualenv, state: present }, tags: [python] }
-  - { name: "Python: Install prerequisites", become: yes, apt: { pkg: [zlib1g-dev, libncurses5-dev, libgdbm-dev, libnss3-dev, libssl-dev, libreadline-dev, libffi-dev, libsqlite3-dev, libbz2-dev, liblzma-dev, uuid-dev], state: present }, tags: [python] }
-  - { name: "Python: Check local installation", become: yes, command: "ls /opt/python{{ python_version.split('.')[:2]|join('.') }}", register: python_install_query, changed_when: no, failed_when: no, tags: [python] }
-  - { name: "Python: Download package and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "python_install_query.rc > 0", tags: [python], with_items: [
-      "https://www.python.org/ftp/python/{{ python_version }}/Python-{{ python_version }}.tar.xz",
-      "https://www.python.org/ftp/python/{{ python_version }}/Python-{{ python_version }}.tar.xz.asc"
-    ] }
-  - { name: "Python: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/python-Lukasz-Langa-keybase.asc.gpg' --verify /tmp/Python-{{ python_version }}.tar.xz.asc", when: "python_install_query.rc > 0", tags: [python] }
-  - name: "Python: Compile & install local package"
-    when: "python_install_query.rc > 0"
-    shell: |
-      cd /tmp &&
-      tar --overwrite -Jxf 'Python-{{ python_version }}.tar.xz' &&
-      cd 'Python-{{ python_version }}' &&
-      ./configure --prefix='/opt/python{{ python_version.split('.')[:2]|join('.') }}' --enable-optimizations && make -j8 && make install
-    tags: [python]
-  - { name: "Python: Set up alternatives", become: yes, alternatives: { name: "{{ item | format(version=python_version.split('.')[:2]|join('.')) }}", link: "/usr/local/bin/{{ item | format(version=python_version.split('.')[:2]|join('.')) }}", path: "/opt/python{{ python_version.split('.')[:2]|join('.') }}/bin/{{ item | format(version=python_version.split('.')[:2]|join('.')) }}" }, tags: [python], with_items: [
-      '2to3-%(version)s',
-      'easy_install-%(version)s',
-      'idle%(version)s',
-      'pip%(version)s',
-      'pydoc%(version)s',
-      'python%(version)s',
-      'python%(version)s-config'
-    ] }
-  - { name: "Python: Install local virtualenv", pip: { executable: "/opt/python{{ python_version.split('.')[:2]|join('.') }}/bin/pip3", name: virtualenv, state: present }, tags: [python] }
 
   # 270. Rust
   - { name: "Rust: Check installation", command: "ls {{ ansible_env.HOME }}/.cargo/bin/rustup", register: rust_install_query, changed_when: no, failed_when: no, tags: [rust] }
@@ -1201,8 +1174,8 @@
   - { name: "jq: Download jq", get_url: { url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-{{ jq_platform }}", dest: "/usr/local/bin/jq-{{ jq_version }}", mode: "+x", checksum: "{{ jq_checksum }}" }, when: "jq_install_query.rc > 0" }
   - { name: "jq: Set up alternatives", become: yes, alternatives: { name: "jq", link: "/usr/local/bin/jq", path: "/usr/local/bin/jq-{{ jq_version }}" } }
   # 970. HTTPie
-  - { name: "HTTPie: Install packages", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: httpie, version: "{{ httpie_version }}", state: present }, tags: [httpie] }
-  - { name: "HTTPie: Install plug-ins", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: "{{ httpie_plugins }}" }
+  - { name: "HTTPie: Install packages", pip: { executable: pip3, extra_args: '--user', name: httpie, version: "{{ httpie_version }}", state: present }, tags: [httpie] }
+  - { name: "HTTPie: Install plug-ins", pip: { executable: pip3, extra_args: '--user', name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: "{{ httpie_plugins }}" }
   # 980. bat
   - { name: "bat: Check installation", become: yes, shell: "{{ dpkg_query | format('bat') }}", register: bat_dpkg_query, changed_when: no, failed_when: no, tags: [bat] }
   - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0", tags: [bat] }
@@ -1221,7 +1194,7 @@
   - { name: "ngrok: Install ngrok", shell: "cd /tmp && unzip -o ngrok.zip && mv ./ngrok /usr/local/bin/ngrok", when: "ngrok_install_query.rc > 0" }
   # 996. Magic Wormhole
   - { name: "Magic Wormhole: Install prerequisites", become: yes, apt: { pkg: [libffi-dev], state: present }, tags: [wormhole] }
-  - { name: "Magic Wormhole: Install package", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: magic-wormhole, state: present }, tags: [wormhole] }
+  - { name: "Magic Wormhole: Install package", pip: { executable: pip3, extra_args: '--user', name: magic-wormhole, state: present }, tags: [wormhole] }
   # 997. Terraform & plug-ins
   - { name: "Terraform: Check installation", become: yes, command: "ls '/opt/terraform-{{ terraform_version }}/bin/terraform'", register: terraform_install_query, changed_when: no, failed_when: no, tags: [terraform] }
   - { name: "Terraform: Download package", get_url: { url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_{{ terraform_platform }}.zip", dest: "/tmp/terraform.zip", checksum: "{{ terraform_checksum }}" }, when: "terraform_install_query.rc > 0", tags: [terraform] }
@@ -1241,8 +1214,8 @@
     tags: [terraform]
 
   # 999. AWS CLI, s3cmd, etc.
-  - { name: "AWS: Install CLI packages", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: awscli, version: "{{ awscli_version }}", state: present }, tags: [aws, awscli] }
-  - { name: "AWS: Install community s3cmd package", pip: { executable: "pip{{ python_version.split('.')[:2]|join('.') }}", extra_args: '--user', name: s3cmd, version: "{{ s3cmd_version }}", state: present }, tags: [aws, awscli, s3cmd] }
+  - { name: "AWS: Install CLI packages", pip: { executable: pip3, extra_args: '--user', name: awscli, version: "{{ awscli_version }}", state: present }, tags: [aws, awscli] }
+  - { name: "AWS: Install community s3cmd package", pip: { executable: pip3, extra_args: '--user', name: s3cmd, version: "{{ s3cmd_version }}", state: present }, tags: [aws, awscli, s3cmd] }
 
   # 1000. Dotfiles
   - { name: "Dotfiles: Clone the repository", git: { repo: "https://github.com/StanAngeloff/dotfiles.git", dest: "{{ ansible_env.HOME }}/dotfiles", remote: "github", update: no }, tags: [dotfiles] }
