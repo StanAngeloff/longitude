@@ -1,17 +1,8 @@
 # The default GTK3 theme in a dark variant.
 org.gtk.Gtk3theme.Adwaita-dark
 
-# Vector Graphics Editor. https://inkscape.org/
-org.inkscape.Inkscape
-
 # VLC is a free and open source cross-platform multimedia player and framework.
 org.videolan.VLC
-
-# Remote Desktop Client. https://remmina.org/
-org.remmina.Remmina
-
-# FileZilla Client is a fast and reliable cross-platform FTP, FTPS and SFTP client. https://filezilla-project.org/
-org.filezillaproject.Filezilla
 
 # The LibreOffice productivity suite.
 org.libreoffice.LibreOffice
