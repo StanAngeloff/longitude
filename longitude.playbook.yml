@@ -317,8 +317,8 @@
     ]
     libptytty_commit: b9694ea18e0dbd78213f55233a430325c13ad63e
 
-    tmux_version: 3.3-rc
-    tmux_checksum: "sha256:c2f2314feab0d10868d15c5cb2eb6f4b0c30973fa98782b678e8ae94cf6ca268"
+    tmux_version: 3.3a
+    tmux_checksum: "sha256:e4fd347843bd0772c4f48d6dde625b0b109b7a380ff15db21e97c11a4dcdf93f"
 
     tig_version: 2.5.5
     tig_checksum: "sha256:24ba2c8beae889e6002ea7ced0e29851dee57c27fde8480fb9c64d5eb8765313"
