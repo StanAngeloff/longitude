@@ -278,6 +278,8 @@
 
     zsh_version: 5.9
     zsh_checksum: "sha256:9b8d1ecedd5b5e81fbf1918e876752a7dd948e05c1a0dba10ab863842d45acd5"
+    zsh_plugins:
+      - { name: 'zsh-vi-mode', version: 'v0.8.5', repo: 'https://github.com/jeffreytse/zsh-vi-mode.git', source: 'zsh-vi-mode.plugin.zsh' }
 
     rxvt_unicode_version: 9.22
     rxvt_unicode_cvs_date: "2020-04-01"
@@ -1283,6 +1285,33 @@
   - { name: "Zsh: Add to /etc/shells", become: yes, lineinfile: { path: "/etc/shells", line: "/bin/zsh" }, tags: [zsh] }
   - { name: "Zsh: Check shell", become: yes, shell: "cat /etc/passwd | grep '^{{ ansible_user_id }}:' | cut -d: -f7", register: zsh_shell_query, changed_when: no, tags: [zsh] }
   - { name: "Zsh: Change shell", become: yes, command: "chsh -s /bin/zsh '{{ ansible_user_id }}'", when: "zsh_shell_query.stdout != '/bin/zsh'", tags: [zsh] }
+  - { name: "Zsh: Set up plug-ins directories", file: { path: "{{ item }}", state: directory }, tags: [zsh], with_items: [
+      "{{ ansible_env.HOME }}/.zsh/plugins",
+    ] }
+  - name: "Zsh: Install plug-ins"
+    git:
+      repo: "{{ item.repo }}"
+      dest: "{{ ansible_env.HOME }}/.zsh/plugins/{{ item.name }}"
+      remote: "github"
+      version: "{{ item.version }}"
+      update: yes
+    with_items: "{{ zsh_plugins }}"
+    tags: [zsh]
+  - { name: "Zsh: Capture local Zsh configuration", shell: '{{ localrc_query }}', args: { executable: "/bin/bash" }, register: zsh_localrc, changed_when: no, failed_when: no, tags: [zsh] }
+  - name: "Zsh: Update Zsh configuration"
+    blockinfile:
+      marker: "### ZSH PLUG-IN {{ item.name }} {mark} AUTOMATICALLY GENERATED"
+      block: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+        source "{{ ansible_env.HOME }}/.zsh/plugins/{{ item.name }}/{{ item.source | default('') }}"
+      create: yes
+      insertafter: EOF
+      path: "{{ ansible_env.HOME }}/{{ zsh_localrc.stdout }}"
+      state: "{{ 'present' if 'source' in item else 'absent' }}"
+    with_items: "{{ zsh_plugins }}"
+    tags: [zsh]
 
   - { name: "Reset connection to allow shell changes", meta: reset_connection }
 
