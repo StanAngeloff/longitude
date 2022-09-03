@@ -275,8 +275,8 @@
     terraform_platform: linux_amd64
     terraform_plugins: { }
 
-    zsh_version: 5.8
-    zsh_checksum: "sha256:dcc4b54cc5565670a65581760261c163d720991f0d06486da61f8d839b52de27"
+    zsh_version: 5.9
+    zsh_checksum: "sha256:9b8d1ecedd5b5e81fbf1918e876752a7dd948e05c1a0dba10ab863842d45acd5"
 
     rxvt_unicode_version: 9.22
     rxvt_unicode_cvs_date: "2020-04-01"
