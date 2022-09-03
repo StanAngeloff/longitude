@@ -1158,7 +1158,31 @@
   - { name: "fzf: Download fzf", get_url: { url: "https://github.com/junegunn/fzf/releases/download/{{ fzf_version }}/fzf-{{ fzf_version }}-{{ fzf_platform }}.tar.gz", dest: "/tmp/fzf-{{ fzf_version }}.tar.gz", checksum: "{{ fzf_checksum }}" }, when: "fzf_install_query.rc > 0", tags: [fzf] }
   - { name: "fzf: Install fzf", shell: "cd /tmp && tar --overwrite -zxf 'fzf-{{ fzf_version }}.tar.gz' && mv ./fzf '/usr/local/bin/fzf-{{ fzf_version }}'", when: "fzf_install_query.rc > 0", tags: [fzf] }
   - { name: "fzf: Set up alternatives", become: yes, alternatives: { name: "fzf", link: "/usr/local/bin/fzf", path: "/usr/local/bin/fzf-{{ fzf_version }}" }, tags: [fzf] }
-  - { name: "fzf: Create empty Zsh configuration", copy: { content: "", dest: "{{ ansible_env.HOME }}/.fzf.zsh", force: no }, tags: [fzf] }
+  - { name: "fzf: Clone the repository", git: { repo: "https://github.com/junegunn/fzf.git", dest: "{{ ansible_env.HOME }}/.fzf", remote: "github", version: "{{ fzf_version }}", update: yes }, tags: [fzf] }
+  - name: "fzf: Create Zsh configuration"
+    copy:
+      content: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+
+        # Setup fzf
+        # ---------
+        if [[ ! "$PATH" == *{{ ansible_env.HOME }}/.fzf/bin* ]]; then
+          PATH="${PATH:+${PATH}:}{{ ansible_env.HOME }}/.fzf/bin"
+        fi
+
+        # Auto-completion
+        # ---------------
+        [[ $- == *i* ]] && source "{{ ansible_env.HOME }}/.fzf/shell/completion.zsh" 2> /dev/null
+
+        # Key bindings
+        # ------------
+        source "{{ ansible_env.HOME }}/.fzf/shell/key-bindings.zsh"
+      dest: "{{ ansible_env.HOME }}/.fzf.zsh"
+      force: yes
+    tags: [fzf]
+
   # 960. pup
   - { name: "pup: Check installation", become: yes, command: "ls /usr/local/bin/pup-{{ pup_version }}", register: pup_install_query, changed_when: no, failed_when: no }
   - { name: "pup: Download pup", get_url: { url: "https://github.com/EricChiang/pup/releases/download/v{{ pup_version }}/pup_v{{ pup_version }}_{{ pup_platform }}.zip", dest: "/tmp/pup-{{ pup_version }}.zip", checksum: "{{ pup_checksum }}" }, when: "pup_install_query.rc > 0" }
