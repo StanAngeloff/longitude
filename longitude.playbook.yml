@@ -1730,7 +1730,7 @@
         StartupWMClass=Slack
         Comment=Slack Desktop
         GenericName=Slack Client for Linux
-        Exec=nice -n5 /usr/bin/slack %U
+        Exec=/usr/bin/slack --ozone-platform=wayland --enable-features=UseOzonePlatform,WebRTCPipeWireCapturer --silent %U
         Icon=/usr/share/pixmaps/slack.png
         Type=Application
         StartupNotify=true
