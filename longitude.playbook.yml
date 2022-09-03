@@ -605,7 +605,7 @@
       - pkg
       - skip_missing: yes
     tags: [asdf]
-  - { name: "asdf: Clone the repository", git: { repo: "https://github.com/asdf-vm/asdf.git", dest: "{{ ansible_env.HOME }}/.asdf", remote: "origin", version: "v{{ asdf_version }}", update: yes }, tags: [asdf] }
+  - { name: "asdf: Clone the repository", git: { repo: "https://github.com/asdf-vm/asdf.git", dest: "{{ ansible_env.HOME }}/.asdf", remote: "github", version: "v{{ asdf_version }}", update: yes }, tags: [asdf] }
   - name: "asdf: Install plug-ins"
     shell: |
       . "{{ ansible_env.HOME }}"/.asdf/asdf.sh &&
