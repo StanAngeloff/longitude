@@ -150,6 +150,7 @@
       "media.videocontrols.picture-in-picture.enabled": true # https://web.archive.org/web/20191203233905/https://css-tricks.com/an-introduction-to-the-picture-in-picture-web-api/#article-header-id-0
       "media.hardwaremediakeys.enabled": true # https://web.archive.org/web/20200324112855/https://www.ghacks.net/2020/03/23/firefox-will-soon-support-hardware-media-controls/
       "dom.media.mediasession.enabled": true  #
+      "cookiebanners.service.mode": 2 # https://bugzilla.mozilla.org/show_bug.cgi?id=1783019 | nsICookieBannerService.MODE_REJECT_OR_ACCEPT = 2
 
     firefox_locales: [en, bg]
 
