@@ -154,9 +154,6 @@
 
     firefox_locales: [en, bg]
 
-    palemoon_version: 28.17.0
-    palemoon_platform: linux-x86_64-gtk2
-
     thunderbird_version: '102.0'
     thunderbird_locale: en-GB
     thunderbird_platform: linux-x86_64
@@ -883,48 +880,6 @@
         Name=Open a New Private Window
         Exec=/usr/bin/env MOZ_USE_XINPUT2=1 firefox -private-window
     tags: [firefox]
-
-  # 650. Palemoon
-  - { name: "Palemoon: Check installation", become: yes, command: "ls /opt/palemoon-{{ palemoon_version.split('.')[0] }}", register: palemoon_install_query, changed_when: no, failed_when: no, tags: [palemoon] }
-  - { name: "Palemoon: Download build and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "palemoon_install_query.rc > 0", tags: [palemoon], with_items: [
-      "https://mirror.sobukus.de/files/grimoire/bin-http/palemoon-{{ palemoon_version }}.{{ palemoon_platform }}.tar.xz",
-      "https://mirror.sobukus.de/files/grimoire/bin-http/palemoon-{{ palemoon_version }}.{{ palemoon_platform }}.tar.xz.sig"
-    ] }
-  - { name: "Palemoon: Check build signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/trava90.asc.gpg' --verify /tmp/palemoon-{{ palemoon_version }}.{{ palemoon_platform }}.tar.xz.sig", when: "palemoon_install_query.rc > 0", tags: [palemoon] }
-  - { name: "Palemoon: Unpack & install packages", when: "palemoon_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -Jxf /tmp/palemoon-{{ palemoon_version }}.{{ palemoon_platform }}.tar.xz && mv palemoon /opt/palemoon-{{ palemoon_version.split('.')[0] }}", tags: [palemoon] }
-  - { name: "Palemoon: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/palemoon-{{ palemoon_version.split('.')[0] }}/{{ item }}" }, tags: [palemoon], with_items: [
-      palemoon,
-    ] }
-  - name: "Palemoon: Add desktop icon"
-    become: yes
-    copy:
-      dest: "/usr/share/applications/palemoon.desktop"
-      content: |
-        [Desktop Entry]
-        Version={{ palemoon_version }}
-        Name=Pale Moon
-        Comment=Browse the World Wide Web
-        GenericName=Web Browser
-        Keywords=Internet;WWW;Browser;Web;Explorer
-        Exec=/usr/local/bin/palemoon %u
-        Terminal=false
-        X-MultipleArgs=false
-        Type=Application
-        Icon=/opt/palemoon-{{ palemoon_version.split('.')[0] }}/browser/icons/mozicon128.png
-        Categories=GNOME;GTK;Network;WebBrowser;
-        MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;video/webm;application/x-xpinstall;
-        StartupNotify=true
-        Actions=new-window;new-private-window;
-
-        [Desktop Action new-window]
-        Name=Open a New Window
-        Exec=/usr/local/bin/palemoon -new-window
-
-        [Desktop Action new-private-window]
-        Name=Open a New Private Window
-        Exec=/usr/local/bin/palemoon -private-window
-    tags: [palemoon]
 
   # 660. Thunderbird
   - { name: "Thunderbird: Install prerequisites", become: yes, apt: { pkg: [xdg-utils, zenity], state: present }, tags: [thunderbird] }
