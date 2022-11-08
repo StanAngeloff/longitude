@@ -1249,7 +1249,7 @@
   - { name: "Reset connection to allow shell changes", meta: reset_connection }
 
   # 1200. rxvt-unicode
-  - { name: "rxvt-unicode: Install prerequisites", become: yes, apt: { pkg: [cvs, libperl-dev, libx11-dev, libxft-dev, xdotool, xsel], state: present }, tags: [rxvt, urxvt] }
+  - { name: "rxvt-unicode: Install prerequisites", become: yes, apt: { pkg: [cvs, libperl-dev, libx11-dev, libxft-dev, xdotool, xclip], state: present }, tags: [rxvt, urxvt] }
   - { name: "rxvt-unicode: Check installation", become: yes, command: "ls /opt/rxvt-unicode-{{ rxvt_unicode_version }}", register: rxvt_unicode_install_query, changed_when: no, failed_when: no, tags: [rxvt, urxvt] }
   - { name: "rxvt-unicode: Download CVS source", command: "cvs -q -z3 -d :pserver:anonymous@cvs.schmorp.de/schmorpforge checkout -D \"{{ rxvt_unicode_cvs_date }}\" rxvt-unicode", args: { chdir: '/tmp' }, when: "rxvt_unicode_install_query.rc > 0", tags: [rxvt, urxvt] }
   - { name: "rxvt-unicode: Download patches", get_url: { url: "{{ item.1.url }}", dest: "/tmp/rxvt-unicode-{{ item.0 }}.patch", checksum: "{{ item.1.checksum }}" }, with_indexed_items: "{{ rxvt_unicode_patches }}", when: "rxvt_unicode_install_query.rc > 0", tags: [rxvt, urxvt] }
