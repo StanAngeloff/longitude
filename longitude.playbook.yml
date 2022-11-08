@@ -1,7 +1,7 @@
 #
 # $ make playbook
 #
-# This playbook has been tested with Ubuntu 16.04 and Ansible 2.7.
+# This playbook has been tested with Ubuntu 22.04 and Ansible 2.13.
 #
 - hosts: [127.0.0.1]
   connection: local
