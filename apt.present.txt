@@ -1,5 +1,5 @@
 aria2	# High speed download utility.
-dconf-editor
+dconf-editor	# simple configuration storage system - graphical editor
 exfat-fuse	# read and write exFAT driver for FUSE.
 exfat-utils	# utilities to create, check, label and dump exFAT filesystem.
 expect	# Automates interactive applications.
