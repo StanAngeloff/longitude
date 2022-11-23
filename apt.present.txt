@@ -3,6 +3,7 @@ dconf-editor	# simple configuration storage system - graphical editor
 exfat-fuse	# read and write exFAT driver for FUSE.
 exfat-utils	# utilities to create, check, label and dump exFAT filesystem.
 expect	# Automates interactive applications.
+fstrcmp	# fuzzy comparison of strings
 fswatch	# file change monitor based on inotify.
 gawk	# a better and more robust AWK.
 gconf-editor	# a command-line utility for messing with Gnome's settings.
