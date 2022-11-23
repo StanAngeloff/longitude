@@ -10,6 +10,7 @@ gnome-tweak-tool	# adjust advanced settings for GNOME.
 graphviz	# rich set of graph drawing tools.
 icu-devtools	# development utilities for International Components for Unicode, uconv CLI tool.
 inotify-tools	# command-line programs providing a simple interface to inotify.
+motd-news-config	# configuration for motd-news shipped in base-files
 kazam	# capturing screencasts and screenshots.
 libvulkan1	# Vulkan loader library.
 mesa-vulkan-drivers	# Mesa Vulkan graphics drivers.
