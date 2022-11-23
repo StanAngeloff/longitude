@@ -1033,6 +1033,15 @@
             </match>
         </fontconfig>
     tags: [fonts]
+  - name: "System: Do not concent to Canonical receiving any item of system information (requires ‘motd-news-config’)" # See https://ubuntu.com/legal/motd
+    become: yes
+    lineinfile:
+      create: yes
+      path: '/etc/default/motd-news'
+      regexp: "^[#\\s]*ENABLED="
+      line: "ENABLED=0"
+      insertafter: 'EOF'
+    tags: [privacy]
 
   # 910. ImageMagick
   - { name: "ImageMagick: Install prerequisites", become: yes, apt: { pkg: [graphviz-dev, libpng-dev, libjpeg-dev, libgs-dev], state: present }, tags: [imagemagick, magick] }
