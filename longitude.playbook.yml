@@ -205,9 +205,8 @@
     authy_desktop_version: 2.2.1
     authy_desktop_checksum: "sha256:fdad2931755dee6129ee868dda604826fe6e3afd7343782f7e08b3d572fd6663"
 
-    android_studio_build: 193.6626763
-    android_studio_version: 4.0.1.0
-    android_studio_checksum: "sha256:f2f82744e735eae43fa018a77254c398a3bab5371f09973a37483014b73b7597"
+    android_studio_version: 2021.3.1.17
+    android_studio_checksum: "sha256:89adb0ce0ffa46b7894e7bfedb142b1f5d52c43c171e6a6cb9a95a49f77756ca"
     android_home: /opt/android/sdk
 
     dropbox_version: 2019.01.31
@@ -1548,9 +1547,10 @@
     tags: [authy]
 
   # 1950. Android Studio
-  - { name: "Android Studio: Check installation", become: yes, command: "ls /opt/android-studio-{{ android_studio_version }}-{{ android_studio_build }}", register: android_studio_install_query, changed_when: no, failed_when: no, tags: [android] }
-  - { name: "Android Studio: Download Android Studio", get_url: { url: "https://dl.google.com/dl/android/studio/ide-zips/{{ android_studio_version }}/android-studio-ide-{{ android_studio_build }}-linux.tar.gz", dest: "/tmp/android-studio-{{ android_studio_version }}-{{ android_studio_build }}.tar.gz", checksum: "{{ android_studio_checksum }}" }, when: "android_studio_install_query.rc > 0", tags: [android] }
-  - { name: "Android Studio: Install Android Studio", shell: "cd /tmp && tar --overwrite -zxf 'android-studio-{{ android_studio_version }}-{{ android_studio_build }}.tar.gz' && mv ./android-studio '/opt/android-studio-{{ android_studio_version }}-{{ android_studio_build }}'", when: "android_studio_install_query.rc > 0", tags: [android] }
+  - { name: "Android: Install prerequisites", become: yes, apt: { pkg: ['libc6:i386', 'libncurses5:i386', 'libstdc++6:i386', 'lib32z1', 'libbz2-1.0:i386'], state: present }, tags: [android] }
+  - { name: "Android Studio: Check installation", become: yes, command: "ls /opt/android-studio-{{ android_studio_version }}", register: android_studio_install_query, changed_when: no, failed_when: no, tags: [android] }
+  - { name: "Android Studio: Download Android Studio", get_url: { url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/{{ android_studio_version }}/android-studio-{{ android_studio_version }}-linux.tar.gz", dest: "{{ tmp_path }}/android-studio-{{ android_studio_version }}-linux.tar.gz", checksum: "{{ android_studio_checksum }}" }, when: "android_studio_install_query.rc > 0", tags: [android] }
+  - { name: "Android Studio: Install Android Studio", shell: "cd {{ tmp_path }} && tar --overwrite -zxf 'android-studio-{{ android_studio_version }}-linux.tar.gz' && mv ./android-studio '/opt/android-studio-{{ android_studio_version }}'", when: "android_studio_install_query.rc > 0", tags: [android] }
   - name: "Android Studio: Add desktop icon"
     copy:
       dest: "{{ ansible_env.HOME }}/.local/share/applications/android-studio.desktop"
@@ -1559,8 +1559,8 @@
         Version=1.0
         Type=Application
         Name=Android Studio
-        Exec=/opt/android-studio-{{ android_studio_version }}-{{ android_studio_build }}/bin/studio.sh %f
-        Icon=/opt/android-studio-{{ android_studio_version }}-{{ android_studio_build }}/bin/studio.png
+        Exec=/opt/android-studio-{{ android_studio_version }}/bin/studio.sh %f
+        Icon=/opt/android-studio-{{ android_studio_version }}/bin/studio.svg
         Comment=The official Android IDE
         Categories=Development;IDE;
         Terminal=false
@@ -1577,7 +1577,7 @@
         ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
         ###
         export ANDROID_HOME="${ANDROID_HOME-{{ android_home }}}"
-        export PATH="${PATH}:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/tools"
+        export PATH="${PATH}:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/cmdline-tools/latest/bin"
       create: yes
       insertafter: EOF
       path: "{{ ansible_env.HOME }}/{{ android_studio_localrc.stdout }}"
