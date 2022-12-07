@@ -585,9 +585,9 @@
     become: yes
     when: "git_diff_highlight_install_query.rc > 0"
     shell: |
-      rm -rf /tmp/git-src &&
-      git clone --depth 1 --branch 'v{{ git_installed_version.stdout }}' https://github.com/git/git.git /tmp/git-src &&
-      cd /tmp/git-src/contrib/diff-highlight &&
+      rm -rf {{ tmp_path }}/git-src &&
+      git clone --depth 1 --branch 'v{{ git_installed_version.stdout }}' https://github.com/git/git.git {{ tmp_path }}/git-src &&
+      cd {{ tmp_path }}/git-src/contrib/diff-highlight &&
       make clean diff-highlight &&
       cp diff-highlight /usr/local/bin/diff-highlight-{{ git_installed_version.stdout }}
     tags: [git]
@@ -664,7 +664,7 @@
   - name: "Rust: Install rustup"
     when: "rust_install_query.rc > 0"
     shell: |
-      cd /tmp &&
+      cd {{ tmp_path }} &&
       curl --proto '=https' --tlsv1.2 -sSf -o rustup.sh https://sh.rustup.rs &&
       /bin/bash rustup.sh -y --no-modify-path
     args: { executable: "/bin/bash" }
@@ -689,10 +689,10 @@
   - name: "Wasmtime: Install release"
     when: "wasmtime_install_query.rc > 0"
     shell: |
-      cd /tmp &&
+      cd {{ tmp_path }} &&
       curl -sSf -o wasmtime-install.sh https://wasmtime.dev/install.sh &&
-      touch /tmp/.bashrc &&
-      env PROFILE=/tmp/.bashrc /bin/bash wasmtime-install.sh
+      touch {{ tmp_path }}/.bashrc &&
+      env PROFILE={{ tmp_path }}/.bashrc /bin/bash wasmtime-install.sh
     args: { executable: "/bin/bash" }
     tags: [wasmtime]
   - { name: "Wasmtime: Capture local Zsh configuration", shell: '{{ localrc_query }}', args: { executable: "/bin/bash" }, register: wasmtime_localrc, changed_when: no, failed_when: no, tags: [wasmtime] }
@@ -738,13 +738,13 @@
   - name: "Docker: Install drivers for Docker Machine"
     get_url:
       url: "{{ item.value.url | format(name=item.key, version=item.value.version) }}"
-      dest: "{% if '.zip' == item.value.url[-4:] %}/tmp/docker-machine-driver-{{ item.key }}-{{ item.value.version }}.zip{% else %}/usr/local/bin/docker-machine-driver-{{ item.key }}-{{ item.value.version }}{% endif %}"
+      dest: "{% if '.zip' == item.value.url[-4:] %}{{ tmp_path }}/docker-machine-driver-{{ item.key }}-{{ item.value.version }}.zip{% else %}/usr/local/bin/docker-machine-driver-{{ item.key }}-{{ item.value.version }}{% endif %}"
       mode: "{% if '.zip' == item.value.url[-4:] %}{{ omit }}{%                                                             else %}+x{%                                                                           endif %}"
       checksum: "{{ item.value.checksum }}"
     with_dict: "{{ docker_machine_drivers }}"
     when: "not ( '/usr/local/bin/docker-machine-driver-' + item.key + '-' + item.value.version ) is is_file"
     tags: [docker]
-  - { name: "Docker: Unpack drivers for Docker Machine", shell: "cd /tmp && unzip -o 'docker-machine-driver-{{ item.key }}-{{ item.value.version }}.zip' && mv './docker-machine-driver-{{ item.key }}' '/usr/local/bin/docker-machine-driver-{{ item.key }}-{{ item.value.version }}'", with_dict: "{{ docker_machine_drivers }}", when: "not ( '/usr/local/bin/docker-machine-driver-' + item.key + '-' + item.value.version ) is is_file and '.zip' == item.value.url[-4:]", tags: [docker] }
+  - { name: "Docker: Unpack drivers for Docker Machine", shell: "cd {{ tmp_path }} && unzip -o 'docker-machine-driver-{{ item.key }}-{{ item.value.version }}.zip' && mv './docker-machine-driver-{{ item.key }}' '/usr/local/bin/docker-machine-driver-{{ item.key }}-{{ item.value.version }}'", with_dict: "{{ docker_machine_drivers }}", when: "not ( '/usr/local/bin/docker-machine-driver-' + item.key + '-' + item.value.version ) is is_file and '.zip' == item.value.url[-4:]", tags: [docker] }
   # 530. Docker alternatives
   - { name: "Docker: Set up alternatives", become: yes, alternatives: { name: "{{ item.name }}", link: "/usr/local/bin/{{ item.name }}", path: "/usr/local/bin/{{ item.name }}-{{ item.version }}" }, tags: [docker], with_items: "{%
         set alternatives = [
@@ -886,9 +886,9 @@
   # 660. Thunderbird
   - { name: "Thunderbird: Install prerequisites", become: yes, apt: { pkg: [xdg-utils, zenity], state: present }, tags: [thunderbird] }
   - { name: "Thunderbird: Check installation", become: yes, command: "ls /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}", register: thunderbird_install_query, changed_when: no, failed_when: no, tags: [thunderbird] }
-  - { name: "Thunderbird: Download packages", get_url: { url: "https://download-installer.cdn.mozilla.net/pub/thunderbird/releases/{{ thunderbird_version }}/{{ thunderbird_platform }}/{{ thunderbird_locale }}/thunderbird-{{ thunderbird_version }}.tar.bz2", dest: "/tmp/thunderbird-{{ thunderbird_version }}.tar.bz2", checksum: "{{ thunderbird_checksum }}" }, when: "thunderbird_install_query.rc > 0", tags: [thunderbird] }
+  - { name: "Thunderbird: Download packages", get_url: { url: "https://download-installer.cdn.mozilla.net/pub/thunderbird/releases/{{ thunderbird_version }}/{{ thunderbird_platform }}/{{ thunderbird_locale }}/thunderbird-{{ thunderbird_version }}.tar.bz2", dest: "{{ tmp_path }}/thunderbird-{{ thunderbird_version }}.tar.bz2", checksum: "{{ thunderbird_checksum }}" }, when: "thunderbird_install_query.rc > 0", tags: [thunderbird] }
   - { name: "Thunderbird: Unpack & install packages", when: "thunderbird_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -jxf 'thunderbird-{{ thunderbird_version }}.tar.bz2' && mv thunderbird '/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}'", tags: [thunderbird] }
+      shell: "cd {{ tmp_path }} && tar --overwrite -jxf 'thunderbird-{{ thunderbird_version }}.tar.bz2' && mv thunderbird '/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}'", tags: [thunderbird] }
   - name: "Thunderbird: Add desktop icon"
     become: yes
     copy:
@@ -935,25 +935,25 @@
   # 750. Keybase
   - { name: "Keybase: Install prerequisites", become: yes, apt: { pkg: [gnupg, curl], state: present }, tags: [keybase] }
   - { name: "Keybase: Check installation", become: yes, shell: "{{ dpkg_query | format('keybase') }}", register: keybase_dpkg_query, changed_when: no, failed_when: no, tags: [keybase] }
-  - { name: "Keybase: Download package and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "keybase_dpkg_query.rc > 0", tags: [keybase], with_items: [
+  - { name: "Keybase: Download package and signature", get_url: { url: "{{ item }}", dest: "{{ tmp_path }}/{{ item | basename }}" }, when: "keybase_dpkg_query.rc > 0", tags: [keybase], with_items: [
       "https://prerelease.keybase.io/keybase_{{ keybase_platform }}.deb",
       "https://prerelease.keybase.io/keybase_{{ keybase_platform }}.deb.sig"
     ] }
-  - { name: "Keybase: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/keybase-20190624.asc.gpg' --verify /tmp/keybase_{{ keybase_platform }}.deb.sig", when: "keybase_dpkg_query.rc > 0", tags: [keybase] }
-  - { name: "Keybase: Install package", become: yes, apt: { deb: "/tmp/keybase_{{ keybase_platform }}.deb", state: present }, when: "keybase_dpkg_query.rc > 0", tags: [keybase] }
+  - { name: "Keybase: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/keybase-20190624.asc.gpg' --verify {{ tmp_path }}/keybase_{{ keybase_platform }}.deb.sig", when: "keybase_dpkg_query.rc > 0", tags: [keybase] }
+  - { name: "Keybase: Install package", become: yes, apt: { deb: "{{ tmp_path }}/keybase_{{ keybase_platform }}.deb", state: present }, when: "keybase_dpkg_query.rc > 0", tags: [keybase] }
 
   # 760. Tarsnap
   - { name: "Tarsnap: Install prerequisites", become: yes, apt: { pkg: [gcc, libc6-dev, make, libssl-dev, zlib1g-dev, e2fslibs-dev], state: present }, tags: [tarsnap] }
   - { name: "Tarsnap: Check installation", become: yes, command: "ls /opt/tarsnap-{{ tarsnap_version }}", register: tarsnap_install_query, changed_when: no, failed_when: no, tags: [tarsnap] }
-  - { name: "Tarsnap: Download package and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "tarsnap_install_query.rc > 0", tags: [tarsnap], with_items: [
+  - { name: "Tarsnap: Download package and signature", get_url: { url: "{{ item }}", dest: "{{ tmp_path }}/{{ item | basename }}" }, when: "tarsnap_install_query.rc > 0", tags: [tarsnap], with_items: [
       "https://www.tarsnap.com/download/tarsnap-autoconf-{{ tarsnap_version }}.tgz",
       "https://www.tarsnap.com/download/tarsnap-sigs-{{ tarsnap_version }}.asc"
     ] }
-  - { name: "Tarsnap: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/tarsnap-signing-key-2022.asc.gpg' --verify /tmp/tarsnap-sigs-{{ tarsnap_version }}.asc", when: "tarsnap_install_query.rc > 0", tags: [tarsnap] }
+  - { name: "Tarsnap: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/tarsnap-signing-key-2022.asc.gpg' --verify {{ tmp_path }}/tarsnap-sigs-{{ tarsnap_version }}.asc", when: "tarsnap_install_query.rc > 0", tags: [tarsnap] }
   - name: "Tarsnap: Compile & install packages"
     when: "tarsnap_install_query.rc > 0"
     shell: |
-      cd /tmp &&
+      cd {{ tmp_path }} &&
       tar --overwrite -zxf 'tarsnap-autoconf-{{ tarsnap_version }}.tgz' &&
       cd 'tarsnap-autoconf-{{ tarsnap_version }}' &&
       ./configure --prefix='/opt/tarsnap-{{ tarsnap_version }}' &&
@@ -1046,15 +1046,15 @@
   # 910. ImageMagick
   - { name: "ImageMagick: Install prerequisites", become: yes, apt: { pkg: [graphviz-dev, libpng-dev, libjpeg-dev, libgs-dev], state: present }, tags: [imagemagick, magick] }
   - { name: "ImageMagick: Check installation", become: yes, command: "ls /opt/ImageMagick-{{ imagemagick_version }}", register: imagemagick_install_query, changed_when: no, failed_when: no, tags: [imagemagick, magick] }
-  - { name: "ImageMagick: Download source and signature", get_url: { url: "{{ item }}", dest: "/tmp/{{ item | basename }}" }, when: "imagemagick_install_query.rc > 0", tags: [imagemagick, magick], with_items: [
+  - { name: "ImageMagick: Download source and signature", get_url: { url: "{{ item }}", dest: "{{ tmp_path }}/{{ item | basename }}" }, when: "imagemagick_install_query.rc > 0", tags: [imagemagick, magick], with_items: [
       "https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-{{ imagemagick_version }}.tar.xz",
       "https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-{{ imagemagick_version }}.tar.xz.asc",
     ] }
-  - { name: "ImageMagick: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/ImageMagick-public.key.asc.gpg' --verify /tmp/ImageMagick-{{ imagemagick_version }}.tar.xz.asc", when: "imagemagick_install_query.rc > 0", tags: [imagemagick, magick] }
+  - { name: "ImageMagick: Check package signature", command: "gpg --status-fd 1 --no-default-keyring --keyring '{{ ansible_env.PWD }}/keys/ImageMagick-public.key.asc.gpg' --verify {{ tmp_path }}/ImageMagick-{{ imagemagick_version }}.tar.xz.asc", when: "imagemagick_install_query.rc > 0", tags: [imagemagick, magick] }
   - name: "ImageMagick: Compile & install packages"
     when: "imagemagick_install_query.rc > 0"
     shell: |
-      cd /tmp &&
+      cd {{ tmp_path }} &&
       tar --overwrite -Jxf 'ImageMagick-{{ imagemagick_version }}.tar.xz' &&
       cd 'ImageMagick-{{ imagemagick_version }}' &&
       ./configure --prefix='/opt/ImageMagick-{{ imagemagick_version }}' &&
@@ -1089,16 +1089,16 @@
 
   # 940. fd
   - { name: "fd: Check installation", become: yes, shell: "{{ dpkg_query | format('fd') }}", register: fd_dpkg_query, changed_when: no, failed_when: no, tags: [fd] }
-  - { name: "fd: Download packages", get_url: { url: "https://github.com/sharkdp/fd/releases/download/v{{ fd_version }}/fd_{{ fd_version }}_{{ fd_platform }}.deb", dest: "/tmp/fd-{{ fd_version }}.deb", checksum: "{{ fd_checksum }}" }, when: "fd_dpkg_query.rc > 0", tags: [fd] }
-  - { name: "fd: Install packages", become: yes, apt: { deb: "/tmp/fd-{{ fd_version }}.deb", state: present }, when: "fd_dpkg_query.rc > 0", tags: [fd] }
+  - { name: "fd: Download packages", get_url: { url: "https://github.com/sharkdp/fd/releases/download/v{{ fd_version }}/fd_{{ fd_version }}_{{ fd_platform }}.deb", dest: "{{ tmp_path }}/fd-{{ fd_version }}.deb", checksum: "{{ fd_checksum }}" }, when: "fd_dpkg_query.rc > 0", tags: [fd] }
+  - { name: "fd: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/fd-{{ fd_version }}.deb", state: present }, when: "fd_dpkg_query.rc > 0", tags: [fd] }
   # 950. ripgrep
   - { name: "ripgrep: Check installation", become: yes, shell: "{{ dpkg_query | format('ripgrep') }}", register: ripgrep_dpkg_query, changed_when: no, failed_when: no, tags: [ripgrep] }
-  - { name: "ripgrep: Download packages", get_url: { url: "https://github.com/BurntSushi/ripgrep/releases/download/{{ ripgrep_version }}/ripgrep_{{ ripgrep_version }}_{{ ripgrep_platform }}.deb", dest: "/tmp/ripgrep-{{ ripgrep_version }}.deb", checksum: "{{ ripgrep_checksum }}" }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
-  - { name: "ripgrep: Install packages", become: yes, apt: { deb: "/tmp/ripgrep-{{ ripgrep_version }}.deb", state: present }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
+  - { name: "ripgrep: Download packages", get_url: { url: "https://github.com/BurntSushi/ripgrep/releases/download/{{ ripgrep_version }}/ripgrep_{{ ripgrep_version }}_{{ ripgrep_platform }}.deb", dest: "{{ tmp_path }}/ripgrep-{{ ripgrep_version }}.deb", checksum: "{{ ripgrep_checksum }}" }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
+  - { name: "ripgrep: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/ripgrep-{{ ripgrep_version }}.deb", state: present }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
   # 955. fzf
   - { name: "fzf: Check installation", become: yes, command: "ls /usr/local/bin/fzf-{{ fzf_version }}", register: fzf_install_query, changed_when: no, failed_when: no, tags: [fzf] }
-  - { name: "fzf: Download fzf", get_url: { url: "https://github.com/junegunn/fzf/releases/download/{{ fzf_version }}/fzf-{{ fzf_version }}-{{ fzf_platform }}.tar.gz", dest: "/tmp/fzf-{{ fzf_version }}.tar.gz", checksum: "{{ fzf_checksum }}" }, when: "fzf_install_query.rc > 0", tags: [fzf] }
-  - { name: "fzf: Install fzf", shell: "cd /tmp && tar --overwrite -zxf 'fzf-{{ fzf_version }}.tar.gz' && mv ./fzf '/usr/local/bin/fzf-{{ fzf_version }}'", when: "fzf_install_query.rc > 0", tags: [fzf] }
+  - { name: "fzf: Download fzf", get_url: { url: "https://github.com/junegunn/fzf/releases/download/{{ fzf_version }}/fzf-{{ fzf_version }}-{{ fzf_platform }}.tar.gz", dest: "{{ tmp_path }}/fzf-{{ fzf_version }}.tar.gz", checksum: "{{ fzf_checksum }}" }, when: "fzf_install_query.rc > 0", tags: [fzf] }
+  - { name: "fzf: Install fzf", shell: "cd {{ tmp_path }} && tar --overwrite -zxf 'fzf-{{ fzf_version }}.tar.gz' && mv ./fzf '/usr/local/bin/fzf-{{ fzf_version }}'", when: "fzf_install_query.rc > 0", tags: [fzf] }
   - { name: "fzf: Set up alternatives", become: yes, alternatives: { name: "fzf", link: "/usr/local/bin/fzf", path: "/usr/local/bin/fzf-{{ fzf_version }}" }, tags: [fzf] }
   - { name: "fzf: Clone the repository", git: { repo: "https://github.com/junegunn/fzf.git", dest: "{{ ansible_env.HOME }}/.fzf", remote: "github", version: "{{ fzf_version }}", update: yes }, tags: [fzf] }
   - name: "fzf: Create Zsh configuration"
@@ -1127,8 +1127,8 @@
 
   # 960. pup
   - { name: "pup: Check installation", become: yes, command: "ls /usr/local/bin/pup-{{ pup_version }}", register: pup_install_query, changed_when: no, failed_when: no }
-  - { name: "pup: Download pup", get_url: { url: "https://github.com/EricChiang/pup/releases/download/v{{ pup_version }}/pup_v{{ pup_version }}_{{ pup_platform }}.zip", dest: "/tmp/pup-{{ pup_version }}.zip", checksum: "{{ pup_checksum }}" }, when: "pup_install_query.rc > 0" }
-  - { name: "pup: Install pup", shell: "cd /tmp && unzip -o 'pup-{{ pup_version }}.zip' && mv ./pup '/usr/local/bin/pup-{{ pup_version }}'", when: "pup_install_query.rc > 0" }
+  - { name: "pup: Download pup", get_url: { url: "https://github.com/EricChiang/pup/releases/download/v{{ pup_version }}/pup_v{{ pup_version }}_{{ pup_platform }}.zip", dest: "{{ tmp_path }}/pup-{{ pup_version }}.zip", checksum: "{{ pup_checksum }}" }, when: "pup_install_query.rc > 0" }
+  - { name: "pup: Install pup", shell: "cd {{ tmp_path }} && unzip -o 'pup-{{ pup_version }}.zip' && mv ./pup '/usr/local/bin/pup-{{ pup_version }}'", when: "pup_install_query.rc > 0" }
   - { name: "pup: Set up alternatives", become: yes, alternatives: { name: "pup", link: "/usr/local/bin/pup", path: "/usr/local/bin/pup-{{ pup_version }}" } }
   # 965. jq
   - { name: "jq: Check installation", become: yes, command: "ls /usr/local/bin/jq-{{ jq_version }}", register: jq_install_query, changed_when: no, failed_when: no }
@@ -1143,27 +1143,27 @@
   - { name: "HTTPie: Install plug-ins", pip: { executable: pip3, extra_args: '--user', name: "{{ item.name }}", version: "{{ item.version }}", state: present }, tags: [httpie], with_items: "{{ httpie_plugins }}" }
   # 980. bat
   - { name: "bat: Check installation", become: yes, shell: "{{ dpkg_query | format('bat') }}", register: bat_dpkg_query, changed_when: no, failed_when: no, tags: [bat] }
-  - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat_{{ bat_version }}_{{ bat_platform }}.deb", dest: "/tmp/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0", tags: [bat] }
-  - { name: "bat: Install packages", become: yes, apt: { deb: "/tmp/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0", tags: [bat] }
+  - { name: "bat: Download packages", get_url: { url: "https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat_{{ bat_version }}_{{ bat_platform }}.deb", dest: "{{ tmp_path }}/bat-{{ bat_version }}.deb", checksum: "{{ bat_checksum }}" }, when: "bat_dpkg_query.rc > 0", tags: [bat] }
+  - { name: "bat: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/bat-{{ bat_version }}.deb", state: present }, when: "bat_dpkg_query.rc > 0", tags: [bat] }
   # 981. delta
   - { name: "git-delta: Check installation", become: yes, shell: "{{ dpkg_query | format('git-delta') }}", register: delta_dpkg_query, changed_when: no, failed_when: no, tags: [git, delta, git-delta] }
-  - { name: "git-delta: Download packages", get_url: { url: "https://github.com/dandavison/delta/releases/download/{{ delta_version }}/git-delta_{{ delta_version }}_{{ delta_platform }}.deb", dest: "/tmp/git-delta_{{ delta_version }}.deb", checksum: "{{ delta_checksum }}" }, when: "delta_dpkg_query.rc > 0", tags: [git, delta, git-delta] }
-  - { name: "git-delta: Install packages", become: yes, apt: { deb: "/tmp/git-delta_{{ delta_version }}.deb", state: present }, when: "delta_dpkg_query.rc > 0", tags: [git, delta, git-delta] }
+  - { name: "git-delta: Download packages", get_url: { url: "https://github.com/dandavison/delta/releases/download/{{ delta_version }}/git-delta_{{ delta_version }}_{{ delta_platform }}.deb", dest: "{{ tmp_path }}/git-delta_{{ delta_version }}.deb", checksum: "{{ delta_checksum }}" }, when: "delta_dpkg_query.rc > 0", tags: [git, delta, git-delta] }
+  - { name: "git-delta: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/git-delta_{{ delta_version }}.deb", state: present }, when: "delta_dpkg_query.rc > 0", tags: [git, delta, git-delta] }
   # 985. xidel
   - { name: "Xidel: Check installation", become: yes, shell: "{{ dpkg_query | format('xidel') }}", register: xidel_dpkg_query, changed_when: no, failed_when: no }
-  - { name: "Xidel: Download packages", get_url: { url: "https://sourceforge.net/projects/videlibri/files/Xidel/Xidel%20{{ xidel_version.split('-')[0] }}/xidel_{{ xidel_version }}_{{ xidel_platform }}.deb/download", dest: "/tmp/xidel-{{ xidel_version }}.deb", checksum: "{{ xidel_checksum }}" }, when: "xidel_dpkg_query.rc > 0" }
-  - { name: "Xidel: Install packages", become: yes, apt: { deb: "/tmp/xidel-{{ xidel_version }}.deb", state: present }, when: "xidel_dpkg_query.rc > 0" }
+  - { name: "Xidel: Download packages", get_url: { url: "https://sourceforge.net/projects/videlibri/files/Xidel/Xidel%20{{ xidel_version.split('-')[0] }}/xidel_{{ xidel_version }}_{{ xidel_platform }}.deb/download", dest: "{{ tmp_path }}/xidel-{{ xidel_version }}.deb", checksum: "{{ xidel_checksum }}" }, when: "xidel_dpkg_query.rc > 0" }
+  - { name: "Xidel: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/xidel-{{ xidel_version }}.deb", state: present }, when: "xidel_dpkg_query.rc > 0" }
   # 990. ngrok
   - { name: "ngrok: Check installation", become: yes, command: "ls /usr/local/bin/ngrok", register: ngrok_install_query, changed_when: no, failed_when: no }
-  - { name: "ngrok: Download ngrok", get_url: { url: "https://bin.equinox.io/a/{{ ngrok_stable_channel_id }}/ngrok-{{ ngrok_version }}-{{ ngrok_platform }}.zip", dest: "/tmp/ngrok.zip", checksum: "{{ ngrok_checksum }}" }, when: "ngrok_install_query.rc > 0" }
-  - { name: "ngrok: Install ngrok", shell: "cd /tmp && unzip -o ngrok.zip && mv ./ngrok /usr/local/bin/ngrok", when: "ngrok_install_query.rc > 0" }
+  - { name: "ngrok: Download ngrok", get_url: { url: "https://bin.equinox.io/a/{{ ngrok_stable_channel_id }}/ngrok-{{ ngrok_version }}-{{ ngrok_platform }}.zip", dest: "{{ tmp_path }}/ngrok.zip", checksum: "{{ ngrok_checksum }}" }, when: "ngrok_install_query.rc > 0" }
+  - { name: "ngrok: Install ngrok", shell: "cd {{ tmp_path }} && unzip -o ngrok.zip && mv ./ngrok /usr/local/bin/ngrok", when: "ngrok_install_query.rc > 0" }
   # 996. Magic Wormhole
   - { name: "Magic Wormhole: Install prerequisites", become: yes, apt: { pkg: [libffi-dev], state: present }, tags: [wormhole] }
   - { name: "Magic Wormhole: Install package", pip: { executable: pip3, extra_args: '--user', name: magic-wormhole, state: present }, tags: [wormhole] }
   # 997. Terraform & plug-ins
   - { name: "Terraform: Check installation", become: yes, command: "ls '/opt/terraform-{{ terraform_version }}/bin/terraform'", register: terraform_install_query, changed_when: no, failed_when: no, tags: [terraform] }
-  - { name: "Terraform: Download package", get_url: { url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_{{ terraform_platform }}.zip", dest: "/tmp/terraform.zip", checksum: "{{ terraform_checksum }}" }, when: "terraform_install_query.rc > 0", tags: [terraform] }
-  - { name: "Terraform: Install package", shell: "cd /tmp && unzip -o terraform.zip && mkdir -p '/opt/terraform-{{ terraform_version }}/bin' && mv ./terraform '/opt/terraform-{{ terraform_version }}/bin/terraform'", when: "terraform_install_query.rc > 0", tags: [terraform] }
+  - { name: "Terraform: Download package", get_url: { url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_{{ terraform_platform }}.zip", dest: "{{ tmp_path }}/terraform.zip", checksum: "{{ terraform_checksum }}" }, when: "terraform_install_query.rc > 0", tags: [terraform] }
+  - { name: "Terraform: Install package", shell: "cd {{ tmp_path }} && unzip -o terraform.zip && mkdir -p '/opt/terraform-{{ terraform_version }}/bin' && mv ./terraform '/opt/terraform-{{ terraform_version }}/bin/terraform'", when: "terraform_install_query.rc > 0", tags: [terraform] }
   - { name: "Terraform: Set up alternatives", become: yes, alternatives: { name: "terraform", link: "/usr/local/bin/terraform", path: "/opt/terraform-{{ terraform_version }}/bin/terraform" }, tags: [terraform] }
   - { name: "Terraform: Set up plug-ins directories", file: { path: "{{ item }}", state: directory }, tags: [terraform], with_items: [
       "{{ ansible_env.HOME }}/.terraform.d",
@@ -1222,9 +1222,9 @@
   # 1100. Zsh
   - { name: "Zsh: Install prerequisites", become: yes, apt: { pkg: [libncurses-dev], state: present }, tags: [zsh] }
   - { name: "Zsh: Check installation", become: yes, command: "ls /opt/zsh-{{ zsh_version }}", register: zsh_install_query, changed_when: no, failed_when: no, tags: [zsh] }
-  - { name: "Zsh: Download source", get_url: { url: "https://sourceforge.net/projects/zsh/files/zsh/{{ zsh_version }}/zsh-{{ zsh_version }}.tar.xz/download", dest: "/tmp/zsh-{{ zsh_version }}.tar.xz", checksum: "{{ zsh_checksum }}" }, when: "zsh_install_query.rc > 0", tags: [zsh] }
+  - { name: "Zsh: Download source", get_url: { url: "https://sourceforge.net/projects/zsh/files/zsh/{{ zsh_version }}/zsh-{{ zsh_version }}.tar.xz/download", dest: "{{ tmp_path }}/zsh-{{ zsh_version }}.tar.xz", checksum: "{{ zsh_checksum }}" }, when: "zsh_install_query.rc > 0", tags: [zsh] }
   - { name: "Zsh: Compile & install packages", when: "zsh_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -Jxf 'zsh-{{ zsh_version }}.tar.xz' && cd 'zsh-{{ zsh_version }}' && ./configure --enable-pcre --prefix='/opt/zsh-{{ zsh_version }}' {% if ansible_env.IS_DOCKERIZED | default(0) == '1' %} --without-tcsetpgrp {% endif %} && make -j8 && make install", tags: [zsh] }
+      shell: "cd {{ tmp_path }} && tar --overwrite -Jxf 'zsh-{{ zsh_version }}.tar.xz' && cd 'zsh-{{ zsh_version }}' && ./configure --enable-pcre --prefix='/opt/zsh-{{ zsh_version }}' {% if ansible_env.IS_DOCKERIZED | default(0) == '1' %} --without-tcsetpgrp {% endif %} && make -j8 && make install", tags: [zsh] }
   - { name: "Zsh: Set up alternatives", become: yes, alternatives: { name: "zsh", link: "/bin/zsh", path: "/opt/zsh-{{ zsh_version }}/bin/zsh" }, tags: [zsh] }
   - { name: "Zsh: Add to /etc/shells", become: yes, lineinfile: { path: "/etc/shells", line: "/bin/zsh" }, tags: [zsh] }
   - { name: "Zsh: Check shell", become: yes, shell: "cat /etc/passwd | grep '^{{ ansible_user_id }}:' | cut -d: -f7", register: zsh_shell_query, changed_when: no, tags: [zsh] }
@@ -1262,15 +1262,15 @@
   # 1200. rxvt-unicode
   - { name: "rxvt-unicode: Install prerequisites", become: yes, apt: { pkg: [cvs, libperl-dev, libx11-dev, libxft-dev, xdotool, xclip], state: present }, tags: [rxvt, urxvt] }
   - { name: "rxvt-unicode: Check installation", become: yes, command: "ls /opt/rxvt-unicode-{{ rxvt_unicode_version }}", register: rxvt_unicode_install_query, changed_when: no, failed_when: no, tags: [rxvt, urxvt] }
-  - { name: "rxvt-unicode: Download CVS source", command: "cvs -q -z3 -d :pserver:anonymous@cvs.schmorp.de/schmorpforge checkout -D \"{{ rxvt_unicode_cvs_date }}\" rxvt-unicode", args: { chdir: '/tmp' }, when: "rxvt_unicode_install_query.rc > 0", tags: [rxvt, urxvt] }
-  - { name: "rxvt-unicode: Download patches", get_url: { url: "{{ item.1.url }}", dest: "/tmp/rxvt-unicode-{{ item.0 }}.patch", checksum: "{{ item.1.checksum }}" }, with_indexed_items: "{{ rxvt_unicode_patches }}", when: "rxvt_unicode_install_query.rc > 0", tags: [rxvt, urxvt] }
+  - { name: "rxvt-unicode: Download CVS source", command: "cvs -q -z3 -d :pserver:anonymous@cvs.schmorp.de/schmorpforge checkout -D \"{{ rxvt_unicode_cvs_date }}\" rxvt-unicode", args: { chdir: '{{ tmp_path }}' }, when: "rxvt_unicode_install_query.rc > 0", tags: [rxvt, urxvt] }
+  - { name: "rxvt-unicode: Download patches", get_url: { url: "{{ item.1.url }}", dest: "{{ tmp_path }}/rxvt-unicode-{{ item.0 }}.patch", checksum: "{{ item.1.checksum }}" }, with_indexed_items: "{{ rxvt_unicode_patches }}", when: "rxvt_unicode_install_query.rc > 0", tags: [rxvt, urxvt] }
   - name: "rxvt-unicode: Patch, compile & install packages"
     when: "rxvt_unicode_install_query.rc > 0"
     shell: |
-      cd /tmp/rxvt-unicode &&
+      cd {{ tmp_path }}/rxvt-unicode &&
       {% for patch in rxvt_unicode_patches %}
         echo "Patching {{ patch.url | basename }}…"  &&
-        patch --quiet --forward -p{{ patch.strip | default(0) }} < "/tmp/rxvt-unicode-{{ loop.index0 }}.patch" &&
+        patch --quiet --forward -p{{ patch.strip | default(0) }} < "{{ tmp_path }}/rxvt-unicode-{{ loop.index0 }}.patch" &&
       {% endfor %}
       curl -sSLf -o libptytty.zip "https://github.com/yusiwen/libptytty/archive/{{ libptytty_commit }}.zip" &&
       unzip libptytty.zip &&
@@ -1315,9 +1315,9 @@
   # 1300. tmux
   - { name: "tmux: Install prerequisites", become: yes, apt: { pkg: [libevent-dev], state: present }, tags: [tmux] }
   - { name: "tmux: Check installation", become: yes, command: "ls /opt/tmux-{{ tmux_version }}", register: tmux_install_query, changed_when: no, failed_when: no, tags: [tmux] }
-  - { name: "tmux: Download source", get_url: { url: "https://github.com/tmux/tmux/releases/download/{{ tmux_version }}/tmux-{{ tmux_version }}.tar.gz", dest: "/tmp/tmux-{{ tmux_version }}.tar.gz", checksum: "{{ tmux_checksum }}" }, when: "tmux_install_query.rc > 0", tags: [tmux] }
+  - { name: "tmux: Download source", get_url: { url: "https://github.com/tmux/tmux/releases/download/{{ tmux_version }}/tmux-{{ tmux_version }}.tar.gz", dest: "{{ tmp_path }}/tmux-{{ tmux_version }}.tar.gz", checksum: "{{ tmux_checksum }}" }, when: "tmux_install_query.rc > 0", tags: [tmux] }
   - { name: "tmux: Compile & install packages", when: "tmux_install_query.rc > 0", tags: [tmux],
-      shell: "cd /tmp && tar --overwrite -zxf 'tmux-{{ tmux_version }}.tar.gz' && cd 'tmux-{{ tmux_version }}' && ./configure --prefix='/opt/tmux-{{ tmux_version }}' && make -j8 && make install" }
+      shell: "cd {{ tmp_path }} && tar --overwrite -zxf 'tmux-{{ tmux_version }}.tar.gz' && cd 'tmux-{{ tmux_version }}' && ./configure --prefix='/opt/tmux-{{ tmux_version }}' && make -j8 && make install" }
   - { name: "tmux: Set up alternatives", become: yes, alternatives: { name: "tmux", link: "/usr/local/bin/tmux", path: "/opt/tmux-{{ tmux_version }}/bin/tmux" }, tags: [tmux] }
   - { name: "tmux: Set up plug-ins directories", file: { path: "{{ item }}", state: directory }, tags: [tmux], with_items: [
       "{{ ansible_env.HOME }}/.tmux",
@@ -1328,11 +1328,11 @@
   # 1400. tig
   - { name: "tig: Install prerequisites", become: yes, apt: { pkg: [libncursesw5-dev], state: present }, tags: [tig] }
   - { name: "tig: Check installation", become: yes, command: "ls /opt/tig-{{ tig_version }}", register: tig_install_query, changed_when: no, failed_when: no, tags: [tig] }
-  - { name: "tig: Download source", get_url: { url: "https://github.com/jonas/tig/releases/download/tig-{{ tig_version }}/tig-{{ tig_version }}.tar.gz", dest: "/tmp/tig-{{ tig_version }}.tar.gz", checksum: "{{ tig_checksum }}" }, when: "tig_install_query.rc > 0", tags: [tig] }
+  - { name: "tig: Download source", get_url: { url: "https://github.com/jonas/tig/releases/download/tig-{{ tig_version }}/tig-{{ tig_version }}.tar.gz", dest: "{{ tmp_path }}/tig-{{ tig_version }}.tar.gz", checksum: "{{ tig_checksum }}" }, when: "tig_install_query.rc > 0", tags: [tig] }
   - name: "tig: Compile & install packages"
     when: "tig_install_query.rc > 0"
     shell: |
-      cd /tmp &&
+      cd {{ tmp_path }} &&
       tar --overwrite -zxf 'tig-{{ tig_version }}.tar.gz' &&
       cd 'tig-{{ tig_version }}' &&
       ./configure --prefix='/opt/tig-{{ tig_version }}' &&
@@ -1343,14 +1343,14 @@
   # 1450. envchain
   - { name: "envchain: Install prerequisites", become: yes, apt: { pkg: [libsecret-1-dev, libreadline-dev], state: present } }
   - { name: "envchain: Check installation", become: yes, command: "ls /usr/local/bin/envchain", register: envchain_install_query, changed_when: no, failed_when: no }
-  - { name: "envchain: Download source", get_url: { url: "https://github.com/sorah/envchain/archive/v{{ envchain_version }}.tar.gz", dest: "/tmp/envchain-{{ envchain_version }}.tar.gz", checksum: "{{ envchain_checksum }}" }, when: "envchain_install_query.rc > 0" }
+  - { name: "envchain: Download source", get_url: { url: "https://github.com/sorah/envchain/archive/v{{ envchain_version }}.tar.gz", dest: "{{ tmp_path }}/envchain-{{ envchain_version }}.tar.gz", checksum: "{{ envchain_checksum }}" }, when: "envchain_install_query.rc > 0" }
   - { name: "envchain: Compile & install packages", when: "envchain_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -zxf 'envchain-{{ envchain_version }}.tar.gz' && cd 'envchain-{{ envchain_version }}' && make && make install DESTDIR='/usr/local'" }
+      shell: "cd {{ tmp_path }} && tar --overwrite -zxf 'envchain-{{ envchain_version }}.tar.gz' && cd 'envchain-{{ envchain_version }}' && make && make install DESTDIR='/usr/local'" }
 
   # 1460. jump by @gsamokovarov
   - { name: "jump: Check installation", become: yes, shell: "{{ dpkg_query | format('jump') }}", register: jump_dpkg_query, changed_when: no, failed_when: no, tags: [jump] }
-  - { name: "jump: Download packages", get_url: { url: "https://github.com/gsamokovarov/jump/releases/download/v{{ jump_version }}/jump_{{ jump_version }}_{{ jump_platform }}.deb", dest: "/tmp/jump-{{ jump_version }}.deb", checksum: "{{ jump_checksum }}" }, when: "jump_dpkg_query.rc > 0", tags: [jump] }
-  - { name: "jump: Install packages", become: yes, apt: { deb: "/tmp/jump-{{ jump_version }}.deb", state: present }, when: "jump_dpkg_query.rc > 0", tags: [jump] }
+  - { name: "jump: Download packages", get_url: { url: "https://github.com/gsamokovarov/jump/releases/download/v{{ jump_version }}/jump_{{ jump_version }}_{{ jump_platform }}.deb", dest: "{{ tmp_path }}/jump-{{ jump_version }}.deb", checksum: "{{ jump_checksum }}" }, when: "jump_dpkg_query.rc > 0", tags: [jump] }
+  - { name: "jump: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/jump-{{ jump_version }}.deb", state: present }, when: "jump_dpkg_query.rc > 0", tags: [jump] }
 
   # 1500. PHP & extensions
   - { name: "PHP: Add PPA", become: yes, apt_repository: { repo: "ppa:ondrej/php", update_cache: yes }, tags: [php] }
@@ -1376,10 +1376,10 @@
     tags: [php]
   - { name: "PHP: Composer 1.x: Check installation", become: yes, command: "ls /usr/local/bin/composer1", register: composer_v1_install_query, changed_when: no, failed_when: no, tags: [php, composer] }
   - { name: "PHP: Composer 2.x: Check installation", become: yes, command: "ls /usr/local/bin/composer2", register: composer_v2_install_query, changed_when: no, failed_when: no, tags: [php, composer] }
-  - { name: "PHP: Composer: Download setup", get_url: { url: "https://getcomposer.org/installer", dest: "/tmp/composer-setup.php", checksum: "sha384:{{ lookup('url', 'https://composer.github.io/installer.sig', split_lines=false) }}" }, when: "composer_v1_install_query.rc > 0 or composer_v2_install_query.rc > 0", tags: [php, composer] }
-  - { name: "PHP: Composer 1.x: Install", command: "php /tmp/composer-setup.php --1 --install-dir=/usr/local/bin --filename=composer1", when: "composer_v1_install_query.rc > 0", tags: [php, composer] }
-  - { name: "PHP: Composer 2.x: Install", command: "php /tmp/composer-setup.php --2 --install-dir=/usr/local/bin --filename=composer2", when: "composer_v2_install_query.rc > 0", tags: [php, composer] }
-  - { name: "PHP: Composer: Clean up setup", file: { path: "/tmp/composer-setup.php", state: absent }, tags: [php, composer] }
+  - { name: "PHP: Composer: Download setup", get_url: { url: "https://getcomposer.org/installer", dest: "{{ tmp_path }}/composer-setup.php", checksum: "sha384:{{ lookup('url', 'https://composer.github.io/installer.sig', split_lines=false) }}" }, when: "composer_v1_install_query.rc > 0 or composer_v2_install_query.rc > 0", tags: [php, composer] }
+  - { name: "PHP: Composer 1.x: Install", command: "php {{ tmp_path }}/composer-setup.php --1 --install-dir=/usr/local/bin --filename=composer1", when: "composer_v1_install_query.rc > 0", tags: [php, composer] }
+  - { name: "PHP: Composer 2.x: Install", command: "php {{ tmp_path }}/composer-setup.php --2 --install-dir=/usr/local/bin --filename=composer2", when: "composer_v2_install_query.rc > 0", tags: [php, composer] }
+  - { name: "PHP: Composer: Clean up setup", file: { path: "{{ tmp_path }}/composer-setup.php", state: absent }, tags: [php, composer] }
   - { name: "PHP: Composer: Set up alternatives", become: yes, alternatives: { name: 'composer', link: '/usr/local/bin/composer', path: '/usr/local/bin/composer2' }, tags: [php, composer] }
   - { name: "PHP: Set default version", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/{{ item }}{{ php_default_version | default(php_versions[0]) }}" }, tags: [php], with_items: [
       php,
@@ -1477,9 +1477,9 @@
 
   # 1800. ffmpeg
   - { name: "ffmpeg: Check installation", become: yes, command: "ls /opt/ffmpeg-{{ ffmpeg_version }}", register: ffmpeg_install_query, changed_when: no, failed_when: no, tags: [ffmpeg] }
-  - { name: "ffmpeg: Download static build", get_url: { url: "https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-{{ ffmpeg_version }}-{{ ffmpeg_platform }}-static.tar.xz", dest: "/tmp/ffmpeg-{{ ffmpeg_version }}.tar.xz", checksum: "{{ ffmpeg_checksum }}" }, when: "ffmpeg_install_query.rc > 0", tags: [ffmpeg] }
+  - { name: "ffmpeg: Download static build", get_url: { url: "https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-{{ ffmpeg_version }}-{{ ffmpeg_platform }}-static.tar.xz", dest: "{{ tmp_path }}/ffmpeg-{{ ffmpeg_version }}.tar.xz", checksum: "{{ ffmpeg_checksum }}" }, when: "ffmpeg_install_query.rc > 0", tags: [ffmpeg] }
   - { name: "ffmpeg: Unpack & install packages", when: "ffmpeg_install_query.rc > 0",
-      shell: "cd /tmp && tar --overwrite -Jxf 'ffmpeg-{{ ffmpeg_version }}.tar.xz' && mv 'ffmpeg-{{ ffmpeg_version }}-{{ ffmpeg_platform }}-static' '/opt/ffmpeg-{{ ffmpeg_version }}'",
+      shell: "cd {{ tmp_path }} && tar --overwrite -Jxf 'ffmpeg-{{ ffmpeg_version }}.tar.xz' && mv 'ffmpeg-{{ ffmpeg_version }}-{{ ffmpeg_platform }}-static' '/opt/ffmpeg-{{ ffmpeg_version }}'",
       tags: [ffmpeg] }
   - { name: "ffmpeg: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/opt/ffmpeg-{{ ffmpeg_version }}/{{ item }}" }, tags: [ffmpeg], with_items: [
       ffmpeg,
@@ -1517,11 +1517,11 @@
   #
   - { name: "Authy: Install prerequisites", become: yes, apt: { pkg: [p7zip], state: present }, tags: [authy] }
   - { name: "Authy: Check installation", become: yes, command: "ls /opt/authy-{{ authy_desktop_version }}", register: authy_desktop_install_query, changed_when: no, failed_when: no, tags: [authy] }
-  - { name: "Authy: Download Windows installer", get_url: { url: "https://s3.amazonaws.com/authy-electron-repository-production/authy/stable/{{ authy_desktop_version }}/win32/x64/Authy%20Desktop%20Setup%20{{ authy_desktop_version }}.exe", dest: "/tmp/AuthyDesktopSetup{{ authy_desktop_version }}.exe", checksum: "{{ authy_desktop_checksum }}" }, when: "authy_desktop_install_query.rc > 0", tags: [authy] }
+  - { name: "Authy: Download Windows installer", get_url: { url: "https://s3.amazonaws.com/authy-electron-repository-production/authy/stable/{{ authy_desktop_version }}/win32/x64/Authy%20Desktop%20Setup%20{{ authy_desktop_version }}.exe", dest: "{{ tmp_path }}/AuthyDesktopSetup{{ authy_desktop_version }}.exe", checksum: "{{ authy_desktop_checksum }}" }, when: "authy_desktop_install_query.rc > 0", tags: [authy] }
   - name: "Authy: Extract & install Electron app"
     when: "authy_desktop_install_query.rc > 0"
     shell: |
-      cd /tmp &&
+      cd {{ tmp_path }} &&
       7z x "AuthyDesktopSetup{{ authy_desktop_version }}.exe" -o"authy-{{ authy_desktop_version }}" -y &&
       cd "authy-{{ authy_desktop_version }}" &&
       7z x "authy-{{ authy_desktop_version }}-full.nupkg" -y &&
@@ -1529,7 +1529,7 @@
       npx -q asar@2 e lib/net45/resources/app.asar app &&
       cd app &&
       npx -q yarn@1.22 add electron@9 &&
-      cp -R "/tmp/authy-{{ authy_desktop_version }}/app" /opt/authy-{{ authy_desktop_version }}
+      cp -R "{{ tmp_path }}/authy-{{ authy_desktop_version }}/app" /opt/authy-{{ authy_desktop_version }}
     args: { executable: "/bin/bash" }
     tags: [authy]
   - name: "Authy: Add desktop icon"
@@ -1640,12 +1640,12 @@
   - { name: "SSH: Configure host keys", become: yes, lineinfile: { dest: /etc/ssh/sshd_config, regexp: "^[#\\s]*HostKey\\s+/etc/ssh/ssh_host_{{ item }}_key", line: "HostKey	/etc/ssh/ssh_host_{{ item }}_key", state: present, insertafter: "^(Port|HostKey)\\b" }, with_items: "{{ sshd_host_keys }}", notify: "sshd::restart", tags: [ssh] }
   - { name: "PAM: Google Authenticator: Install prerequisites", become: yes, apt: { pkg: [checkinstall, libpam0g-dev, "{{ 'libqrencode3' if ansible_distribution_version is version('20.04', '<') else 'libqrencode4' }}"], state: present }, tags: [ssh, pam] }
   - { name: "PAM: Google Authenticator: Check installation", become: yes, shell: "{{ dpkg_query | format('libpam-google-authenticator') }}", register: pam_google_authenticator_dpkg_query, changed_when: no, failed_when: no, tags: [ssh, pam] }
-  - { name: "PAM: Google Authenticator: Download", get_url: { url: "https://github.com/google/google-authenticator-libpam/archive/{{ pam_google_authenticator_version }}.tar.gz", dest: "/tmp/google-authenticator-libpam-{{ pam_google_authenticator_version }}.tar.gz", checksum: "{{ pam_google_authenticator_checksum }}" }, when: "pam_google_authenticator_dpkg_query.rc > 0", tags: [ssh, pam] }
+  - { name: "PAM: Google Authenticator: Download", get_url: { url: "https://github.com/google/google-authenticator-libpam/archive/{{ pam_google_authenticator_version }}.tar.gz", dest: "{{ tmp_path }}/google-authenticator-libpam-{{ pam_google_authenticator_version }}.tar.gz", checksum: "{{ pam_google_authenticator_checksum }}" }, when: "pam_google_authenticator_dpkg_query.rc > 0", tags: [ssh, pam] }
   - name: "PAM: Google Authenticator: Compile & install package"
     become: yes
     when: "pam_google_authenticator_dpkg_query.rc > 0"
     shell: |
-      cd /tmp &&
+      cd {{ tmp_path }} &&
       tar --overwrite -zxf 'google-authenticator-libpam-{{ pam_google_authenticator_version }}.tar.gz' &&
       cd 'google-authenticator-libpam-{{ pam_google_authenticator_version }}' &&
       autoreconf -i &&
@@ -1692,11 +1692,11 @@
   - { name: "SSH: Configure ufw rules", become: yes, ufw: { rule: allow, name: OpenSSH, comment: 'Allow ports used by the OpenSSH server.' }, notify: "ufw::restart", tags: [ssh] }
   - { name: "Mosh: Install prerequisites", become: yes, apt: { pkg: [perl, protobuf-compiler, libprotobuf-dev, libncurses5-dev, zlib1g-dev, libutempter-dev, libssl-dev], state: present }, tags: [mosh] }
   - { name: "Mosh: Check installation", become: yes, command: "ls /opt/mosh-{{ mosh_version }}", register: mosh_install_query, changed_when: no, failed_when: no, tags: [mosh] }
-  - { name: "Mosh: Download source", get_url: { url: "https://mosh.org/mosh-{{ mosh_version }}.tar.gz", dest: "/tmp/mosh-{{ mosh_version }}.tar.gz", checksum: "{{ mosh_checksum }}" }, when: "mosh_install_query.rc > 0", tags: [mosh] }
+  - { name: "Mosh: Download source", get_url: { url: "https://mosh.org/mosh-{{ mosh_version }}.tar.gz", dest: "{{ tmp_path }}/mosh-{{ mosh_version }}.tar.gz", checksum: "{{ mosh_checksum }}" }, when: "mosh_install_query.rc > 0", tags: [mosh] }
   - name: "Mosh: Compile & install packages"
     when: "mosh_install_query.rc > 0"
     shell: |
-      cd /tmp &&
+      cd {{ tmp_path }} &&
       tar --overwrite -zxf 'mosh-{{ mosh_version }}.tar.gz' &&
       cd 'mosh-{{ mosh_version }}' &&
       ./configure --prefix='/opt/mosh-{{ mosh_version }}' --enable-hardening --enable-client --enable-server --enable-ufw --with-utempter --with-ncurses &&
@@ -1713,8 +1713,8 @@
 
   # 3000. Communications
   - { name: "Slack: Check installation", become: yes, shell: "{{ dpkg_query | format('slack-desktop') }}", register: slack_dpkg_query, changed_when: no, failed_when: no, tags: [slack] }
-  - { name: "Slack: Download packages", get_url: { url: "https://downloads.slack-edge.com/releases/linux/{{ slack_version }}{{ slack_bucket_path }}slack-desktop-{{ slack_version }}-{{ slack_platform }}.deb", dest: "/tmp/slack-{{ slack_version }}.deb", checksum: "{{ slack_checksum }}" }, when: "slack_dpkg_query.rc > 0", tags: [slack] }
-  - { name: "Slack: Install packages", become: yes, apt: { deb: "/tmp/slack-{{ slack_version }}.deb", state: present }, when: "slack_dpkg_query.rc > 0", tags: [slack] }
+  - { name: "Slack: Download packages", get_url: { url: "https://downloads.slack-edge.com/releases/linux/{{ slack_version }}{{ slack_bucket_path }}slack-desktop-{{ slack_version }}-{{ slack_platform }}.deb", dest: "{{ tmp_path }}/slack-{{ slack_version }}.deb", checksum: "{{ slack_checksum }}" }, when: "slack_dpkg_query.rc > 0", tags: [slack] }
+  - { name: "Slack: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/slack-{{ slack_version }}.deb", state: present }, when: "slack_dpkg_query.rc > 0", tags: [slack] }
   - name: "Slack: Update desktop icon"
     copy:
       dest: "{{ ansible_env.HOME }}/.local/share/applications/slack.desktop"
@@ -1734,8 +1734,8 @@
 
   # 3100. Steam
   - { name: "Steam: Check installation", become: yes, shell: "{{ dpkg_query | format('steam-launcher') }}", register: steam_dpkg_query, changed_when: no, failed_when: no, tags: [steam] }
-  - { name: "Steam: Download packages", get_url: { url: "http://repo.steampowered.com/steam/archive/precise/steam-launcher_{{ steam_launcher_version }}_all.deb", dest: "/tmp/steam-launcher-{{ steam_launcher_version }}.deb", checksum: "{{ steam_launcher_checksum }}" }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
-  - { name: "Steam: Install packages", become: yes, apt: { deb: "/tmp/steam-launcher-{{ steam_launcher_version }}.deb", state: present }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
+  - { name: "Steam: Download packages", get_url: { url: "http://repo.steampowered.com/steam/archive/precise/steam-launcher_{{ steam_launcher_version }}_all.deb", dest: "{{ tmp_path }}/steam-launcher-{{ steam_launcher_version }}.deb", checksum: "{{ steam_launcher_checksum }}" }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
+  - { name: "Steam: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/steam-launcher-{{ steam_launcher_version }}.deb", state: present }, when: "steam_dpkg_query.rc > 0", tags: [steam] }
 
   # 5000. Post-install clean up & purging of packages
   #
