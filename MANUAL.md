@@ -75,7 +75,7 @@ $ cat <<-EOF > ~/.local/share/applications/viber.desktop
 [Desktop Entry]
 Name=Viber
 Comment=Viber VoIP and messenger
-Exec=env QT_SCALE_FACTOR=1.5 /usr/local/bin/viber %u
+Exec=/usr/local/bin/viber %u
 Icon=viber.png
 Terminal=false
 Type=Application
