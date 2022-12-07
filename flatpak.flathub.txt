@@ -13,5 +13,7 @@ net.poedit.Poedit
 # Community-driven port of the Windows application “KeePass Password Safe”. https://keepassxc.org/
 org.keepassxc.KeePassXC
 
+# A GNOME media player built using GJS with GTK4 toolkit and powered by GStreamer with OpenGL rendering. https://rafostar.github.io/clapper/
+com.github.rafostar.Clapper
 
 # vim: ft=conf :
