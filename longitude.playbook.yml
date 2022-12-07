@@ -159,8 +159,8 @@
     thunderbird_platform: linux-x86_64
     thunderbird_checksum: 'sha256:b75c8c65c18e0fbc79035fbb305c7f5478321bf0ea2ac56e59b0105c59d398ec'
 
-    neovim_version: 0.8.0
-    neovim_checksum: "sha256:e1e6512bd5d9081d293ac7d1283166e09cbb32d15063853ade4b03719919e22f"
+    neovim_version: 0.8.1
+    neovim_checksum: "sha256:25658f3db59fac398bc28b7ff7984ed1becdf9a3e98b3e4e226c236c35107054"
     neovim_dictionaries: [en.utf-8, bg.utf-8]
 
     gcc_version: 12
