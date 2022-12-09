@@ -328,9 +328,9 @@
     envchain_version: 1.0.1
     envchain_checksum: "sha256:09af1fe1cfba3719418f90d59c29c081e1f22b38249f0110305b657bd306e9ae"
 
-    jump_version: 0.30.1
+    jump_version: 0.51.0
     jump_platform: amd64
-    jump_checksum: "sha256:4e236a0ebf4b05e72fdb34fc1fd461a8292a82fb2d282bfbe09b6c6215360465"
+    jump_checksum: "sha256:15b03aaf037b24bd3c71632d1e860dd2ce5a0c1af7077a655ab3f422e5f0da2d"
 
     pam_google_authenticator_version: 1.08
     pam_google_authenticator_deb_version: 20191231
@@ -1347,9 +1347,9 @@
       shell: "cd {{ tmp_path }} && tar --overwrite -zxf 'envchain-{{ envchain_version }}.tar.gz' && cd 'envchain-{{ envchain_version }}' && make && make install DESTDIR='/usr/local'" }
 
   # 1460. jump by @gsamokovarov
-  - { name: "jump: Check installation", become: yes, shell: "{{ dpkg_query | format('jump') }}", register: jump_dpkg_query, changed_when: no, failed_when: no, tags: [jump] }
-  - { name: "jump: Download packages", get_url: { url: "https://github.com/gsamokovarov/jump/releases/download/v{{ jump_version }}/jump_{{ jump_version }}_{{ jump_platform }}.deb", dest: "{{ tmp_path }}/jump-{{ jump_version }}.deb", checksum: "{{ jump_checksum }}" }, when: "jump_dpkg_query.rc > 0", tags: [jump] }
-  - { name: "jump: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/jump-{{ jump_version }}.deb", state: present }, when: "jump_dpkg_query.rc > 0", tags: [jump] }
+  - { name: "jump: Check installation", become: yes, command: "ls /usr/local/bin/jump-{{ jump_version }}", register: jump_install_query, changed_when: no, failed_when: no, tags: [jump] }
+  - { name: "jump: Install binary", get_url: { url: "https://github.com/gsamokovarov/jump/releases/download/v{{ jump_version }}/jump_linux_{{ jump_platform }}_binary", dest: "/usr/local/bin/jump-{{ jump_version }}", mode: "+x", checksum: "{{ jump_checksum }}" }, tags: [jump] }
+  - { name: "jump: Set up alternatives", become: yes, alternatives: { name: "jump", link: "/usr/local/bin/jump", path: "/usr/local/bin/jump-{{ jump_version }}" }, tags: [jump] }
 
   # 1500. PHP & extensions
   - { name: "PHP: Add PPA", become: yes, apt_repository: { repo: "ppa:ondrej/php", update_cache: yes }, tags: [php] }
