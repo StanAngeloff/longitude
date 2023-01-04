@@ -1201,9 +1201,9 @@
       { path: "{{ ansible_env.HOME }}/.local/share/applications", state: directory },
       { path: "{{ ansible_env.HOME }}/.local/share/icons", state: directory },
 
+      { path: "{{ ansible_env.HOME }}/.vimrc", src: "{{ ansible_env.HOME }}/dotfiles/.vimrc", state: link, force: yes },
+
       { path: "{{ ansible_env.HOME }}/.bat.conf", src: "{{ ansible_env.HOME }}/dotfiles/.bat.conf", state: hard, force: yes },
-      { path: "{{ ansible_env.HOME }}/.vimrc", src: "{{ ansible_env.HOME }}/dotfiles/.vimrc", state: hard, force: yes },
-      { path: "{{ ansible_env.HOME }}/.config/nvim/init.vim", src: "{{ ansible_env.HOME }}/.vimrc", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.gitconfig", src: "{{ ansible_env.HOME }}/dotfiles/.gitconfig", state: hard, force: yes }, # NOTE: See https://stackoverflow.com/q/11786623
       { path: "{{ ansible_env.HOME }}/.rgrc", src: "{{ ansible_env.HOME }}/dotfiles/.rgrc", state: hard, force: yes },
       { path: "{{ ansible_env.HOME }}/.tigrc", src: "{{ ansible_env.HOME }}/dotfiles/.tigrc", state: hard, force: yes },
