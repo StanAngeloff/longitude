@@ -176,7 +176,7 @@
     direnv_version: '2.31.0'
     deno_version: '1.20.4'
     golang_version: '1.18.2'
-    ruby_version: '3.0.3'
+    ruby_version: '3.1.2'
     asdf_plugins:
       - { name: 'direnv', url: 'https://github.com/asdf-community/asdf-direnv.git', on_install: ['asdf direnv setup --shell zsh --version {{ direnv_version }}'] }
       - { name: 'deno', url: 'https://github.com/asdf-community/asdf-deno.git', pkg: [curl, git, gzip, unzip] }
