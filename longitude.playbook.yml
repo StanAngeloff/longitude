@@ -163,8 +163,8 @@
     thunderbird_platform: linux-x86_64
     thunderbird_checksum: 'sha256:b75c8c65c18e0fbc79035fbb305c7f5478321bf0ea2ac56e59b0105c59d398ec'
 
-    neovim_version: 0.8.2
-    neovim_checksum: "sha256:bb0d4599cb506fc6e29bf0e9cef3b52e06dcb4bb930b56d6eb88320f1d46a908"
+    neovim_version: nightly
+    neovim_checksum: "sha256:2b657042789e58ee3a4cf17e5726b72663e30107053a0560525c017e27606406"
     neovim_dictionaries: [en.utf-8, bg.utf-8]
 
     gcc_version: 12
@@ -256,13 +256,13 @@
     fzf_platform: linux_amd64
     fzf_checksum: "sha256:bfba07d56bf4b596ab60efb049a3f5badcf665fa516ba6fe96d2d142c17551ed"
 
-    bat_version: 0.18.3
+    bat_version: 0.22.1
     bat_platform: amd64
-    bat_checksum: "sha256:3e85d15e5757d9f56af8f15bb99a56aaaab33ed541fa3ff1e1c585f5733845c3"
+    bat_checksum: "sha256:1d1b629247ac23d870cfde9f8eebbb4af7468f5c7c0914d9246c50bf0c72c1fd"
 
-    delta_version: 0.10.2
+    delta_version: 0.15.1
     delta_platform: amd64
-    delta_checksum: "sha256:7b9079c15b8f749f397a98478a666445e822f2bb0076c407537a8cd162f16db0"
+    delta_checksum: "sha256:f0db00a10972c953cd54cc00a0a3c87d547e87ceffc17b3e89721a803742b664"
 
     xidel_version: 0.9.8-1
     xidel_platform: amd64
