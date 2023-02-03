@@ -1490,7 +1490,7 @@
     ] }
 
   # 1810. Tesseract OCR engine
-  - { name: "Tesseract: Add PPA", become: yes, apt_repository: { repo: "ppa:alex-p/tesseract-ocr", update_cache: yes }, tags: [tesseract] }
+  - { name: "Tesseract: Add PPA", become: yes, apt_repository: { repo: "ppa:alex-p/tesseract-ocr-devel", update_cache: yes }, tags: [tesseract] }
   - name: "Tesseract: Pin packages priorities"
     become: yes
     copy:
@@ -1500,15 +1500,23 @@
         ###
         ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
         ###
-        ### Adjust pin priority of packages and whitelist only certain packages from PPA `alex-p/tesseract-ocr`.
+        ### Adjust pin priority of packages and whitelist only certain packages from PPA `alex-p/tesseract-ocr{,-devel}`.
 
         Package: *
         Pin: release o=LP-PPA-alex-p-tesseract-ocr
         Pin-Priority: 400
 
-        Package: tesseract* liblept5 libopenjp2-7 libtesseract4
+        Package: *
+        Pin: release o=LP-PPA-alex-p-tesseract-ocr-devel
+        Pin-Priority: 400
+
+        Package: tesseract* liblept5 libopenjp2-7 libtesseract*
         Pin: release o=LP-PPA-alex-p-tesseract-ocr
         Pin-Priority: 500
+
+        Package: tesseract* liblept5 libopenjp2-7 libtesseract*
+        Pin: release o=LP-PPA-alex-p-tesseract-ocr-devel
+        Pin-Priority: 510
     register: tesseract_pin_priorities
     tags: [tesseract]
   - { name: "Tesseract: Update apt cache", become: yes, apt: { update_cache: yes }, when: tesseract_pin_priorities.changed, tags: [tesseract] }
