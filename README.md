@@ -81,14 +81,14 @@ You may now make use of **severely** outdated government websites.
 #### tessdata_best – Best (most accurate) trained models for Tesseract
 
 ```bash
-mkdir -p ~/.local/share/tesseract-ocr/4.00/tessdata
-cd ~/.local/share/tesseract-ocr/4.00/tessdata
-wget https://github.com/tesseract-ocr/tessdata_best/raw/master/bul.traineddata
-wget https://github.com/tesseract-ocr/tessdata_best/raw/master/eng.traineddata
-wget https://github.com/tesseract-ocr/tessdata_best/raw/master/osd.traineddata
-cp -R /usr/share/tesseract-ocr/4.00/tessdata/{configs,tessconfigs,pdf.ttf} /home/stan/.local/share/tesseract-ocr/4.00/tessdata
-sudo chown -R stan: /home/stan/.local/share/tesseract-ocr/4.00/tessdata/{configs,tessconfigs,pdf.ttf}
-echo 'export TESSDATA_PREFIX="${HOME}/.local/share/tesseract-ocr/4.00/tessdata"' >> ~/.localrc_stan-latitude_gnu_linux
+mkdir -p ~/.local/share/tesseract-ocr/5/tessdata
+cd ~/.local/share/tesseract-ocr/5/tessdata
+wget https://github.com/tesseract-ocr/tessdata_best/raw/main/bul.traineddata
+wget https://github.com/tesseract-ocr/tessdata_best/raw/main/eng.traineddata
+wget https://github.com/tesseract-ocr/tessdata_best/raw/main/osd.traineddata
+cp -R /usr/share/tesseract-ocr/5/tessdata/{configs,tessconfigs,pdf.ttf} /home/stan/.local/share/tesseract-ocr/5/tessdata
+sudo chown -R stan: /home/stan/.local/share/tesseract-ocr/5/tessdata/{configs,tessconfigs,pdf.ttf}
+echo 'export TESSDATA_PREFIX="${HOME}/.local/share/tesseract-ocr/5/tessdata"' >> ~/.localrc_stan-latitude_gnu_linux
 ```
 
 ##### `ocrmypdf`
