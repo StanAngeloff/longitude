@@ -384,7 +384,7 @@
       '8.1': [redis] # Cannot install 'gd' as it requires a newer libgd3 which breaks winehq-staging 🤷
 
     nodesource_gpg_key_id: "68576280"
-    nodejs_version: 16
+    nodejs_version: 18
 
     wine_gpg_key_id: "F987672F"
     playonlinux_gpg_key_id: "8E3D6C3A"
