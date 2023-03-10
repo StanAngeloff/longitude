@@ -209,8 +209,8 @@
     authy_desktop_version: 2.2.1
     authy_desktop_checksum: "sha256:fdad2931755dee6129ee868dda604826fe6e3afd7343782f7e08b3d572fd6663"
 
-    android_studio_version: 2021.3.1.17
-    android_studio_checksum: "sha256:89adb0ce0ffa46b7894e7bfedb142b1f5d52c43c171e6a6cb9a95a49f77756ca"
+    android_studio_version: 2022.1.1.21
+    android_studio_checksum: "sha256:0bca26c45daf5cad79b131c34013b985d146a2526990ea2aa6d88792d51905a1"
     android_home: /opt/android/sdk
 
     dropbox_version: 2019.01.31
