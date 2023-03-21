@@ -248,6 +248,7 @@
     httpie_version: 3.2.1
     httpie_plugins:
       - { name: 'httpie-oauth', version: 1.0.2 }
+      - { name: 'httpie-oauth1', version: 1.2.3 }
 
     awscli_version: '>1.16'
     s3cmd_version: '>=2.1'
