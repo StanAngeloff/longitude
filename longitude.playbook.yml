@@ -245,7 +245,7 @@
     fx_platform: linux_amd64
     fx_checksum: "sha256:7973466fd7299182cb9073d1eb84f52e057192aa98edd2ed67dddaeae47235b4"
 
-    httpie_version: 2.5.0
+    httpie_version: 3.2.1
     httpie_plugins:
       - { name: 'httpie-oauth', version: 1.0.2 }
 
