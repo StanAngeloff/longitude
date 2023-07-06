@@ -38,6 +38,8 @@ whois	# a command-line client for the WHOIS (RFC 3912) protocol.
 zbar-tools	# scanning and decoding bar codes from various sources.
 zstd	# fast lossless compression algorithm, CLI tool.
 
+synaptic # gnome-software alternative
+
 ## Deprecated and removed in Ubuntu 18.04:
 ##
 #pdftk	# tool for manipulating PDF documents. See https://askubuntu.com/a/1028983

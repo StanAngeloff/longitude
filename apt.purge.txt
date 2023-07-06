@@ -2,6 +2,9 @@
 # I prefer Flatpak which is decentralized and less intrusive.
 snapd
 
+# HIGH MEMORY USE
+gnome-software
+
 # Fonts, lots and lots of unwanted, unneeded fonts…
 fonts-beng*
 fonts-deva*
