@@ -1318,7 +1318,7 @@
   - { name: "rxvt-unicode: Set up as default terminal", become: yes, alternatives: { name: "x-terminal-emulator", path: "/usr/local/bin/urxvt-start" }, tags: [rxvt, urxvt] }
 
   # 1300. tmux
-  - { name: "tmux: Install prerequisites", become: yes, apt: { pkg: [libevent-dev], state: present }, tags: [tmux] }
+  - { name: "tmux: Install prerequisites", become: yes, apt: { pkg: [libevent-dev, xclip, wl-clipboard], state: present }, tags: [tmux] }
   - { name: "tmux: Check installation", become: yes, command: "ls /opt/tmux-{{ tmux_version }}", register: tmux_install_query, changed_when: no, failed_when: no, tags: [tmux] }
   - { name: "tmux: Download source", get_url: { url: "https://github.com/tmux/tmux/releases/download/{{ tmux_version }}/tmux-{{ tmux_version }}.tar.gz", dest: "{{ tmp_path }}/tmux-{{ tmux_version }}.tar.gz", checksum: "{{ tmux_checksum }}" }, when: "tmux_install_query.rc > 0", tags: [tmux] }
   - { name: "tmux: Compile & install packages", when: "tmux_install_query.rc > 0", tags: [tmux],
