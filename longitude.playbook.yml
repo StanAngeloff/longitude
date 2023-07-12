@@ -159,10 +159,10 @@
 
     firefox_locales: [en, bg]
 
-    thunderbird_version: '102.0'
+    thunderbird_version: '115.0'
     thunderbird_locale: en-GB
     thunderbird_platform: linux-x86_64
-    thunderbird_checksum: 'sha256:b75c8c65c18e0fbc79035fbb305c7f5478321bf0ea2ac56e59b0105c59d398ec'
+    thunderbird_checksum: 'sha256:c6b8f0ad17ba2f68c27b1934cecd7e9e453ed7252ad9949e2981a1a78a1492f1'
 
     neovim_version: 0.9.1
     neovim_checksum: "sha256:262892176e21da0902c4f0b1e027d54d21b4bcae6b0397afccd8a81b476c3055"
@@ -894,6 +894,7 @@
   - { name: "Thunderbird: Download packages", get_url: { url: "https://download-installer.cdn.mozilla.net/pub/thunderbird/releases/{{ thunderbird_version }}/{{ thunderbird_platform }}/{{ thunderbird_locale }}/thunderbird-{{ thunderbird_version }}.tar.bz2", dest: "{{ tmp_path }}/thunderbird-{{ thunderbird_version }}.tar.bz2", checksum: "{{ thunderbird_checksum }}" }, when: "thunderbird_install_query.rc > 0", tags: [thunderbird] }
   - { name: "Thunderbird: Unpack & install packages", when: "thunderbird_install_query.rc > 0",
       shell: "cd {{ tmp_path }} && tar --overwrite -jxf 'thunderbird-{{ thunderbird_version }}.tar.bz2' && mv thunderbird '/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}'", tags: [thunderbird] }
+  - { name: "Thunderbird: Set up alternatives", become: yes, alternatives: { link: "/usr/local/bin/thunderbird", name: "thunderbird", path: "/opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird" }, tags: [thunderbird] }
   - name: "Thunderbird: Add desktop icon"
     become: yes
     copy:
@@ -907,7 +908,7 @@
         Comment=Send and receive mail with Thunderbird
         GenericName=Mail Client
         Keywords=Email;E-mail;Newsgroup;Feed;RSS
-        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 MOZ_ENABLE_WAYLAND=1 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird %u
+        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 MOZ_ENABLE_WAYLAND=1 /usr/local/bin/thunderbird %u
         Terminal=false
         X-MultipleArgs=false
         Type=Application
@@ -919,12 +920,12 @@
 
         [Desktop Action Compose]
         Name=Compose New Message
-        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 MOZ_ENABLE_WAYLAND=1 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird -compose
+        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 MOZ_ENABLE_WAYLAND=1 /usr/local/bin/thunderbird -compose
         OnlyShowIn=Messaging Menu;Unity;
 
         [Desktop Action Contacts]
         Name=Contacts
-        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 MOZ_ENABLE_WAYLAND=1 /opt/thunderbird-{{ thunderbird_version.split('.')[0] }}/thunderbird -addressbook
+        Exec=/usr/bin/env GTK_THEME=Adwaita GDK_DPI_SCALE=1.25 MOZ_ENABLE_WAYLAND=1 /usr/local/bin/thunderbird -addressbook
         OnlyShowIn=Messaging Menu;Unity;
     tags: [thunderbird]
   - { name: "Thunderbird: Check MIME handler", command: 'xdg-mime query default x-scheme-handler/mailto', register: thunderbird_mime_query_1, changed_when: no, failed_when: no, tags: [thunderbird] }
