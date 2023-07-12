@@ -175,7 +175,7 @@
 
     asdf_version: '0.11.2'
     direnv_version: '2.31.0'
-    deno_version: '1.20.4'
+    deno_version: '1.35.0'
     golang_version: '1.18.2'
     ruby_version: '3.1.2'
     asdf_plugins:
