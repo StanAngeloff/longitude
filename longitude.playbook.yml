@@ -1800,7 +1800,13 @@
         if which pip 1>/dev/null 2>&1; then
         {{ indent }}{{ su }} "pip cache purge" 1>/dev/null
         fi
-        {% for directory in [".cache/bower", ".cache/pip", ".npm/_npx"] %}
+        {% for directory in [
+          ".cache/bower",
+          ".cache/huggingface",
+          ".cache/pip",
+          ".gradle/caches",
+          ".npm/_npx",
+          ] %}
         if [ -d "{{ ansible_env.HOME }}/{{ directory }}" ]; then rm -Rf "{{ ansible_env.HOME }}/{{ directory }}" 1>/dev/null ; fi
         {% endfor %}
 
