@@ -85,6 +85,7 @@
     #     https://hg.mozilla.org/mozilla-central/file/6663d3dc883b6ad0d0dfa9346f9ceabf2b2c7967/browser/app/profile/firefox.js (April 2020)
     #
     firefox_about_config:
+      # accessibility.typeaheadfind.enablesound: false
       "browser.tabs.unloadOnLowMemory": true # See https://support.mozilla.org/en-US/kb/unload-inactive-tabs-save-system-memory-firefox
       "browser.tabs.min_inactive_duration_before_unload": 3600000 # Unload tabs after 1 hour of inactivity (the default is 10 minutes).
       # Usability & quality of life improvements
@@ -99,6 +100,7 @@
       "browser.urlbar.openViewOnFocus": false # Don't open the URL bar drop-down immediately on focus (Firefox 75+).
       "browser.urlbar.groupLabels.enable": false # Disable Firefox Suggest (sponsored suggestions).
       "browser.urlbar.trimURLs": false # Force Firefox to always show https:// and www. terms for URLs in address bar.
+      "signon.firefoxRelay.feature": "disabled"
       # Forms and Autofill
       "extensions.formautofill.available": "on"
       "extensions.formautofill.creditCards.available": true
@@ -156,8 +158,12 @@
       "media.hardwaremediakeys.enabled": true # https://web.archive.org/web/20200324112855/https://www.ghacks.net/2020/03/23/firefox-will-soon-support-hardware-media-controls/
       "dom.media.mediasession.enabled": true  #
       "cookiebanners.service.mode": 2 # https://bugzilla.mozilla.org/show_bug.cgi?id=1783019 | nsICookieBannerService.MODE_REJECT_OR_ACCEPT = 2
+      "svg.context-properties.content.enabled": true
+      # https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Performance-tuning#firefox
+      "reader.parse-on-load.enabled": false
+      "media.webspeech.synth.enabled": false
 
-    firefox_locales: [en, bg]
+    firefox_locales: [en-gb, bg]
 
     thunderbird_version: '115.0'
     thunderbird_locale: en-GB
@@ -787,7 +793,21 @@
     with_dict: "{{ gnupg_agent_conf }}"
 
   # 600. Firefox
-  - { name: "Firefox: Install packages", become: yes, apt: { pkg: "{{ ('firefox firefox-locale-' + firefox_locales|join(' firefox-locale-')).split(' ') }}", state: present }, tags: [firefox] }
+  - { name: "Firefox: Create directories", become: yes, file: { path: "/etc/apt/keyrings", state: directory, mode: 0755 }, tags: [firefox] }
+  - { name: "Firefox: Download signing key", become: yes, get_url: { url: "https://packages.mozilla.org/apt/repo-signing-key.gpg", dest: "/etc/apt/keyrings/packages.mozilla.org.asc", tags: [firefox] } }
+  - name: "Firefox: Pin package priority"
+    become: yes
+    copy:
+      dest: "/etc/apt/preferences.d/mozilla"
+      content: |
+        Package: *
+        Pin: origin packages.mozilla.org
+        Pin-Priority: 1020
+      mode: 0444
+      force: yes
+    tags: [firefox]
+  - { name: "Firefox: Add repository", become: yes, apt_repository: { repo: "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main", update_cache: yes }, tags: [firefox] }
+  - { name: "Firefox: Install packages", become: yes, apt: { pkg: "{{ ('firefox firefox-l10n-' + firefox_locales|join(' firefox-l10n-')).split(' ') }}", state: present }, tags: [firefox] }
   - { name: "Firefox: Install extras", become: yes, apt: { pkg: [fonts-lyx], state: present }, tags: [firefox] }
   # 610. Firefox alternatives
   - { name: "Firefox: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", path: "/usr/bin/firefox" }, with_items: [gnome-www-browser, x-www-browser], tags: [firefox] }
