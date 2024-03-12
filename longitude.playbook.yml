@@ -170,8 +170,8 @@
     thunderbird_platform: linux-x86_64
     thunderbird_checksum: 'sha256:c6b8f0ad17ba2f68c27b1934cecd7e9e453ed7252ad9949e2981a1a78a1492f1'
 
-    neovim_version: 0.9.1
-    neovim_checksum: "sha256:262892176e21da0902c4f0b1e027d54d21b4bcae6b0397afccd8a81b476c3055"
+    neovim_version: 0.9.5
+    neovim_checksum: "sha256:0c82e5702af7a11fbb916a11b4a82e98928abf8266c74b2030ea740340437bf9"
     neovim_dictionaries: [en.utf-8, bg.utf-8]
 
     gcc_version: 12
@@ -731,7 +731,18 @@
   - { name: "Neovim: Add Python support (bionic)", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip2, pip3], tags: [vim, neovim], when: "ansible_distribution_version is version('20.04', '<')" }
   - { name: "Neovim: Add Python support (focal)", become: yes, pip: { executable: "{{ item }}", name: pynvim, state: present }, with_items: [pip3], tags: [vim, neovim], when: "ansible_distribution_version is version('20.04', '>=')" }
   # 420. Neovim alternatives
-  - { name: "Neovim: Set up alternatives", become: yes, alternatives: { name: "{{ item }}", link: "/usr/local/bin/{{ item }}", path: "/usr/local/bin/nvim-{{ neovim_version }}" }, with_items: [vi, vim, nvim, editor], tags: [vim, neovim] }
+  - name: "Neovim: Install alternatives"
+    become: yes
+    shell: |
+      update-alternatives \
+        --install /usr/bin/editor      editor   /usr/local/bin/nvim-{{ neovim_version }} 90 \
+        --slave   /usr/local/bin/vi    vi       /usr/local/bin/nvim-{{ neovim_version }}    \
+        --slave   /usr/local/bin/vim   vim      /usr/local/bin/nvim-{{ neovim_version }}    \
+        --slave   /usr/local/bin/nvim  nvim     /usr/local/bin/nvim-{{ neovim_version }}
+    changed_when: "neovim_install_alternatives_cmd.stdout != ''"
+    register: neovim_install_alternatives_cmd
+    tags: [vim, neovim]
+  - { name: "Neovim: Set up alternatives", become: yes, alternatives: { link: "/usr/bin/editor", name: "editor", path: "/usr/local/bin/nvim-{{ neovim_version }}" }, tags: [vim, neovim] }
 
   # 500. Docker
   - { name: "Docker: Install prerequisites", become: yes, apt: { pkg: [apt-transport-https, ca-certificates, curl, gnupg-agent, software-properties-common], state: present }, tags: [docker] }
