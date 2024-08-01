@@ -1029,6 +1029,7 @@
       # See https://github.com/GNOME/gsettings-desktop-schemas/blob/3.36.0/schemas/org.gnome.desktop.peripherals.gschema.xml.in#L69
       { key: "/org/gnome/desktop/peripherals/keyboard/repeat-interval", value: "uint32 18" },
       { key: "/org/gnome/desktop/peripherals/keyboard/delay", value: "uint32 200" },
+      { key: "/org/gnome/desktop/remote-desktop/rdp/screen-share-mode", value: "extend" },
     ] }
   # When using the Logitech MX Keys keyboard, the key to the left of 'Z' should act as a backslash/bar.
   - name: "Miscellaneous: Update English (US) keyboard layout"
