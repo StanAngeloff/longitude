@@ -399,8 +399,8 @@
     wine_gpg_key_id: "F987672F"
     playonlinux_gpg_key_id: "8E3D6C3A"
 
-    qemu_version: 7.0.0
-    qemu_checksum: "sha256:f6b375c7951f728402798b0baabb2d86478ca53d44cedbefabbe1c46bf46f839"
+    qemu_version: 9.0.2
+    qemu_checksum: "sha256:a8c3f596aece96da3b00cafb74baafa0d14515eafb8ed1ee3f7f5c2d0ebf02b6"
 
     ffmpeg_version: 4.1.4
     ffmpeg_platform: amd64
