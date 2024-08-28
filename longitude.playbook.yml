@@ -180,9 +180,9 @@
     git_lfs_gpg_key_id: "DC282033"
     git_subrepo_tag: 0.4.3
 
-    asdf_version: '0.12.0'
-    direnv_version: '2.31.0'
-    deno_version: '1.43.6'
+    asdf_version: '0.14.0'
+    direnv_version: '2.34.0'
+    deno_version: '1.45.5'
     golang_version: '1.18.2'
     ruby_version: '3.1.2'
     asdf_plugins:
