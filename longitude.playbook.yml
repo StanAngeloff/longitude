@@ -116,6 +116,7 @@
       # Development
       #
       "devtools.chrome.enabled": true # This enables Ctrl+Alt+Shift+J as well as the command entry in Ctrl+Shift+J.
+      "toolkit.legacyUserProfileCustomizations.stylesheets": true
       # Security
       #
       # See https://web.archive.org/web/20190410203751/https://www.internetsociety.org/blog/2018/12/dns-privacy-support-in-mozilla-firefox/
@@ -163,6 +164,10 @@
       # https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Performance-tuning#firefox
       "reader.parse-on-load.enabled": false
       "media.webspeech.synth.enabled": false
+      # Firefox 131, uh!
+      "browser.tabs.tabmanager.enabled": fasle
+      "browser.tabs.hoverPreview.enabled": false
+      "browser.tabs.hoverPreview.showThumbnails": false
 
     firefox_locales: [en-gb, bg]
 
