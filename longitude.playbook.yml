@@ -181,18 +181,20 @@
     git_subrepo_tag: 0.4.3
 
     asdf_version: '0.14.0'
-    direnv_version: '2.34.0'
-    deno_version: '1.45.5'
+    deno_version: '1.46.3'
+    direnv_version: '2.35.0'
     golang_version: '1.18.2'
     ruby_version: '3.1.2'
+    wasmtime_version: '26.0.0'
     asdf_plugins:
-      - { name: 'direnv', url: 'https://github.com/asdf-community/asdf-direnv.git', on_install: ['asdf direnv setup --shell zsh --version {{ direnv_version }}'] }
       - { name: 'deno', url: 'https://github.com/asdf-community/asdf-deno.git', pkg: [curl, git, gzip, unzip] }
+      - { name: 'direnv', url: 'https://github.com/asdf-community/asdf-direnv.git', on_install: ['asdf direnv setup --shell zsh --version {{ direnv_version }}'] }
       - { name: 'golang', url: 'https://github.com/kennyp/asdf-golang.git' }
       - { name: 'nodejs', url: 'https://github.com/asdf-vm/asdf-nodejs.git', pkg: [dirmngr, gawk, gpg] }
+      - { name: 'pnpm', url: 'https://github.com/jonathanmorley/asdf-pnpm.git' }
+      - { name: 'python', url: 'https://github.com/asdf-community/asdf-python.git' }
       - { name: 'ruby', url: 'https://github.com/asdf-vm/asdf-ruby.git', pkg: [zlib1g-dev, libssl-dev] }
-      - { name: 'python', url: 'https://github.com/asdf-community/asdf-python' }
-      - { name: 'pnpm', url: 'https://github.com/jonathanmorley/asdf-pnpm' }
+      - { name: 'wasmtime', url: 'https://github.com/tachyonicbytes/asdf-wasmtime.git' }
     asdf_rc:
       legacy_version_file: 'yes'
 
@@ -394,7 +396,8 @@
       '8.1': [redis] # Cannot install 'gd' as it requires a newer libgd3 which breaks winehq-staging 🤷
 
     nodesource_gpg_key_id: "68576280"
-    nodejs_version: 18
+    nodejs_platform: amd64
+    nodejs_version: 22
 
     wine_gpg_key_id: "F987672F"
     playonlinux_gpg_key_id: "8E3D6C3A"
@@ -649,11 +652,12 @@
   - { name: "asdf: Create empty .tool-versions", copy: { content: "", dest: "{{ ansible_env.HOME }}/.tool-versions", force: no }, tags: [asdf] }
   - { name: "asdf: Set up default tools", lineinfile: { path: "{{ ansible_env.HOME }}/.tool-versions", regexp: "{{ item.regexp }}", line: "{{ item.line }}", insertafter: EOF }, tags: [asdf], with_items: [
       { line: "deno {{ deno_version }}", regexp: "^deno\\b" },
-      { line: "golang {{ golang_version }}", regexp: "^golang\\b" },
       { line: "direnv {{ direnv_version }}", regexp: "^direnv\\b" },
+      { line: "golang {{ golang_version }}", regexp: "^golang\\b" },
       { line: "nodejs system", regexp: "^nodejs\\b" },
-      { line: "ruby {{ ruby_version }}", regexp: "^ruby\\b" },
       { line: "python system", regexp: "^python\\b" },
+      { line: "ruby {{ ruby_version }}", regexp: "^ruby\\b" },
+      { line: "wasmtime {{ wasmtime_version }}", regexp: "^wasmtime\\b" },
     ] }
   - name: "asdf: Install programs"
     shell: |
@@ -697,31 +701,6 @@
       insertafter: EOF
       path: "{{ ansible_env.HOME }}/{{ rust_localrc.stdout }}"
     tags: [rust]
-  # 280. Wasmtime
-  - { name: "Wasmtime: Check installation", command: "ls {{ ansible_env.HOME }}/.wasmtime/bin/wasmtime", register: wasmtime_install_query, changed_when: no, failed_when: no, tags: [wasmtime] }
-  - name: "Wasmtime: Install release"
-    when: "wasmtime_install_query.rc > 0"
-    shell: |
-      cd {{ tmp_path }} &&
-      curl -sSf -o wasmtime-install.sh https://wasmtime.dev/install.sh &&
-      touch {{ tmp_path }}/.bashrc &&
-      env PROFILE={{ tmp_path }}/.bashrc /bin/bash wasmtime-install.sh
-    args: { executable: "/bin/bash" }
-    tags: [wasmtime]
-  - { name: "Wasmtime: Capture local Zsh configuration", shell: '{{ localrc_query }}', args: { executable: "/bin/bash" }, register: wasmtime_localrc, changed_when: no, failed_when: no, tags: [wasmtime] }
-  - name: "Wasmtime: Update Zsh configuration"
-    blockinfile:
-      marker: "### WASMTIME {mark} AUTOMATICALLY GENERATED"
-      block: |
-        ###
-        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
-        ###
-        export WASMTIME_HOME="${HOME}/.wasmtime"
-        export PATH="${PATH}:${WASMTIME_HOME}/bin"
-      create: yes
-      insertafter: EOF
-      path: "{{ ansible_env.HOME }}/{{ wasmtime_localrc.stdout }}"
-    tags: [wasmtime]
 
   # 300. etkkeeper
   - { name: "etckeeper: Install packages", become: yes, apt: { pkg: [etckeeper], state: present } }
@@ -1444,8 +1423,37 @@
     tags: [php, composer]
 
   # 1600. NodeJS
-  - { name: "NodeJS: Import GPG key", become: yes, apt_key: { id: "{{ nodesource_gpg_key_id }}", url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" }, tags: [node, nodejs] }
-  - { name: "NodeJS: Add repository", become: yes, apt_repository: { repo: "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x {{ ansible_distribution_release }} main", update_cache: yes }, tags: [node, nodejs] }
+  - { name: "NodeJS: Install prerequisites", become: yes, apt: { pkg: [apt-transport-https, ca-certificates, curl, gnupg], state: present }, tags: [node, nodejs] }
+  - { name: "NodeJS: Import GPG key", become: yes, apt_key: { id: "{{ nodesource_gpg_key_id }}", file: "{{ ansible_env.PWD }}/keys/nodesource.gpg" }, tags: [node, nodejs] }
+  - name: "NodeJS: Pin \"N|solid\" packages priorities"
+    become: yes
+    copy:
+      dest: '/etc/apt/preferences.d/nsolid'
+      force: yes
+      content: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+
+        Package: nsolid
+        Pin: origin deb.nodesource.com
+        Pin-Priority: 600
+    tags: [node, nodejs]
+  - name: "NodeJS: Pin \"Nodejs\" packages priorities"
+    become: yes
+    copy:
+      dest: '/etc/apt/preferences.d/nodejs'
+      force: yes
+      content: |
+        ###
+        ### DO NOT EDIT BY HAND, YOUR CHANGES WILL BE LOST!
+        ###
+
+        Package: nodejs
+        Pin: origin deb.nodesource.com
+        Pin-Priority: 600
+    tags: [node, nodejs]
+  - { name: "NodeJS: Add repository", become: yes, apt_repository: { repo: "deb [arch={{ nodejs_platform }} signed-by={{ ansible_env.PWD }}/keys/nodesource.gpg] https://deb.nodesource.com/node_{{ nodejs_version }}.x nodistro main", update_cache: yes }, tags: [node, nodejs] }
   - { name: "NodeJS: Install packages", become: yes, apt: { pkg: [nodejs], state: present }, tags: [node, nodejs] }
   - { name: "NodeJS: Create directories", become: yes, file: { path: "/usr/local/lib/node_modules", state: directory, owner: "{{ ansible_user_id }}" }, tags: [node, nodejs] }
   - { name: "NodeJS: Install global packages in /usr/local", lineinfile: { create: yes, path: "{{ ansible_env.HOME }}/.npmrc", regexp: "^prefix=", line: "prefix=/usr/local" }, tags: [node, nodejs] }
