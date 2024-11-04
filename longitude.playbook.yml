@@ -242,9 +242,9 @@
     youtube_dl_version: 2022.06.29
     youtube_dl_checksum: "sha256:0961e5c7b308a63be6025b82ed6189fd372d3bb446120fcb5cbe8161a8da4416"
 
-    fd_version: 7.5.0
+    fd_version: 10.2.0
     fd_platform: amd64
-    fd_checksum: "sha256:0def65ac4a0158209112c3df2522a853b439743740d422af2c16c994398b3cd7"
+    fd_checksum: "sha256:58b896144a7d31cd048d19f3bca6cca3492f756e70b08fb67d40636b12eb941c"
 
     ripgrep_version: 14.1.1
     ripgrep_patch_release: '-1'
@@ -1111,7 +1111,7 @@
   - { name: "youtube-dl: Install script", get_url: { url: "https://github.com/yt-dlp/yt-dlp/releases/download/{{ youtube_dl_version }}/yt-dlp_linux", dest: "/usr/local/bin/youtube-dl", mode: "+x", checksum: "{{ youtube_dl_checksum }}" }, tags: [youtube, youtube-dl] }
 
   # 940. fd
-  - { name: "fd: Check installation", become: yes, shell: "{{ dpkg_query | format('fd') }}", register: fd_dpkg_query, changed_when: no, failed_when: no, tags: [fd] }
+  - { name: "fd: Check installation", become: yes, shell: "{{ dpkg_version_query.format('fd', fd_version) }}", register: fd_dpkg_query, changed_when: no, failed_when: no, tags: [fd] }
   - { name: "fd: Download packages", get_url: { url: "https://github.com/sharkdp/fd/releases/download/v{{ fd_version }}/fd_{{ fd_version }}_{{ fd_platform }}.deb", dest: "{{ tmp_path }}/fd-{{ fd_version }}.deb", checksum: "{{ fd_checksum }}" }, when: "fd_dpkg_query.rc > 0", tags: [fd] }
   - { name: "fd: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/fd-{{ fd_version }}.deb", state: present }, when: "fd_dpkg_query.rc > 0", tags: [fd] }
   # 950. ripgrep
