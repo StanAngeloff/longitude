@@ -237,7 +237,7 @@
 
     tarsnap_version: 1.0.40
 
-    imagemagick_version: 7.1.0-26
+    imagemagick_version: 7.1.1-29
 
     youtube_dl_version: 2022.06.29
     youtube_dl_checksum: "sha256:0961e5c7b308a63be6025b82ed6189fd372d3bb446120fcb5cbe8161a8da4416"
@@ -1067,7 +1067,7 @@
     tags: [privacy]
 
   # 910. ImageMagick
-  - { name: "ImageMagick: Install prerequisites", become: yes, apt: { pkg: [graphviz-dev, libpng-dev, libjpeg-dev, libgs-dev, libgvc], state: present }, tags: [imagemagick, magick] }
+  - { name: "ImageMagick: Install prerequisites", become: yes, apt: { pkg: [graphviz-dev, libpng-dev, libjpeg-dev, libgs-dev, libgvc6, libheif-dev], state: present }, tags: [imagemagick, magick] }
   - { name: "ImageMagick: Check installation", become: yes, command: "ls /opt/ImageMagick-{{ imagemagick_version }}", register: imagemagick_install_query, changed_when: no, failed_when: no, tags: [imagemagick, magick] }
   - { name: "ImageMagick: Download source and signature", get_url: { url: "{{ item }}", dest: "{{ tmp_path }}/{{ item | basename }}" }, when: "imagemagick_install_query.rc > 0", tags: [imagemagick, magick], with_items: [
       "https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-{{ imagemagick_version }}.tar.xz",
