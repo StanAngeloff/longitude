@@ -20,6 +20,16 @@
       - 2606:4700:4700::1111
       - 2606:4700:4700::1001
 
+    # See https://www.man7.org/linux/man-pages/man7/environ.7.html
+    etc_environment:
+      # See https://wiki.archlinux.org/title/GNOME/Tips_and_tricks#Set_slow_down_factor
+      # See https://github.com/GNOME/gnome-shell/blob/42.9/js/ui/environment.js#L468 -- the value MUST be greater than 0.
+      GNOME_SHELL_SLOWDOWN_FACTOR: '0.00000001'
+      # See https://discourse.ubuntu.com/t/why-ubuntu-22-04-is-so-fast-and-how-to-make-it-faster/30369
+      MUTTER_DEBUG_ENABLE_ATOMIC_KMS: '0'
+      MUTTER_DEBUG_FORCE_KMS_MODE: 'simple'
+      CLUTTER_PAINT: 'disable-dynamic-max-render-time'
+
     firefox_unofficial_extensions:
       bypass-paywalls: # See https://github.com/iamadamdev/bypass-paywalls-firefox/releases
         url: "https://github.com/iamadamdev/bypass-paywalls-firefox/releases/download/v%(version)s/bypass_paywalls-%(version)s-an+fx.xpi"
@@ -483,11 +493,21 @@
   - { name: "System: Install essentials", become: yes, apt: { pkg: [build-essential, cmake, unzip, ca-certificates], state: present }, tags: [toolchain] }
 
   # 30. sysctl
-  - { name: "Tweak kernel parameters (sysctl)", become: yes, sysctl: { name: "{{ item.name }}", state: "{{ item.state | default('present') }}", value: "{{ item.value }}", sysctl_file: '/etc/sysctl.d/60-longitude.conf', reload: yes }, when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", tags: [sysctl], with_items: [
+  - { name: "System: Tweak kernel parameters (sysctl)", become: yes, sysctl: { name: "{{ item.name }}", state: "{{ item.state | default('present') }}", value: "{{ item.value }}", sysctl_file: '/etc/sysctl.d/60-longitude.conf', reload: yes }, when: "ansible_env.IS_DOCKERIZED | default(0) != '1'", tags: [sysctl], with_items: [
       { name: fs.inotify.max_user_watches, value: 524288 },
       { name: net.ipv6.conf.all.disable_ipv6, value: 1 },
       { name: net.ipv6.conf.default.disable_ipv6, value: 1 },
     ] }
+
+  - name: "System: Configure user environment"
+    lineinfile:
+      create: yes
+      path: "/etc/environment"
+      regexp: "^[#\\s]*{{ item.key }}\\b"
+      line: "{{ ( item.key | string + '=' + item.value | default('') | string ) | trim }}"
+      insertafter: 'EOF'
+    with_dict: "{{ etc_environment }}"
+    tags: [env, environment]
 
   # 40. Kernel
   - name: "GRUB: Update Linux kernel command-line"
