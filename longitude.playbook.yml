@@ -9,6 +9,7 @@
   vars:
 
     dpkg_query: "dpkg-query --show --showformat='${db:Status-Status}\n' '%s' | grep '^installed'"
+    dpkg_version_query: "dpkg-query --show --showformat='${{'{{db:Status-Status}}'}}\n' '{0}' | grep '^installed' && dpkg --compare-versions `dpkg-query --show --showformat='${{'{{Version}}'}}' '{0}'` ge '{1}'"
     localrc_query: 'echo ".localrc_`uname -n`_`uname -o 2>/dev/null || echo Darwin`" | tr "[A-Z]" "[a-z]" | tr "/" "_"'
     tmp_path: '/tmp'
 
@@ -245,9 +246,10 @@
     fd_platform: amd64
     fd_checksum: "sha256:0def65ac4a0158209112c3df2522a853b439743740d422af2c16c994398b3cd7"
 
-    ripgrep_version: 13.0.0
+    ripgrep_version: 14.1.1
+    ripgrep_patch_release: '-1'
     ripgrep_platform: amd64
-    ripgrep_checksum: "sha256:6d78bed13722019cb4f9d0cf366715e2dcd589f4cf91897efb28216a6bb319f1"
+    ripgrep_checksum: "sha256:2f0c732ef166b4f7be7190d4012d60b3f8467bdd6f795c0598817bd2ac1706ae"
 
     pup_version: 0.4.0
     pup_platform: linux_amd64
@@ -1113,8 +1115,8 @@
   - { name: "fd: Download packages", get_url: { url: "https://github.com/sharkdp/fd/releases/download/v{{ fd_version }}/fd_{{ fd_version }}_{{ fd_platform }}.deb", dest: "{{ tmp_path }}/fd-{{ fd_version }}.deb", checksum: "{{ fd_checksum }}" }, when: "fd_dpkg_query.rc > 0", tags: [fd] }
   - { name: "fd: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/fd-{{ fd_version }}.deb", state: present }, when: "fd_dpkg_query.rc > 0", tags: [fd] }
   # 950. ripgrep
-  - { name: "ripgrep: Check installation", become: yes, shell: "{{ dpkg_query | format('ripgrep') }}", register: ripgrep_dpkg_query, changed_when: no, failed_when: no, tags: [ripgrep] }
-  - { name: "ripgrep: Download packages", get_url: { url: "https://github.com/BurntSushi/ripgrep/releases/download/{{ ripgrep_version }}/ripgrep_{{ ripgrep_version }}_{{ ripgrep_platform }}.deb", dest: "{{ tmp_path }}/ripgrep-{{ ripgrep_version }}.deb", checksum: "{{ ripgrep_checksum }}" }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
+  - { name: "ripgrep: Check installation", become: yes, shell: "{{ dpkg_version_query.format('ripgrep', ripgrep_version) }}", register: ripgrep_dpkg_query, changed_when: no, failed_when: no, tags: [ripgrep] }
+  - { name: "ripgrep: Download packages", get_url: { url: "https://github.com/BurntSushi/ripgrep/releases/download/{{ ripgrep_version }}/ripgrep_{{ ripgrep_version }}{{ ripgrep_patch_release | default('') }}_{{ ripgrep_platform }}.deb", dest: "{{ tmp_path }}/ripgrep-{{ ripgrep_version }}.deb", checksum: "{{ ripgrep_checksum }}" }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
   - { name: "ripgrep: Install packages", become: yes, apt: { deb: "{{ tmp_path }}/ripgrep-{{ ripgrep_version }}.deb", state: present }, when: "ripgrep_dpkg_query.rc > 0", tags: [ripgrep] }
   # 955. fzf
   - { name: "fzf: Check installation", become: yes, command: "ls /usr/local/bin/fzf-{{ fzf_version }}", register: fzf_install_query, changed_when: no, failed_when: no, tags: [fzf] }
