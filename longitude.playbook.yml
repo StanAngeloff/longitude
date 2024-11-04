@@ -255,9 +255,9 @@
     pup_platform: linux_amd64
     pup_checksum: "sha256:ec3d29e9fb375b87ac492c8b546ad6be84b0c0b49dab7ff4c6b582eac71ba01c"
 
-    jq_version: 1.6
+    jq_version: 1.7.1
     jq_platform: linux64
-    jq_checksum: "sha256:af986793a515d500ab2d35f8d2aecd656e764504b789b66d7e1a0b727a124c44"
+    jq_checksum: "sha256:5942c9b0934e510ee61eb3e30273f1b3fe2590df93933a93d7c58b81d19c8ff5"
 
     fx_version: 24.0.0
     fx_platform: linux_amd64
@@ -1154,9 +1154,9 @@
   - { name: "pup: Install pup", shell: "cd {{ tmp_path }} && unzip -o 'pup-{{ pup_version }}.zip' && mv ./pup '/usr/local/bin/pup-{{ pup_version }}'", when: "pup_install_query.rc > 0" }
   - { name: "pup: Set up alternatives", become: yes, alternatives: { name: "pup", link: "/usr/local/bin/pup", path: "/usr/local/bin/pup-{{ pup_version }}" } }
   # 965. jq
-  - { name: "jq: Check installation", become: yes, command: "ls /usr/local/bin/jq-{{ jq_version }}", register: jq_install_query, changed_when: no, failed_when: no }
-  - { name: "jq: Download jq", get_url: { url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-{{ jq_platform }}", dest: "/usr/local/bin/jq-{{ jq_version }}", mode: "+x", checksum: "{{ jq_checksum }}" }, when: "jq_install_query.rc > 0" }
-  - { name: "jq: Set up alternatives", become: yes, alternatives: { name: "jq", link: "/usr/local/bin/jq", path: "/usr/local/bin/jq-{{ jq_version }}" } }
+  - { name: "jq: Check installation", become: yes, command: "ls /usr/local/bin/jq-{{ jq_version }}", register: jq_install_query, changed_when: no, failed_when: no, tags: [jq] }
+  - { name: "jq: Download jq", get_url: { url: "https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-{{ jq_platform }}", dest: "/usr/local/bin/jq-{{ jq_version }}", mode: "+x", checksum: "{{ jq_checksum }}" }, when: "jq_install_query.rc > 0", tags: [jq] }
+  - { name: "jq: Set up alternatives", become: yes, alternatives: { name: "jq", link: "/usr/local/bin/jq", path: "/usr/local/bin/jq-{{ jq_version }}" }, tags: [jq] }
   # 966. fx
   - { name: "fx: Check installation", become: yes, command: "ls /usr/local/bin/fx-{{ fx_version }}", register: fx_install_query, changed_when: no, failed_when: no, tags: [fx] }
   - { name: "fx: Download fx", get_url: { url: "https://github.com/antonmedv/fx/releases/download/{{ fx_version }}/fx_{{ fx_platform }}", dest: "/usr/local/bin/fx-{{ fx_version }}", mode: "+x", checksum: "{{ fx_checksum }}" }, when: "fx_install_query.rc > 0", tags: [fx] }
