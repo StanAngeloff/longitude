@@ -661,7 +661,7 @@
       { line: "nodejs system", regexp: "^nodejs\\b" },
       { line: "python system", regexp: "^python\\b" },
       { line: "ruby {{ ruby_version }}", regexp: "^ruby\\b" },
-      { line: "wasmtime {{ wasmtime_version }}", regexp: "^wasmtime\\b" },
+      { line: "wasmtime v{{ wasmtime_version }}", regexp: "^wasmtime\\b" },
     ] }
   - name: "asdf: Install programs"
     shell: |
