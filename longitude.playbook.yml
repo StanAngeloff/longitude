@@ -187,8 +187,8 @@
     thunderbird_platform: linux-x86_64
     thunderbird_checksum: 'sha256:4a8320960a1d1b15cee834bd2ef5bc2633354ad601f7b61efd719bec743a1db5'
 
-    neovim_version: 0.10.1
-    neovim_checksum: "sha256:c4762d54cadfd9fa4497c7969197802c9cf9e0d926c39e561f0bd170e36c8aa0"
+    neovim_version: 0.10.3
+    neovim_checksum: "sha256:ce5f6462d4fa7150cc90c593955f66f7707ab5edc1d18f87413ea482e096c24e"
     neovim_dictionaries: [en.utf-8, bg.utf-8]
 
     gcc_version: 13
@@ -197,7 +197,7 @@
     git_subrepo_tag: 0.4.3
 
     asdf_version: '0.14.0'
-    deno_version: '1.46.3'
+    deno_version: '2.1.4'
     direnv_version: '2.35.0'
     golang_version: '1.18.2'
     ruby_version: '3.1.2'
@@ -349,8 +349,8 @@
     ]
     libptytty_commit: b9694ea18e0dbd78213f55233a430325c13ad63e
 
-    tmux_version: 3.4
-    tmux_checksum: "sha256:551ab8dea0bf505c0ad6b7bb35ef567cdde0ccb84357df142c254f35a23e19aa"
+    tmux_version: 3.5a
+    tmux_checksum: "sha256:16216bd0877170dfcc64157085ba9013610b12b082548c7c9542cc0103198951"
 
     tig_version: 2.5.10
     tig_checksum: "sha256:f655cc1366fc10058a2bd505bb88ca78e653ff7526c1b81774c44b9d841210e3"
@@ -1252,7 +1252,7 @@
   # 1020. Dotfiles install Vim plug-ins
   - { name: "Dotfiles: Install vim-plug", get_url: { url: "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim", dest: "{{ ansible_env.HOME }}/.vim/autoload/plug.vim" }, register: vim_plug_installed, tags: [dotfiles] }
   - { name: "Dotfiles: Disable Git fsckObjects", command: "git config --global fetch.fsckObjects false", changed_when: no, tags: [dotfiles] }
-  - { name: "Dotfiles: Download Vim dictionaries", get_url: { url: "http://ftp.vim.org/vim/runtime/spell/{{ item[0] }}.{{ item[1] }}", dest: "{{ ansible_env.HOME }}/.config/nvim/spell/{{ item[0] }}.{{ item[1] }}" }, tags: [dotfiles, vim, neovim], with_nested: [
+  - { name: "Dotfiles: Download Vim dictionaries", get_url: { url: "http://ftp.surfnet.nl/vim/runtime/spell/{{ item[0] }}.{{ item[1] }}", dest: "{{ ansible_env.HOME }}/.config/nvim/spell/{{ item[0] }}.{{ item[1] }}" }, tags: [dotfiles, vim, neovim], with_nested: [
       "{{ neovim_dictionaries }}",
       [spl, sug]
     ] }
