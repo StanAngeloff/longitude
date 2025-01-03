@@ -1815,6 +1815,9 @@
         if which composer 1>/dev/null 2>&1; then
         {{ indent }}{{ su }} "composer clear-cache -n --quiet" 1>/dev/null
         fi
+        if which pnpm 1>/dev/null 2>&1; then
+        {{ indent }}{{ su }} "pnpm store prune" 1>/dev/null
+        fi
         if which npm 1>/dev/null 2>&1; then
         {{ indent }}{{ su }} "npm cache clean --force --loglevel error" 1>/dev/null
         fi
