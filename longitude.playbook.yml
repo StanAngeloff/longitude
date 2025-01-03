@@ -233,9 +233,6 @@
       default-cache-ttl: 3600
       max-cache-ttl: 7200
 
-    authy_desktop_version: 2.2.1
-    authy_desktop_checksum: "sha256:fdad2931755dee6129ee868dda604826fe6e3afd7343782f7e08b3d572fd6663"
-
     android_studio_version: 2024.1.1.12
     android_studio_checksum: "sha256:42f8bf31ce0d124ddd11195f662a30064d8f9aab206e5e66839e876a6bc6eda2"
     android_home: /opt/android/sdk
@@ -1587,42 +1584,6 @@
     tags: [tesseract]
   - { name: "Tesseract: Update apt cache", become: yes, apt: { update_cache: yes }, when: tesseract_pin_priorities.changed, tags: [tesseract] }
   - { name: "Tesseract: Install packages", become: yes, apt: { pkg: "{{ ('tesseract-ocr tesseract-ocr-' + tesseract_languages|join(' tesseract-ocr-')).split(' ') }}", state: present }, tags: [tesseract] }
-
-  # 1900. Authy Desktop
-  #
-  # See https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=authy
-  #
-  - { name: "Authy: Install prerequisites", become: yes, apt: { pkg: [p7zip], state: present }, tags: [authy] }
-  - { name: "Authy: Check installation", become: yes, command: "ls /opt/authy-{{ authy_desktop_version }}", register: authy_desktop_install_query, changed_when: no, failed_when: no, tags: [authy] }
-  - { name: "Authy: Download Windows installer", get_url: { url: "https://s3.amazonaws.com/authy-electron-repository-production/authy/stable/{{ authy_desktop_version }}/win32/x64/Authy%20Desktop%20Setup%20{{ authy_desktop_version }}.exe", dest: "{{ tmp_path }}/AuthyDesktopSetup{{ authy_desktop_version }}.exe", checksum: "{{ authy_desktop_checksum }}" }, when: "authy_desktop_install_query.rc > 0", tags: [authy] }
-  - name: "Authy: Extract & install Electron app"
-    when: "authy_desktop_install_query.rc > 0"
-    shell: |
-      cd {{ tmp_path }} &&
-      7z x "AuthyDesktopSetup{{ authy_desktop_version }}.exe" -o"authy-{{ authy_desktop_version }}" -y &&
-      cd "authy-{{ authy_desktop_version }}" &&
-      7z x "authy-{{ authy_desktop_version }}-full.nupkg" -y &&
-      mkdir -p app &&
-      npx -q asar@2 e lib/net45/resources/app.asar app &&
-      cd app &&
-      npx -q yarn@1.22 add electron@9 &&
-      cp -R "{{ tmp_path }}/authy-{{ authy_desktop_version }}/app" /opt/authy-{{ authy_desktop_version }}
-    args: { executable: "/bin/bash" }
-    tags: [authy]
-  - name: "Authy: Add desktop icon"
-    copy:
-      dest: "{{ ansible_env.HOME }}/.local/share/applications/authy.desktop"
-      content: |
-        [Desktop Entry]
-        Version={{ authy_desktop_version }}
-        Type=Application
-        Terminal=false
-        Exec=/opt/authy-{{ authy_desktop_version }}/node_modules/electron/dist/electron /opt/authy-{{ authy_desktop_version }}/
-        Name=Authy
-        Comment=Two-Factor Authentication
-        Icon=/opt/authy-{{ authy_desktop_version }}/img/logos/icon128.png
-        StartupWMClass=Authy Desktop
-    tags: [authy]
 
   # 1950. Android Studio
   - { name: "Android: Install prerequisites", become: yes, apt: { pkg: ['libc6:i386', 'libncurses5:i386', 'libstdc++6:i386', 'lib32z1', 'libbz2-1.0:i386'], state: present }, tags: [android] }
